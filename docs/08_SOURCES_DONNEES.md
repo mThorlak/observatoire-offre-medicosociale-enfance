@@ -450,3 +450,40 @@ Chaque nouvelle source doit respecter les règles suivantes :
 - ne jamais modifier rétroactivement les données déjà intégrées.
 
 Ces principes garantissent la reproductibilité des analyses et l'évolutivité de l'observatoire.
+
+---
+
+# 14. Procédure d'acquisition automatisée — FINESS-Structures
+
+Constatée et testée le 13/08/2026, dans le cadre du premier POC.
+
+## API
+
+Le fichier journalier se découvre par l'API JSON de data.gouv.fr, jamais par une URL codée en dur (les URLs de téléchargement changent à chaque publication) :
+
+```
+GET https://www.data.gouv.fr/api/1/datasets/finess-structures-1/
+```
+
+La réponse porte une liste `resources`. Deux ressources y coexistent au même format (`json.gz`) : le flux journalier (`finess-structures-journalier-AAAAMMJJ.json.gz`) et un mensuel figé (`finess-structures-mensuel-AAAAMM.json.gz`). Chaque ressource porte `id`, `title`, `url` (téléchargement direct, hébergé sur `static.data.gouv.fr`), `filesize` (octets), `checksum` (`{type: "sha1", value: ...}`) et `last_modified`.
+
+## Licence
+
+Divergence repérée entre la page web du jeu de données (« Licence Ouverte / Open Licence v2.0 ») et la réponse de l'API (`ODbL`). Non tranchée à ce jour — à clarifier avant toute réutilisation publique des données produites par l'observatoire.
+
+## Script
+
+`scripts/telecharger_finess_structures.py` — interroge l'API, sélectionne la ressource journalière (jamais la mensuelle, distinguée par le préfixe du titre), télécharge en flux, puis vérifie systématiquement **taille et checksum** contre les valeurs publiées avant d'écrire un fichier de métadonnées à côté du `.json.gz` (provenance : id de ressource, URL, taille, checksum, date de publication source, date de téléchargement). Refuse explicitement si zéro ou plusieurs ressources journalières sont trouvées, ou si taille/checksum divergent — jamais de fichier silencieusement corrompu ou mal identifié. Aucune dépendance tierce.
+
+Testé hors réseau réel dans `tests/test_telecharger_finess_structures.py` (le double d'`urllib.request.urlopen` rejoue la forme de réponse constatée le 13/08/2026).
+
+## Automatisation
+
+Aucun environnement d'exécution utilisé pour développer ce projet (sessions Claude comprises) n'a d'accès réseau sortant vers data.gouv.fr — constaté par diagnostic complet (`curl -v` : tunnel CONNECT refusé par l'allowlist réseau, avant même d'atteindre le site). Le téléchargement quotidien est donc automatisé sur une infrastructure qui a un accès réseau normal : un workflow GitHub Actions planifié, `.github/workflows/finess-structures-quotidien.yml`, qui appelle le script ci-dessus tous les jours à 06:00 UTC.
+
+**Politique de rétention** (décidée le 13/08/2026, à revoir si le besoin d'historique change) :
+
+- chaque fichier quotidien est archivé en artefact GitHub Actions, conservé **35 jours** puis supprimé automatiquement par GitHub ;
+- le **1er de chaque mois**, le fichier du jour est en plus publié comme snapshot permanent — une GitHub Release taguée `finess-structures-AAAA-MM`, qui n'expire jamais.
+
+Le fichier brut n'est **jamais committé dans git** (voir `.gitignore`, `/donnees/`) : seuls les artefacts CI et les releases mensuelles en portent une copie durable, hors de l'historique git.

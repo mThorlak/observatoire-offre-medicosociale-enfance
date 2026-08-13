@@ -1,0 +1,120 @@
+name: FINESS-Structures — téléchargement quotidien
+
+# Automatise ce qu'aucune session Claude ne peut faire elle-même : le
+# téléchargement quotidien de l'extrait FINESS-Structures est bloqué depuis
+# les environnements d'exécution utilisés pour développer ce projet (accès
+# réseau sortant restreint). Un runner GitHub Actions a un accès réseau
+# normal, ce qui en fait un point d'exécution fiable pour cette tâche
+# récurrente — voir docs/08_SOURCES_DONNEES.md, section "Procédure
+# d'acquisition automatisée".
+#
+# STOCKAGE — deux mécanismes distincts, pas le même budget :
+#
+#   - Artefact GitHub Actions (fichier quotidien) : compte dans le quota
+#     "Actions & Packages storage" de la formule GitHub (500 Mo sur Free,
+#     partagé avec GitHub Packages, à l'échelle du compte/organisation —
+#     pas clairement confirmé si un dépôt public en est exempté, la
+#     documentation GitHub est ambiguë sur ce point précis). Fichier
+#     journalier ~50 Mo ⇒ un artefact conservé 35 jours representerait
+#     jusqu'à ~1,75 Go en simultané, largement au-delà des 500 Mo du plan
+#     Free si le quota s'applique. Rétention volontairement courte
+#     (7 jours par défaut, ajustable) tant que la consommation réelle n'a
+#     pas été observée.
+#
+#   - GitHub Release (snapshot mensuel) : mécanisme séparé, pas soumis au
+#     même quota. Limite officielle : 2 GiB par fichier, jusqu'à 1000
+#     assets par release, aucune limite documentée sur la taille cumulée.
+#     C'est donc l'archive durable de référence, indépendamment de ce que
+#     donnera le test de l'artefact quotidien.
+#
+# MODE TEST (13/08/2026) : le déclenchement automatique quotidien
+# (`schedule`) est volontairement désactivé (commenté) tant que la
+# consommation réelle de stockage n'a pas été vérifiée à la main
+# (Settings → Billing → Plans and usage, ou l'onglet Storage de l'écran
+# Actions du dépôt). Déclencher manuellement via l'onglet Actions →
+# "Run workflow" pour quelques essais, vérifier le stockage consommé,
+# ajuster retention_days si besoin, puis décommenter `schedule` une fois
+# rassuré.
+
+"on":
+  # schedule:
+  #   # 06:00 UTC, après la publication ANS observée vers 02:16 UTC.
+  #   # Désactivé volontairement — voir "MODE TEST" ci-dessus. Décommenter
+  #   # une fois la consommation de stockage réelle vérifiée sur quelques
+  #   # runs manuels.
+  #   - cron: "0 6 * * *"
+  workflow_dispatch:
+    inputs:
+      retention_days:
+        description: "Rétention de l'artefact quotidien (jours) — garder bas pendant les tests"
+        required: false
+        default: "7"
+      forcer_snapshot_mensuel:
+        description: "Publier quand même le snapshot mensuel (GitHub Release), même hors du 1er du mois — pour tester ce chemin sans attendre"
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: write  # requis pour publier le snapshot mensuel (gh release)
+
+jobs:
+  telecharger:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Télécharger et vérifier l'extrait du jour
+        id: telechargement
+        run: |
+          set -euo pipefail
+          mkdir -p donnees/finess-structures
+          JOUR="$(date -u +%Y%m%d)"
+          FICHIER="donnees/finess-structures/finess-structures-${JOUR}.json.gz"
+          python3 scripts/telecharger_finess_structures.py "$FICHIER"
+          echo "fichier=$FICHIER" >> "$GITHUB_OUTPUT"
+          echo "octets=$(stat -c%s "$FICHIER")" >> "$GITHUB_OUTPUT"
+
+      - name: Archiver le fichier du jour (rétention glissante, ajustable)
+        uses: actions/upload-artifact@v4
+        with:
+          name: finess-structures-${{ github.run_id }}
+          path: |
+            donnees/finess-structures/*.json.gz
+            donnees/finess-structures/*.json.gz.metadata.json
+          retention-days: ${{ fromJSON(inputs.retention_days || '7') }}
+          if-no-files-found: error
+
+      - name: Publier le snapshot mensuel permanent (le 1er du mois, ou forcé en test)
+        env:
+          GH_TOKEN: ${{ github.token }}
+          FORCER: ${{ inputs.forcer_snapshot_mensuel }}
+        run: |
+          set -euo pipefail
+          JOUR="$(date -u +%d)"
+          if [ "$JOUR" != "01" ] && [ "$FORCER" != "true" ]; then
+            echo "Pas le 1er du mois (jour=$JOUR) et forcer_snapshot_mensuel=false — rien à publier."
+            exit 0
+          fi
+          MOIS="$(date -u +%Y-%m)"
+          TAG="finess-structures-${MOIS}"
+          FICHIER="${{ steps.telechargement.outputs.fichier }}"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" "$FICHIER" --clobber
+          else
+            gh release create "$TAG" "$FICHIER" \
+              --title "FINESS-Structures ${MOIS}" \
+              --notes "Snapshot mensuel permanent, téléchargé et vérifié automatiquement le $(date -u +%Y-%m-%d). Voir docs/08_SOURCES_DONNEES.md."
+          fi
+
+      - name: Résumé du run
+        run: |
+          echo "### Résumé" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Fichier : ${{ steps.telechargement.outputs.fichier }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Taille  : ${{ steps.telechargement.outputs.octets }} octets" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Rétention artefact demandée : ${{ inputs.retention_days || '7' }} jour(s)" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Snapshot mensuel forcé : ${{ inputs.forcer_snapshot_mensuel || 'false' }}" >> "$GITHUB_STEP_SUMMARY"
