@@ -1,0 +1,16 @@
+# Données brutes FINESS téléchargées — jamais versionnées.
+# Voir docs/08_SOURCES_DONNEES.md pour la procédure d'acquisition.
+# Portée volontairement limitée à /donnees/ (racine du dépôt), et non à
+# *.json.gz partout : tests/echantillon/*.gz (OOM-15) doit rester committable.
+/donnees/
+
+# Entrepôts SQLite locaux (résultat de la commande `charger`)
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
+*.sqlite-journal
+
+# Python
+__pycache__/
+*.pyc
+*.egg-info/
