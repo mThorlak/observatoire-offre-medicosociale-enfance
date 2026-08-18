@@ -215,9 +215,9 @@ def commande_restituer(arguments) -> int:
     """Ouvre l'entrepôt déjà chargé, calcule l'indicateur, exporte le CSV et
     le rapport de synthèse. Rejouable en une seule commande après `charger`.
 
-    S'appuie sur `export_tabulaire.restituer` (couche 6, OOM-14), qui recourt
-    pour l'instant à un stub en attendant l'indicateur réel d'OOM-13 — voir
-    le docstring de ce module.
+    S'appuie sur `export_tabulaire.restituer` (couche 6, OOM-14), qui calcule
+    l'indicateur via `indicateurs.indicateur_departement_categorie` (couche 5,
+    OOM-13).
     """
     with Entrepot(arguments.base) as entrepot:
         resultat = et.restituer(entrepot, arguments.sortie)
