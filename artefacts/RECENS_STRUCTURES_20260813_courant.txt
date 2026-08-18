@@ -1,0 +1,333 @@
+# Recensement : donnees/finess-structures/finess-structures-20260813.json.gz
+# Duree 34 s | tableaux racines : {'__entete__': 2, 'gco': 1858, 'gcc': 135, 'pmej': 98180}
+
+CHEMIN                                                                                             PRESENT       NULS TYPES                        CARDINALITES           MAXLEN
+gcc                                                                                                    135          0 {'objet': 135}                                      
+gcc.dateDerniereMaj                                                                                    135          0 {'str': 135}                                        19
+gcc.egeDuGcc                                                                                           135          0 {'liste': 135}               {0: 135}               
+gcc.engagement                                                                                         135          0 {'liste': 135}               {0: 135}               
+gcc.etatObjet                                                                                          135          0 {'str': 135}                                        1
+gcc.evenement                                                                                          135          0 {'liste': 135}               {1: 135}               
+gcc.evenement[].codeEvenement                                                                          135          0 {'str': 135}                                        3
+gcc.evenement[].dateEnregistrement                                                                     135          0 {'str': 135}                                        19
+gcc.evenement[].dateEvenement                                                                          135          0 {'str': 135}                                        10
+gcc.evenement[].etatObjet1                                                                             135          0 {'str': 135}                                        3
+gcc.evenement[].evenementId                                                                            135          0 {'str': 135}                                        6
+gcc.evenement[].identifiantObjet1                                                                      135          0 {'str': 135}                                        3
+gcc.evenement[].identifiantObjet2                                                                      135        135 {'null': 135}                                       
+gcc.evenement[].systemeMaitre                                                                          135          0 {'str': 135}                                        2
+gcc.evenement[].typeObjet1                                                                             135          0 {'str': 135}                                        2
+gcc.evenement[].typeObjet2                                                                             135        135 {'null': 135}                                       
+gcc.gccId                                                                                              135          0 {'str': 135}                                        3
+gcc.nomGcc                                                                                             135          0 {'str': 135}                                        75
+gcc.numFinessGcc                                                                                       135          0 {'str': 135}                                        11
+gcc.pmejDuGcc                                                                                          135          0 {'liste': 135}               {1: 11, 2: 14, 3: 20   
+gcc.pmejDuGcc[].pmSmsseId                                                                              761          0 {'str': 761}                                        5
+gcc.pmejDuGcc[].typeRoleEntiteGroupe                                                                   761          0 {'str': 761}                                        1
+gcc.typeGcc                                                                                            135          0 {'str': 135}                                        3
+gco                                                                                                   1858          0 {'objet': 1858}                                     
+gco.egeDuGco                                                                                          1858          0 {'liste': 1858}              {0: 1858}              
+gco.pmSmsseId                                                                                         1858          0 {'str': 1858}                                       5
+gco.pmejDuGco                                                                                         1858          0 {'liste': 1858}              {0: 1855, 1: 1, 2: 2   
+gco.pmejDuGco[].pmSmsseId                                                                                5          0 {'str': 5}                                          5
+gco.pmejDuGco[].typeRoleEntiteGroupe                                                                     5          0 {'str': 5}                                          1
+gco.typeGco                                                                                           1858          0 {'str': 1858}                                       3
+pmej                                                                                                 98180          0 {'objet': 98180}                                    
+pmej.adresse                                                                                         98180          0 {'liste': 98180}             {1: 98180}             
+pmej.adresse[].codePostal                                                                            98180          0 {'str': 98180}                                      5
+pmej.adresse[].cogCommune                                                                            98180          0 {'str': 98180}                                      5
+pmej.adresse[].complementPointGeographique                                                           98180      84930 {'null': 84930, 'str': 132                          37
+pmej.adresse[].complementVoie                                                                        98180      95655 {'null': 95655, 'str': 252                          1
+pmej.adresse[].coordonneesGeographique                                                               98180      31687 {'objet': 66493, 'null': 3                          
+pmej.adresse[].coordonneesGeographique.cleInInteropBAN                                               66493          0 {'str': 66493}                                      22
+pmej.adresse[].coordonneesGeographique.coordonneeX                                                   66493          0 {'str': 66493}                                      10
+pmej.adresse[].coordonneesGeographique.coordonneeY                                                   66493          0 {'str': 66493}                                      10
+pmej.adresse[].coordonneesGeographique.directionLatitude                                             66493          0 {'str': 66493}                                      10
+pmej.adresse[].coordonneesGeographique.directionLongitude                                            66493          0 {'str': 66493}                                      10
+pmej.adresse[].coordonneesGeographique.scoreBAN                                                      66493          0 {'str': 66493}                                      18
+pmej.adresse[].libelleVoie                                                                           98180       8537 {'str': 89643, 'null': 853                          61
+pmej.adresse[].lieuDit                                                                               98180      89583 {'null': 89583, 'str': 859                          32
+pmej.adresse[].ligneAcheminement                                                                     98180          0 {'str': 98180}                                      45
+pmej.adresse[].ligneCinq                                                                             98180      98179 {'null': 98179, 'str': 1}                           8
+pmej.adresse[].ligneDeux                                                                             98180      98180 {'null': 98180}                                     
+pmej.adresse[].ligneQuatre                                                                           98180       8336 {'str': 89844, 'null': 833                          64
+pmej.adresse[].ligneSix                                                                              98180      78584 {'null': 78584, 'str': 195                          51
+pmej.adresse[].ligneTrois                                                                            98180      98180 {'null': 98180}                                     
+pmej.adresse[].ligneUne                                                                              98180      74283 {'null': 74283, 'str': 238                          72
+pmej.adresse[].numeroVoie                                                                            98180      24085 {'str': 74095, 'null': 240                          6
+pmej.adresse[].typeVoie                                                                              98180      32231 {'str': 65949, 'null': 322                          4
+pmej.adresse[].usageAdresse                                                                          98180          0 {'str': 98180}                                      2
+pmej.contact                                                                                         98180          0 {'liste': 98180}             {0: 21516, 1: 76664}   
+pmej.contact[].telecom                                                                               76664          0 {'objet': 76664}                                    
+pmej.contact[].telecom.courriel                                                                      76664      76618 {'null': 76618, 'str': 46}                          41
+pmej.contact[].telecom.telecopie                                                                     76664      45440 {'null': 45440, 'str': 312                          14
+pmej.contact[].telecom.telephone                                                                     76664        191 {'str': 76473, 'null': 191                          14
+pmej.contact[].typeContact                                                                           76664          0 {'objet': 76664}                                    
+pmej.contact[].typeContact.roleContact                                                               76664          0 {'str': 76664}                                      2
+pmej.dateDerniereMaj                                                                                 98180          0 {'str': 98180}                                      19
+pmej.ege                                                                                             98180          0 {'liste': 98180}             {0: 19646, 1: 63566,   
+pmej.ege[].adresse                                                                                  174556          0 {'liste': 174556}            {1: 169878, 2: 4244,   
+pmej.ege[].adresse[].codePostal                                                                     180505          0 {'str': 180505}                                     5
+pmej.ege[].adresse[].cogCommune                                                                     180505          0 {'str': 180505}                                     5
+pmej.ege[].adresse[].complementPointGeographique                                                    180505     152728 {'null': 152728, 'str': 27                          89
+pmej.ege[].adresse[].complementVoie                                                                 180505     174802 {'null': 174802, 'str': 57                          1
+pmej.ege[].adresse[].coordonneesGeographique                                                        180505      59935 {'objet': 120570, 'null':                           
+pmej.ege[].adresse[].coordonneesGeographique.cleInInteropBAN                                        120570          0 {'str': 120570}                                     23
+pmej.ege[].adresse[].coordonneesGeographique.coordonneeX                                            120570          0 {'str': 120570}                                     10
+pmej.ege[].adresse[].coordonneesGeographique.coordonneeY                                            120570          0 {'str': 120570}                                     10
+pmej.ege[].adresse[].coordonneesGeographique.directionLatitude                                      120570          0 {'str': 120570}                                     10
+pmej.ege[].adresse[].coordonneesGeographique.directionLongitude                                     120570          0 {'str': 120570}                                     10
+pmej.ege[].adresse[].coordonneesGeographique.scoreBAN                                               120570          0 {'str': 120570}                                     18
+pmej.ege[].adresse[].libelleVoie                                                                    180505      10542 {'str': 169963, 'null': 10                          61
+pmej.ege[].adresse[].lieuDit                                                                        180505     163238 {'str': 17267, 'null': 163                          32
+pmej.ege[].adresse[].ligneAcheminement                                                              180505       3780 {'str': 176725, 'null': 37                          45
+pmej.ege[].adresse[].ligneCinq                                                                      180505     180493 {'null': 180493, 'str': 12                          8
+pmej.ege[].adresse[].ligneDeux                                                                      180505     180027 {'null': 180027, 'str': 47                          32
+pmej.ege[].adresse[].ligneQuatre                                                                    180505      10359 {'str': 170146, 'null': 10                          64
+pmej.ege[].adresse[].ligneSix                                                                       180505     157351 {'null': 157351, 'str': 23                          51
+pmej.ege[].adresse[].ligneTrois                                                                     180505     180505 {'null': 180505}                                    
+pmej.ege[].adresse[].ligneUne                                                                       180505     173752 {'null': 173752, 'str': 67                          80
+pmej.ege[].adresse[].numeroVoie                                                                     180505      39584 {'str': 140921, 'null': 39                          8
+pmej.ege[].adresse[].typeVoie                                                                       180505      39880 {'str': 140625, 'null': 39                          4
+pmej.ege[].adresse[].usageAdresse                                                                   180505          0 {'str': 180505}                                     2
+pmej.ege[].categorieentiteGeographiqueExercice                                                      174556         13 {'str': 174543, 'null': 13                          3
+pmej.ege[].contact                                                                                  174556          0 {'liste': 174556}            {0: 28677, 1: 145879   
+pmej.ege[].contact[].telecom                                                                        145879          0 {'objet': 145879}                                   
+pmej.ege[].contact[].telecom.courriel                                                               145879     145575 {'null': 145575, 'str': 30                          58
+pmej.ege[].contact[].telecom.telecopie                                                              145879      81153 {'null': 81153, 'str': 647                          14
+pmej.ege[].contact[].telecom.telephone                                                              145879        234 {'str': 145645, 'null': 23                          21
+pmej.ege[].contact[].typeContact                                                                    145879          0 {'objet': 145879}                                   
+pmej.ege[].contact[].typeContact.roleContact                                                        145879          0 {'str': 145879}                                     2
+pmej.ege[].dateDerniereMaj                                                                          174556          0 {'str': 174556}                                     19
+pmej.ege[].engagement                                                                               174556          0 {'liste': 174556}            {0: 131694, 1: 26803   
+pmej.ege[].engagement[].autoriteRegulationEngagement                                                 77428          0 {'liste': 77428}             {0: 77174, 1: 245, 2   
+pmej.ege[].engagement[].autoriteRegulationEngagement[].autoriteRegulationid                            263          0 {'str': 263}                                        8
+pmej.ege[].engagement[].dateCaduciteEngagement                                                       77428      77422 {'null': 77422, 'str': 6}                           10
+pmej.ege[].engagement[].dateEffetEngagement                                                          77428         24 {'str': 77404, 'null': 24}                          10
+pmej.ege[].engagement[].dateFinEngagement                                                            77428      77174 {'null': 77174, 'str': 254                          10
+pmej.ege[].engagement[].dateNotificationEngagement                                                   77428      77174 {'null': 77174, 'str': 254                          10
+pmej.ege[].engagement[].dateSignatureEngagement                                                      77428         24 {'str': 77404, 'null': 24}                          10
+pmej.ege[].engagement[].engagementId                                                                 77428          0 {'str': 77428}                                      5
+pmej.ege[].engagement[].identifiantEngagement                                                        77428      77428 {'null': 77428}                                     
+pmej.ege[].engagement[].motifArrete                                                                  77428      77208 {'null': 77208, 'str': 220                          1
+pmej.ege[].engagement[].nomEngagement                                                                77428      77428 {'null': 77428}                                     
+pmej.ege[].engagement[].sousTypeEngagement                                                           77428         72 {'str': 77356, 'null': 72}                          3
+pmej.ege[].engagement[].typeEngagement                                                               77428        144 {'str': 77284, 'null': 144                          4
+pmej.ege[].etatObjet                                                                                174556          0 {'str': 174556}                                     1
+pmej.ege[].evenement                                                                                174556          0 {'liste': 174556}            {0: 47, 1: 714, 2: 8   
+pmej.ege[].evenement[].codeEvenement                                                                464560          0 {'str': 464560}                                     3
+pmej.ege[].evenement[].dateEnregistrement                                                           464560          0 {'str': 464560}                                     19
+pmej.ege[].evenement[].dateEvenement                                                                464560          0 {'str': 464560}                                     10
+pmej.ege[].evenement[].etatObjet1                                                                   464560       1095 {'str': 463465, 'null': 10                          3
+pmej.ege[].evenement[].evenementId                                                                  464560          0 {'str': 464560}                                     7
+pmej.ege[].evenement[].identifiantObjet1                                                            464560          0 {'str': 464560}                                     6
+pmej.ege[].evenement[].identifiantObjet2                                                            464560     464340 {'null': 464340, 'str': 22                          5
+pmej.ege[].evenement[].systemeMaitre                                                                464560          0 {'str': 464560}                                     2
+pmej.ege[].evenement[].typeObjet1                                                                   464560          0 {'str': 464560}                                     2
+pmej.ege[].evenement[].typeObjet2                                                                   464560     464340 {'null': 464340, 'str': 22                          2
+pmej.ege[].informationsGeneralesEGE                                                                 174556          0 {'objet': 174556}                                   
+pmej.ege[].informationsGeneralesEGE.complementDenominationEg                                        174556     157996 {'null': 157996, 'str': 16                          70
+pmej.ege[].informationsGeneralesEGE.dateFermeture                                                   174556     104847 {'null': 104847, 'str': 69                          10
+pmej.ege[].informationsGeneralesEGE.dateOuverture                                                   174556         47 {'str': 174509, 'null': 47                          10
+pmej.ege[].informationsGeneralesEGE.datePremiereAutorisation                                        174556       1322 {'str': 173234, 'null': 13                          10
+pmej.ege[].informationsGeneralesEGE.egeId                                                           174556          0 {'str': 174556}                                     6
+pmej.ege[].informationsGeneralesEGE.espic                                                           174556     153227 {'liste': 21329, 'null': 1   {1: 21329}             
+pmej.ege[].informationsGeneralesEGE.nomEgeCourt                                                     174556          0 {'str': 174556}                                     38
+pmej.ege[].informationsGeneralesEGE.nomEgeLong                                                      174556          0 {'str': 174556}                                     82
+pmej.ege[].informationsGeneralesEGE.numFinessEge                                                    174556          0 {'str': 174556}                                     9
+pmej.ege[].informationsGeneralesEGE.numeroEducationNationale                                        174556     169996 {'null': 169996, 'str': 45                          8
+pmej.ege[].informationsGeneralesEGE.numeroReferenceExterne                                          174556     151255 {'null': 151255, 'str': 23                          10
+pmej.ege[].informationsGeneralesEGE.siret                                                           174556      35323 {'str': 139233, 'null': 35                          14
+pmej.ege[].modefixationtarifaire                                                                    174556         13 {'str': 174543, 'null': 13                          2
+pmej.ege[].roleEge                                                                                  174556          0 {'liste': 174556}            {0: 144840, 1: 26763   
+pmej.ege[].roleEge[].idEgeNonPorteuse                                                                47494          0 {'str': 47494}                                      6
+pmej.ege[].roleEge[].idEgePorteuse                                                                   47494          0 {'str': 47494}                                      6
+pmej.ege[].roleEge[].roleRelationEge                                                                 47494          0 {'str': 47494}                                      1
+pmej.ege[].typeBudget                                                                               174556         13 {'liste': 174543, 'null':    {1: 174543}            
+pmej.engagement                                                                                      98180          0 {'liste': 98180}             {0: 98149, 1: 28, 2:   
+pmej.engagement[].autoriteRegulationEngagement                                                          37          0 {'liste': 37}                {1: 37}                
+pmej.engagement[].autoriteRegulationEngagement[].autoriteRegulationid                                   37          0 {'str': 37}                                         6
+pmej.engagement[].dateCaduciteEngagement                                                                37         37 {'null': 37}                                        
+pmej.engagement[].dateEffetEngagement                                                                   37          0 {'str': 37}                                         10
+pmej.engagement[].dateFinEngagement                                                                     37          0 {'str': 37}                                         10
+pmej.engagement[].dateNotificationEngagement                                                            37          0 {'str': 37}                                         10
+pmej.engagement[].dateSignatureEngagement                                                               37          0 {'str': 37}                                         10
+pmej.engagement[].engagementId                                                                          37          0 {'str': 37}                                         5
+pmej.engagement[].identifiantEngagement                                                                 37         37 {'null': 37}                                        
+pmej.engagement[].motifArrete                                                                           37         12 {'str': 25, 'null': 12}                             1
+pmej.engagement[].nomEngagement                                                                         37         37 {'null': 37}                                        
+pmej.engagement[].sousTypeEngagement                                                                    37          8 {'str': 29, 'null': 8}                              3
+pmej.engagement[].typeEngagement                                                                        37          0 {'str': 37}                                         4
+pmej.etatObjet                                                                                       98180          0 {'str': 98180}                                      1
+pmej.evenement                                                                                       98180          0 {'liste': 98180}             {1: 34252, 2: 61057,   
+pmej.evenement[].codeEvenement                                                                      165199          0 {'str': 165199}                                     3
+pmej.evenement[].dateEnregistrement                                                                 165199          0 {'str': 165199}                                     19
+pmej.evenement[].dateEvenement                                                                      165199          0 {'str': 165199}                                     10
+pmej.evenement[].etatObjet1                                                                         165199          0 {'str': 165199}                                     3
+pmej.evenement[].evenementId                                                                        165199          0 {'str': 165199}                                     7
+pmej.evenement[].identifiantObjet1                                                                  165199          0 {'str': 165199}                                     5
+pmej.evenement[].identifiantObjet2                                                                  165199     165185 {'null': 165185, 'str': 14                          5
+pmej.evenement[].systemeMaitre                                                                      165199          0 {'str': 165199}                                     2
+pmej.evenement[].typeObjet1                                                                         165199          0 {'str': 165199}                                     2
+pmej.evenement[].typeObjet2                                                                         165199     165185 {'null': 165185, 'str': 14                          2
+pmej.informationsGeneralesPMEJ                                                                       98180          0 {'objet': 98180}                                    
+pmej.informationsGeneralesPMEJ.categorieentiteGeographiqueExercice                                   98180      98180 {'null': 98180}                                     
+pmej.informationsGeneralesPMEJ.codeApe                                                               98180      16376 {'str': 81804, 'null': 163                          6
+pmej.informationsGeneralesPMEJ.complementAdressePmSmsse                                              98180      92045 {'null': 92045, 'str': 613                          35
+pmej.informationsGeneralesPMEJ.dateCreation                                                          98180          0 {'str': 98180}                                      10
+pmej.informationsGeneralesPMEJ.dateFermeture                                                         98180      54163 {'str': 44017, 'null': 541                          10
+pmej.informationsGeneralesPMEJ.denominationLonguePmSmsse                                             98180          0 {'str': 98180}                                      98
+pmej.informationsGeneralesPMEJ.denominationPm                                                        98180          0 {'str': 98180}                                      38
+pmej.informationsGeneralesPMEJ.fonctionPublique                                                      98180      82614 {'str': 15566, 'null': 826                          2
+pmej.informationsGeneralesPMEJ.numFinessPm                                                           98180          0 {'str': 98180}                                      9
+pmej.informationsGeneralesPMEJ.pmSmsseId                                                             98180          0 {'str': 98180}                                      5
+pmej.informationsGeneralesPMEJ.siren                                                                 98180      16376 {'str': 81804, 'null': 163                          9
+pmej.informationsGeneralesPMEJ.statutJuridique                                                       98180          0 {'str': 98180}                                      2
+pmej.informationsGeneralesPMEJ.typeGroupeGco                                                         98180      96322 {'null': 96322, 'str': 185                          3
+pmej.informationsGeneralesPMEJ.typePersonneMorale                                                    98180          0 {'str': 98180}                                      2
+
+
+# Valeurs distinctes observees (champs courts)
+gcc.dateDerniereMaj -> 0 valeurs : {}
+gcc.etatObjet -> 1 valeurs : {'A': 135}
+gcc.evenement[].codeEvenement -> 1 valeurs : {'003': 135}
+gcc.evenement[].dateEnregistrement -> 0 valeurs : {}
+gcc.evenement[].dateEvenement -> 8 valeurs : {'2017-01-01': 127, '2023-01-01': 2, '2022-04-01': 1, '2018-07-01': 1, '2024-01-01': 1, '2019-01-01': 1, '2020-01-01': 1, '2023-03-01': 1}
+gcc.evenement[].etatObjet1 -> 1 valeurs : {'003': 135}
+gcc.evenement[].evenementId -> 60+ valeurs : {'732817': 1, '733302': 1, '733303': 1, '733397': 1, '733403': 1, '732685': 1, '732691': 1, '732917': 1, '732696': 1, '732959': 1, '732708': 1, '732713': 1}
+gcc.evenement[].identifiantObjet1 -> 60+ valeurs : {'1': 1, '2': 1, '3': 1, '4': 1, '5': 1, '6': 1, '7': 1, '8': 1, '9': 1, '10': 1, '11': 1, '12': 1}
+gcc.evenement[].systemeMaitre -> 1 valeurs : {'01': 135}
+gcc.evenement[].typeObjet1 -> 1 valeurs : {'GR': 135}
+gcc.gccId -> 60+ valeurs : {'1': 1, '2': 1, '3': 1, '4': 1, '5': 1, '6': 1, '7': 1, '8': 1, '9': 1, '10': 1, '11': 1, '12': 1}
+gcc.nomGcc -> 60+ valeurs : {'77 Nord': 1, '77 Sud': 1, '93/95': 1, 'Aisne Nord': 1, 'Alpes Dauphiné': 1, 'Alpes du Sud': 1, 'Alpes Maritimes': 1, 'Armor': 1, 'Artois': 1, 'Artois-Ternois': 1, 'Atlantique 17': 1, 'Béarn-Soule': 1}
+gcc.numFinessGcc -> 60+ valeurs : {'49824516535': 1, '49649033062': 1, '49473549597': 1, '49298066124': 1, '49122582650': 1, '48947099189': 1, '48771615712': 1, '48596132240': 1, '48420648775': 1, '48245165302': 1, '48069681830': 1, '47894198366': 1}
+gcc.pmejDuGcc[].pmSmsseId -> 60+ valeurs : {'15052': 1, '15159': 1, '15163': 1, '15165': 1, '45502': 1, '45503': 1, '45505': 1, '15155': 1, '15156': 1, '75685': 1, '75686': 1, '75983': 1}
+gcc.pmejDuGcc[].typeRoleEntiteGroupe -> 2 valeurs : {'M': 626, 'S': 135}
+gcc.typeGcc -> 2 valeurs : {'001': 131, '002': 4}
+gco.pmSmsseId -> 60+ valeurs : {'403': 1, '405': 1, '421': 1, '422': 1, '448': 1, '459': 1, '499': 1, '512': 1, '520': 1, '524': 1, '536': 1, '547': 1}
+gco.pmejDuGco[].pmSmsseId -> 5 valeurs : {'23719': 1, '23721': 1, '72065': 1, '69656': 1, '29338': 1}
+gco.pmejDuGco[].typeRoleEntiteGroupe -> 1 valeurs : {'M': 5}
+gco.typeGco -> 4 valeurs : {'003': 942, '001': 814, '004': 66, '002': 36}
+pmej.adresse[].codePostal -> 60+ valeurs : {'01000': 39, '01110': 18, '01100': 17, '01500': 11, '01300': 10, '01150': 9, '01120': 9, '01700': 9, '01480': 8, '01400': 8, '01200': 8, '01170': 7}
+pmej.adresse[].cogCommune -> 60+ valeurs : {'01053': 12, '01185': 10, '01034': 4, '01004': 3, '01384': 3, '01194': 2, '01216': 2, '01272': 2, '01108': 2, '01202': 2, '01262': 2, '01263': 2}
+pmej.adresse[].complementPointGeographique -> 60+ valeurs : {'MAIRIE': 91, 'HOTEL DE VILLE': 11, 'COURS LADOUCETTE': 2, 'ZUP NORD': 1, 'LE KEYNES': 1, 'LES LUYERS': 1, 'LA SAULSAIE': 1, "LA COMBE D'EVUAZ": 1, 'CENTRE SOCIAL': 1, 'LE TALISMAN': 1, 'CITE SENIORS': 1, 'CHASSIN': 1}
+pmej.adresse[].complementVoie -> 4 valeurs : {'B': 2142, 'T': 290, 'C': 76, 'Q': 17}
+pmej.adresse[].coordonneesGeographique.cleInInteropBAN -> 60+ valeurs : {'01143_0515_00240': 1, '01053_1950_00062': 1, '01053_1890_00012': 1, '01034_0400_00054': 1, '01185_0070_00311': 1, '01185_0070': 1, '01185_0440': 1, '01053_2380_00005': 1, '01185_0100': 1, '01185_0620_00038': 1, '01272_0180_00150': 1, '01185_0200': 1}
+pmej.adresse[].coordonneesGeographique.coordonneeX -> 60+ valeurs : {'5.684769': 2, '5.35032': 2, '6.139885': 1, '5.254203': 1, '5.237126': 1, '5.60329': 1, '5.602988': 1, '5.602752': 1, '5.226104': 1, '5.605159': 1, '5.602917': 1, '5.001857': 1}
+pmej.adresse[].coordonneesGeographique.coordonneeY -> 60+ valeurs : {'45.761585': 2, '45.90124': 2, '46.362063': 1, '46.211257': 1, '46.191013': 1, '45.980306': 1, '45.979741': 1, '45.984814': 1, '46.200985': 1, '45.89027': 1, '45.985367': 1, '46.163165': 1}
+pmej.adresse[].coordonneesGeographique.directionLatitude -> 60+ valeurs : {'6521545.08': 2, '6536218.29': 2, '6589480.53': 1, '6570414.61': 1, '6568129.95': 1, '6545608.92': 1, '6545545.44': 1, '6546107.89': 1, '6569212.89': 1, '6535620.61': 1, '6546169.69': 1, '6564551.4': 1}
+pmej.adresse[].coordonneesGeographique.directionLongitude -> 60+ valeurs : {'908642.19': 2, '882197.73': 2, '941342.52': 1, '873766.07': 1, '872513.72': 1, '901511.88': 1, '901490.58': 1, '901453.76': 1, '871632.78': 1, '901986.32': 1, '901464.5': 1, '854453.7': 1}
+pmej.adresse[].coordonneesGeographique.scoreBAN -> 60+ valeurs : {'0.96249': 3, '0.964': 3, '0.95243': 2, '0.97018': 2, '0.94941': 2, '0.97551': 2, '0.96513': 2, '0.9596': 2, '0.96462': 2, '0.94633': 1, '0.94487': 1, '0.96143': 1}
+pmej.adresse[].libelleVoie -> 60+ valeurs : {'GRANDE RUE': 3, 'DE JASSERON': 2, 'GEORGES GIRERD': 2, 'DE LA CHAPELLE': 2, 'FELIX MANGINI': 2, 'ALSACE LORRAINE': 2, 'NATIONALE': 1, 'DU LYCEE': 1, "DU CHATEAU D'EAU": 1, 'DES VILLAS': 1, 'DES CHANOINESSES': 1, "DE LA GRAND'COTE": 1}
+pmej.adresse[].lieuDit -> 60+ valeurs : {'BP 114': 2, 'B.P. 818': 2, 'CS 20100': 2, 'BP 41': 2, 'BP 401': 2, 'BP 68': 2, 'BP 139': 2, 'BP 90419': 2, 'BP 59': 2, 'LE VILLAGE': 1, 'ST HENRI': 1, 'SAINT MARTIN': 1}
+pmej.adresse[].ligneAcheminement -> 60+ valeurs : {'BOURG EN BRESSE': 19, 'BELLEY': 5, 'JASSANS RIOTTIER': 4, 'LAGNIEU': 3, 'MONTLUEL': 3, 'MIRIBEL': 3, 'GEX': 3, 'PONT DE VEYLE': 3, 'MEXIMIEUX': 3, 'LHUIS': 2, 'COLIGNY': 2, 'PONT D AIN': 2}
+pmej.adresse[].ligneCinq -> 1 valeurs : {'Mausoleo': 1}
+pmej.adresse[].ligneQuatre -> 60+ valeurs : {'RUE NATIONALE': 1, '5 RUE DU LYCEE': 1, '72 RUE DE LYON': 1, 'RUE CAEERINETTE': 1, 'RUE DE LA MAIRIE': 1, '5 RUE DES CRETS': 1, '2 AVENUE MANGINI': 1, 'RUE ROMAN PETIT': 1, 'GRANDE RUE': 1, '9 RUE DU LEVANT': 1, 'LES MURES': 1, 'RUE DES VILLAS': 1}
+pmej.adresse[].ligneSix -> 60+ valeurs : {'01100 Oyonnax': 10, '01200 Valserhône': 6, '01300 Belley': 4, '01170 Gex': 3, '01700 Miribel': 3, '01150 Lagnieu': 2, '01800 Meximieux': 2, '01120 Montluel': 2, '01130 Nantua': 2, '01960 Péronnas': 2, '01600 Trévoux': 2, '01440 Viriat': 2}
+pmej.adresse[].ligneUne -> 60+ valeurs : {'PHARMACIE ROUX': 4, 'PHARMACIE DOUCE': 2, 'PHARMACIE FAYET': 2, 'LABM AXEL TRENY': 1, 'PHARMACIE ORSET': 1, 'PHARMACIE TRAN': 1, 'PHARMACIE GROSS': 1, 'SELARL TONY MENU': 1, 'PHARMACIE SCRIVE': 1, 'PHARMACIE DEBOVE': 1, 'PHARMACIE CHAPON': 1, 'PHARMACIE REVOL': 1}
+pmej.adresse[].numeroVoie -> 60+ valeurs : {'2': 6, '14': 4, '17': 3, '5': 3, '10': 3, '40': 3, '1': 3, '9': 3, '34': 2, '11': 2, '13': 2, '240': 1}
+pmej.adresse[].typeVoie -> 60+ valeurs : {'R': 826, 'AV': 567, 'BD': 230, 'PL': 221, 'RTE': 182, 'R   ': 148, 'CHE': 110, 'AV  ': 90, 'BD  ': 50, 'PL  ': 35, 'ALL': 33, 'QUA': 32}
+pmej.adresse[].usageAdresse -> 1 valeurs : {'02': 98180}
+pmej.contact[].telecom.courriel -> 4 valeurs : {'info@acdemes.fr': 1, 'reims@azae.com': 1, 'contact@epdef.fr': 1, 'dg@glaubitz.fr': 1}
+pmej.contact[].telecom.telecopie -> 60+ valeurs : {'0474226107': 2, '0479817589': 1, '0474404999': 1, '0474402303': 1, '0385301915': 1, '0474731002': 1, '0474210887': 1, '0474228941': 1, '0474381693': 1, '0474218136': 1, '0479425996': 1, '0474347184': 1}
+pmej.contact[].telecom.telephone -> 60+ valeurs : {'0450201235': 1, '0428631234': 1, '0474383000': 1, '0474223655': 1, '0479817580': 1, '0474404949': 1, '0474402323': 1, '0474352222': 1, '0474226685': 1, '0474360999': 1, '0474098900': 1, '0474398129': 1}
+pmej.contact[].typeContact.roleContact -> 1 valeurs : {'01': 76664}
+pmej.dateDerniereMaj -> 0 valeurs : {}
+pmej.ege[].adresse[].codePostal -> 60+ valeurs : {'01000': 41, '01110': 15, '01500': 12, '01700': 12, '01100': 11, '01300': 9, '01150': 9, '01120': 9, '01170': 7, '01200': 7, '01800': 6, '01480': 5}
+pmej.ege[].adresse[].cogCommune -> 60+ valeurs : {'01053': 20, '01185': 12, '01004': 6, '01249': 5, '01034': 4, '01202': 3, '01262': 3, '01283': 3, '01173': 3, '01079': 2, '01108': 2, '01388': 2}
+pmej.ege[].adresse[].complementPointGeographique -> 60+ valeurs : {'CH FLEYRIAT': 4, 'CHEF LIEU': 3, 'ORSAC': 3, 'MAIRIE': 3, 'CLINIQUE CONVERT': 2, '1ER ETAGE': 2, 'CENTRE SOCIAL': 2, 'HALTE GARDERIE': 2, 'MAISON DE SANTE': 2, 'PARC FOCH': 2, 'ZUP NORD': 1, 'LE VILLAGE': 1}
+pmej.ege[].adresse[].complementVoie -> 5 valeurs : {'B': 4790, 'T': 668, 'C': 161, ' ': 43, 'Q': 41}
+pmej.ege[].adresse[].coordonneesGeographique.cleInInteropBAN -> 60+ valeurs : {'01053_2380_00005': 3, '01283_0050_00188': 3, '01249_0250_00080': 3, '01185_0620': 2, '01004_0246_00010': 2, '01053_3615_00004': 2, '01053_1950_00062': 1, '01053_1890_00012': 1, '01034_0400_00052': 1, '01034_0400_00054': 1, '01185_0620_00135': 1, '01185_0070_00311': 1}
+pmej.ege[].adresse[].coordonneesGeographique.coordonneeX -> 60+ valeurs : {'5.226104': 3, '5.65062': 3, '4.954051': 3, '5.684769': 2, '5.602874': 2, '5.35109': 2, '5.35032': 2, '5.23254': 2, '5.254203': 1, '5.237126': 1, '5.602678': 1, '5.60329': 1}
+pmej.ege[].adresse[].coordonneesGeographique.coordonneeY -> 60+ valeurs : {'46.200985': 3, '46.254637': 3, '45.82699': 3, '45.761585': 2, '45.985913': 2, '45.968378': 2, '45.90124': 2, '46.196487': 2, '46.211257': 1, '46.191013': 1, '45.986236': 1, '45.980306': 1}
+pmej.ege[].adresse[].coordonneesGeographique.directionLatitude -> 60+ valeurs : {'6569212.89': 3, '6576178.36': 3, '6527138.03': 3, '6521545.08': 2, '6546230.18': 2, '6543672.45': 2, '6536218.29': 2, '6568727.59': 2, '6570414.61': 1, '6568129.95': 1, '6546265.53': 1, '6545608.92': 1}
+pmej.ege[].adresse[].coordonneesGeographique.directionLongitude -> 60+ valeurs : {'871632.78': 3, '904151.72': 3, '851689.74': 3, '908642.19': 2, '901459.17': 2, '882035.45': 2, '882197.73': 2, '872142.99': 2, '873766.07': 1, '872513.72': 1, '901442.83': 1, '901511.88': 1}
+pmej.ege[].adresse[].coordonneesGeographique.scoreBAN -> 60+ valeurs : {'0.97018': 6, '0.96249': 4, '0.96209': 3, '0.95267': 3, '0.94941': 2, '0.97393': 2, '0.95162': 2, '0.95805': 2, '0.97551': 2, '0.9596': 2, '0.94633': 1, '0.94487': 1}
+pmej.ege[].adresse[].libelleVoie -> 60+ valeurs : {'DU LYCEE': 4, 'DES VILLAS': 3, 'ANATOLE FRANCE': 3, 'TONY FERRET': 3, 'DE JASSERON': 2, 'GEORGES GIRERD': 2, 'FELIX MANGINI': 2, 'GRANDE RUE': 2, "DE L'HIPPODROME": 1, 'DE LYON': 1, 'DE LA CHAPELLE': 1, 'NATIONALE': 1}
+pmej.ege[].adresse[].lieuDit -> 60+ valeurs : {'BP 41': 6, 'CS 90401': 4, 'BP 401': 3, 'BP 68': 3, 'BP 415': 3, 'BP 437': 3, 'BP 132': 2, 'BP 139': 2, 'BP 818': 2, 'BP 615': 2, 'BP 55': 2, 'BP 102': 2}
+pmej.ege[].adresse[].ligneAcheminement -> 60+ valeurs : {'BOURG EN BRESSE': 19, 'Valserhône': 5, 'BELLEY': 4, 'OYONNAX': 4, 'MIRIBEL': 4, 'Belley': 4, 'LAGNIEU': 3, 'MONTLUEL': 3, 'GEX': 3, 'COLIGNY': 2, 'ARBENT': 2, 'MEXIMIEUX': 2}
+pmej.ege[].adresse[].ligneCinq -> 2 valeurs : {'': 11, 'Mausoleo': 1}
+pmej.ege[].adresse[].ligneDeux -> 60+ valeurs : {'\\ ': 45, 'ANTENNE': 8, 'MAIRIE': 7, 'CENTRE SOCIAL': 6, ' ': 6, 'MAISON MEDICALE': 3, '1° ETAGE': 3, 'ANTENNE DE TULLE': 2, 'CCAS': 2, 'ESPACE PEJ': 1, 'HOP. DE CANNES': 1, 'VILLA ROSE': 1}
+pmej.ege[].adresse[].ligneQuatre -> 60+ valeurs : {'5 RUE DU LYCEE': 3, 'RUE DES VILLAS': 2, 'RUE NATIONALE': 1, '6 RUE DU LYCEE': 1, 'CHEF LIEU': 1, 'GRANGE POURRET': 1, '5 RUE DES CRETS': 1, '2 RUE DU DR ROUX': 1, '190 RUE MASONOD': 1, 'RUE ROMAN PETIT': 1, 'RUE ROMANS PETIT': 1, 'CITE DU PLANET': 1}
+pmej.ege[].adresse[].ligneSix -> 60+ valeurs : {'01100 Oyonnax': 9, '01200 Valserhône': 6, '01300 Belley': 4, '01170 Gex': 3, '01700 Miribel': 3, '01150 Lagnieu': 2, '01800 Meximieux': 2, '01120 Montluel': 2, '01130 Nantua': 2, '01960 Péronnas': 2, '01600 Trévoux': 2, '01440 Viriat': 2}
+pmej.ege[].adresse[].ligneUne -> 60+ valeurs : {'CENTRE DE PMI': 10, 'LBM DYNALAB': 8, 'CAMSP': 3, 'SSIAD': 3, 'NORAMEDIC': 3, 'SAMSAH': 2, 'ANTENNE': 2, 'AIN MEDICAL': 1, 'MEDICALIA AIN': 1, 'ISIS LYON NORD': 1, "EQUIPE D'OYONNAX": 1, 'ANTENNE HIRSON': 1}
+pmej.ege[].adresse[].numeroVoie -> 60+ valeurs : {'5': 5, '2': 5, '10': 4, '17': 3, '6': 3, '188': 3, '80': 3, '4': 3, '68': 2, '34': 2, '1': 2, '40': 2}
+pmej.ege[].adresse[].typeVoie -> 60+ valeurs : {'R': 1560, 'AV': 537, 'RTE': 256, 'PL': 209, 'BD': 148, 'R   ': 136, 'CHE': 109, 'ALL': 55, 'QUA': 42, 'IMP': 37, 'AV  ': 36, 'RTE ': 18}
+pmej.ege[].adresse[].usageAdresse -> 3 valeurs : {'03': 174556, '06': 3792, '04': 2157}
+pmej.ege[].categorieentiteGeographiqueExercice -> 60+ valeurs : {'620': 166, '202': 26, '610': 25, '500': 24, '170': 16, '460': 14, '355': 10, '200': 8, '209': 6, '181': 6, '108': 5, '362': 4}
+pmej.ege[].contact[].telecom.courriel -> 13 valeurs : {'mde@loiret.fr': 3, 'info@acdemes.fr': 1, 'cmas@issoudun.fr': 1, 'centre@unhaj.org': 1, 'saa@acesm.fr': 1, 'sau@acesm.fr': 1, 'lvg@asld41.com': 1, 'het41@orange.fr': 1, 'reims@azae.com': 1, 'caudry@epdsae.fr': 1, 'douai@epdsae.fr': 1, 'dg@acces68.fr': 1}
+pmej.ege[].contact[].telecom.telecopie -> 60+ valeurs : {'0478550019': 3, '0474221223': 2, '0474461429': 2, '0474307340': 2, '0474382540': 2, '0479817589': 1, '0474404999': 1, '0474402303': 1, '0474402017': 1, '0474352603': 1, '0474400130': 1, '0474402400': 1}
+pmej.ege[].contact[].telecom.telephone -> 60+ valeurs : {'0474226685': 3, '0474307044': 2, '0478557620': 2, '0385386826': 2, '0428631234': 1, '0474383000': 1, '0474223655': 1, '0479817580': 1, '0474404949': 1, '0474402323': 1, '0474402020': 1, '0474353384': 1}
+pmej.ege[].contact[].typeContact.roleContact -> 1 valeurs : {'01': 145879}
+pmej.ege[].dateDerniereMaj -> 0 valeurs : {}
+pmej.ege[].engagement[].autoriteRegulationEngagement[].autoriteRegulationid -> 33 valeurs : {'ARS-75': 57, 'ARS-84': 39, 'ARS-52': 35, 'CD-59': 17, 'CD-85': 12, 'ARS-76': 11, 'ARS-28': 11, 'CD-45': 11, 'CD-37': 8, 'CD-42': 6, 'CD-18': 5, 'CD-28': 5}
+pmej.ege[].engagement[].dateCaduciteEngagement -> 6 valeurs : {'2026-07-17': 1, '2041-05-31': 1, '2026-06-03': 1, '2027-08-22': 1, '2027-12-31': 1, '2086-12-30': 1}
+pmej.ege[].engagement[].dateEffetEngagement -> 60+ valeurs : {'2018-12-28': 4, '1974-03-25': 2, '1990-12-11': 2, '2007-08-09': 2, '2025-08-20': 2, '1980-01-01': 2, '2026-01-01': 2, '1948-05-12': 1, '1947-06-25': 1, '1973-08-01': 1, '1990-10-11': 1, '2006-12-21': 1}
+pmej.ege[].engagement[].dateFinEngagement -> 60+ valeurs : {'2031-01-01': 12, '2041-06-30': 10, '2041-01-01': 8, '2035-01-14': 5, '2041-07-24': 4, '2031-05-02': 4, '2036-08-19': 3, '2041-07-21': 3, '2026-07-01': 2, '2041-06-29': 2, '2041-07-07': 2, '2026-07-31': 2}
+pmej.ege[].engagement[].dateNotificationEngagement -> 60+ valeurs : {'2026-01-01': 13, '2026-06-04': 10, '2026-06-29': 8, '2026-07-24': 5, '2026-07-17': 5, '2025-08-04': 5, '2026-07-31': 4, '2026-07-21': 4, '2026-06-25': 4, '2026-07-07': 3, '2026-08-07': 3, '2025-12-10': 3}
+pmej.ege[].engagement[].dateSignatureEngagement -> 60+ valeurs : {'2018-12-28': 4, '1974-03-25': 2, '1990-12-11': 2, '2007-08-09': 2, '2025-08-20': 2, '1980-01-01': 2, '2026-01-01': 2, '1948-05-12': 1, '1947-06-25': 1, '1973-08-01': 1, '1990-10-11': 1, '2006-12-21': 1}
+pmej.ege[].engagement[].engagementId -> 60+ valeurs : {'27585': 1, '11520': 1, '19842': 1, '14537': 1, '721': 1, '30408': 1, '30447': 1, '29851': 1, '45822': 1, '45823': 1, '46486': 1, '50535': 1}
+pmej.ege[].engagement[].motifArrete -> 7 valeurs : {'C': 61, 'P': 58, 'V': 49, 'T': 28, 'F': 9, 'X': 9, 'R': 6}
+pmej.ege[].engagement[].sousTypeEngagement -> 35 valeurs : {'ARR': 39458, 'ASE': 11419, 'ASD': 11374, 'QAL': 6426, 'CPM': 3847, 'JUS': 1005, 'DIT': 752, 'PAD': 514, 'APL': 406, 'ACI': 398, 'HPR': 241, 'PCP': 198}
+pmej.ege[].engagement[].typeEngagement -> 4 valeurs : {'ARRT': 39520, 'CONV': 35735, 'DISP': 1621, 'LABL': 408}
+pmej.ege[].etatObjet -> 2 valeurs : {'A': 104730, 'I': 69826}
+pmej.ege[].evenement[].codeEvenement -> 7 valeurs : {'003': 174519, '007': 173234, '005': 70152, '036': 23227, '035': 23208, '018': 110, '019': 110}
+pmej.ege[].evenement[].dateEnregistrement -> 0 valeurs : {}
+pmej.ege[].evenement[].dateEvenement -> 60+ valeurs : {'2017-01-03': 19, '1956-11-16': 2, '1982-03-04': 2, '1967-07-01': 2, '2003-05-14': 2, '2005-05-11': 2, '1948-01-01': 2, '2020-10-27': 2, '1926-01-01': 2, '1973-01-01': 2, '1994-08-04': 2, '1952-01-01': 2}
+pmej.ege[].evenement[].etatObjet1 -> 11 valeurs : {'003': 174519, '007': 173234, '100': 40589, '036': 23227, '035': 23208, '102': 20079, '101': 6629, '103': 1239, '005': 521, '018': 110, '019': 110}
+pmej.ege[].evenement[].evenementId -> 60+ valeurs : {'142960': 1, '156371': 1, '143203': 1, '152387': 1, '156614': 1, '142962': 1, '152262': 1, '156373': 1, '142233': 1, '152103': 1, '155651': 1, '142236': 1}
+pmej.ege[].evenement[].identifiantObjet1 -> 60+ valeurs : {'1076': 3, '835': 3, '106': 3, '109': 3, '840': 3, '841': 3, '843': 3, '1282': 3, '863': 3, '864': 3, '869': 3, '925': 3}
+pmej.ege[].evenement[].identifiantObjet2 -> 60+ valeurs : {'11399': 58, '74093': 58, '81541': 5, '3727': 5, '46869': 5, '46878': 5, '23492': 4, '82792': 3, '29752': 3, '579': 3, '63978': 3, '74396': 3}
+pmej.ege[].evenement[].systemeMaitre -> 4 valeurs : {'01': 417411, '04': 46537, '05': 611, '02': 1}
+pmej.ege[].evenement[].typeObjet1 -> 1 valeurs : {'EG': 464560}
+pmej.ege[].evenement[].typeObjet2 -> 1 valeurs : {'PM': 220}
+pmej.ege[].informationsGeneralesEGE.complementDenominationEg -> 60+ valeurs : {'ORSAC': 9, 'ALFA3A': 6, 'ALFA 3A': 6, 'ESPACE COTIERE': 2, 'TREMPLIN': 2, 'LES NIVEOLES': 1, 'ST VULBAS': 1, 'CLINIQUE CONVERT': 1, 'LABM VERWAERDE': 1, 'MME NICOLAI ANNE': 1, 'DALLEX ALLOMBERT': 1, 'ESPACE TERREAUX': 1}
+pmej.ege[].informationsGeneralesEGE.dateFermeture -> 60+ valeurs : {'2014-03-31': 16, '2016-01-06': 6, '2013-01-25': 3, '2011-12-05': 3, '2020-10-27': 2, '2002-03-20': 2, '1997-01-16': 2, '2007-12-06': 2, '2011-12-06': 2, '2012-03-29': 2, '1993-01-01': 1, '1996-08-29': 1}
+pmej.ege[].informationsGeneralesEGE.dateOuverture -> 60+ valeurs : {'1904-04-04': 7, '1973-01-01': 2, '1984-01-01': 2, '1980-01-01': 2, '1982-01-01': 2, '1956-11-16': 1, '1982-03-04': 1, '1967-07-01': 1, '2003-05-14': 1, '2005-05-11': 1, '2010-07-31': 1, '1948-01-01': 1}
+pmej.ege[].informationsGeneralesEGE.datePremiereAutorisation -> 60+ valeurs : {'2017-01-03': 27, '1904-04-04': 8, '1991-09-01': 2, '1956-11-16': 1, '1982-03-04': 1, '1967-07-01': 1, '2003-05-14': 1, '2005-05-11': 1, '2019-01-16': 1, '1948-01-01': 1, '1926-01-01': 1, '1973-01-01': 1}
+pmej.ege[].informationsGeneralesEGE.egeId -> 60+ valeurs : {'833': 1, '1076': 1, '835': 1, '106': 1, '109': 1, '664': 1, '840': 1, '841': 1, '843': 1, '684': 1, '786': 1, '428': 1}
+pmej.ege[].informationsGeneralesEGE.espic[] -> 9 valeurs : {'1': 10500, '0': 6437, '6': 2189, '9': 1402, '2': 401, '7': 365, '3': 23, '5': 6, '4': 6}
+pmej.ege[].informationsGeneralesEGE.nomEgeCourt -> 60+ valeurs : {'LABM AXEL TRENY': 2, 'CLINIQUE CONVERT': 1, 'SAFEP-SSEFIS': 1, 'SAD 01': 1, 'SAAD ADAPA': 1, 'AP DU BUGEY': 1, '16': 1, 'MARPA LA VALETTE': 1, 'LABM VERWAERDE': 1, 'LABM': 1, 'LABM NICOLAI': 1, 'LABM CHAUVY': 1}
+pmej.ege[].informationsGeneralesEGE.nomEgeLong -> 60+ valeurs : {'LABM AXEL TRENY': 2, "GRETA DE L'AIN": 2, 'SAFEP-SSEFIS': 1, 'SAAD ADAPA': 1, 'MARPA LA VALETTE': 1, 'LABM VERWAERDE': 1, 'LABM': 1, 'LABM NICOLAI': 1, 'LABM CHAUVY': 1, 'LABM LACOUR': 1, 'JEANBLANC HUBERT': 1, 'LABM FORNIER': 1}
+pmej.ege[].informationsGeneralesEGE.numFinessEge -> 60+ valeurs : {'010780195': 1, '010787190': 1, '010780211': 1, '010002699': 1, '010002749': 1, '010011641': 1, '010780310': 1, '010780328': 1, '010780427': 1, '010011914': 1, '010013472': 1, '010008183': 1}
+pmej.ege[].informationsGeneralesEGE.numeroEducationNationale -> 60+ valeurs : {'0010908G': 1, '0010021T': 1, '0011361Z': 1, '0010989V': 1, '0010016M': 1, '0010006B': 1, '0010032E': 1, '0011048J': 1, '0011160F': 1, '0382367S': 1, '0692666Y': 1, '0010909H': 1}
+pmej.ege[].informationsGeneralesEGE.numeroReferenceExterne -> 60+ valeurs : {'01#000066': 1, '01#000401': 1, '01#000365': 1, '01#000230': 1, '01#000334': 1, '01#000379': 1, '01#000376': 1, '01#000363': 1, '01#000323': 1, '01#000187': 1, '01#000341': 1, '01#000262': 1}
+pmej.ege[].informationsGeneralesEGE.siret -> 60+ valeurs : {'77930919400024': 3, '77220148900022': 1, '75920025600015': 1, '54692007500043': 1, '54612012200033': 1, '54612012200017': 1, '54612012200025': 1, '39759886300017': 1, '33824018700017': 1, '33408695600029': 1, '54582007800016': 1, '26010001100014': 1}
+pmej.ege[].modefixationtarifaire -> 49 valeurs : {'01': 83011, '08': 18379, '99': 15977, '03': 9132, '05': 5613, '36': 4788, '07': 4098, '57': 3970, '34': 3964, '45': 3197, '09': 2579, '30': 2417}
+pmej.ege[].roleEge[].idEgeNonPorteuse -> 60+ valeurs : {'786': 2, '925': 2, '723': 2, '14': 2, '15': 2, '419': 2, '3': 2, '258': 2, '1212': 2, '4': 2, '154': 2, '776': 2}
+pmej.ege[].roleEge[].idEgePorteuse -> 60+ valeurs : {'19': 132, '1341': 78, '1309': 22, '1481': 14, '2349': 10, '115146': 8, '4': 6, '16': 4, '245': 4, '1027': 4, '919': 4, '549': 4}
+pmej.ege[].roleEge[].roleRelationEge -> 2 valeurs : {'B': 47482, 'C': 12}
+pmej.ege[].typeBudget[] -> 2 valeurs : {'01': 156561, '02': 17982}
+pmej.engagement[].autoriteRegulationEngagement[].autoriteRegulationid -> 10 valeurs : {'CD-85': 17, 'CD-59': 5, 'ARS-76': 3, 'ARS-28': 3, 'ARS-11': 3, 'ARS-75': 2, 'CD-29': 1, 'ARS-53': 1, 'ARS-94': 1, 'ARS-05': 1}
+pmej.engagement[].dateEffetEngagement -> 15 valeurs : {'2026-06-26': 17, '2026-07-15': 3, '2026-07-01': 2, '2024-01-01': 2, '2026-07-23': 2, '2026-07-24': 2, '2026-01-01': 1, '2016-01-01': 1, '2019-01-01': 1, '2020-01-01': 1, '2026-01-30': 1, '2026-01-15': 1}
+pmej.engagement[].dateFinEngagement -> 19 valeurs : {'2031-06-25': 11, '2028-12-31': 3, '2026-06-26': 3, '2100-01-01': 3, '2031-07-16': 2, '2036-07-24': 2, '2027-01-10': 1, '2070-07-15': 1, '2026-12-31': 1, '2026-07-01': 1, '2018-12-31': 1, '2019-12-31': 1}
+pmej.engagement[].dateNotificationEngagement -> 18 valeurs : {'2026-07-02': 16, '2026-07-15': 2, '2026-07-17': 2, '2026-07-24': 2, '2026-07-31': 2, '2026-08-03': 1, '2026-02-26': 1, '2016-02-10': 1, '2018-09-11': 1, '2021-12-23': 1, '2024-11-06': 1, '2025-07-10': 1}
+pmej.engagement[].dateSignatureEngagement -> 16 valeurs : {'2026-06-26': 17, '2026-07-15': 4, '2026-07-23': 2, '2026-07-24': 2, '2026-08-03': 1, '2026-02-26': 1, '2016-02-10': 1, '2018-09-11': 1, '2021-12-23': 1, '2024-11-06': 1, '2025-07-10': 1, '2026-01-30': 1}
+pmej.engagement[].engagementId -> 37 valeurs : {'77477': 1, '77208': 1, '77207': 1, '77174': 1, '77464': 1, '77465': 1, '77466': 1, '77467': 1, '77468': 1, '77596': 1, '77603': 1, '77599': 1}
+pmej.engagement[].motifArrete -> 4 valeurs : {'V': 17, 'C': 6, 'T': 1, 'F': 1}
+pmej.engagement[].sousTypeEngagement -> 2 valeurs : {'ARR': 22, 'CPM': 7}
+pmej.engagement[].typeEngagement -> 3 valeurs : {'ARRT': 25, 'CONV': 7, 'LABL': 5}
+pmej.etatObjet -> 2 valeurs : {'A': 56220, 'I': 41960}
+pmej.evenement[].codeEvenement -> 6 valeurs : {'001': 98181, '005': 30214, '034': 22687, '002': 13890, '037': 213, '016': 14}
+pmej.evenement[].dateEnregistrement -> 0 valeurs : {}
+pmej.evenement[].dateEvenement -> 60+ valeurs : {'2001-01-01': 123, '2019-03-03': 26, '2002-07-10': 21, '2014-03-31': 15, '2016-01-06': 6, '2010-01-01': 6, '1982-01-01': 3, '2015-04-07': 3, '2016-11-18': 3, '2004-03-04': 2, '2019-12-31': 2, '2006-07-12': 2}
+pmej.evenement[].etatObjet1 -> 8 valeurs : {'001': 98181, '005': 29007, '034': 22687, '002': 13890, '101': 1103, '037': 213, '004': 104, '016': 14}
+pmej.evenement[].evenementId -> 60+ valeurs : {'1': 1, '2103': 1, '2': 1, '3': 1, '2078': 1, '4': 1, '2081': 1, '5': 1, '2106': 1, '6': 1, '7': 1, '2084': 1}
+pmej.evenement[].identifiantObjet1 -> 60+ valeurs : {'1': 2, '3': 2, '4': 2, '5': 2, '7': 2, '8': 2, '10': 2, '11': 2, '12': 2, '13': 2, '14': 2, '15': 2}
+pmej.evenement[].identifiantObjet2 -> 4 valeurs : {'98159': 9, '98160': 2, '98187': 2, '98206': 1}
+pmej.evenement[].systemeMaitre -> 3 valeurs : {'01': 142174, '04': 23004, '05': 21}
+pmej.evenement[].typeObjet1 -> 1 valeurs : {'PM': 165199}
+pmej.evenement[].typeObjet2 -> 1 valeurs : {'PM': 14}
+pmej.informationsGeneralesPMEJ.codeApe -> 60+ valeurs : {'47.73Z': 159, '88.10A': 42, '87.10A': 37, '88.99B': 35, '86.10Z': 27, '86.21Z': 26, '94.99Z': 22, '87.30A': 20, '84.11Z': 20, '86.90B': 20, '85.1A': 11, '88.91A': 9}
+pmej.informationsGeneralesPMEJ.complementAdressePmSmsse -> 60+ valeurs : {'GROUPE KANTYS': 4, 'ASS AFIS': 1, 'LA VALETTE': 1, 'CLINIQUE CONVERT': 1, 'SERVICE SCANNER': 1, 'CHARLES BRISSET': 1, 'SAINT CLAUDE': 1, 'CS DU VERMANDOIS': 1, 'DU MONT RENAUD': 1, "THIÉRA'NATURA": 1, '( CEPMS)': 1, 'OPTIQUE DENTAIRE': 1}
+pmej.informationsGeneralesPMEJ.dateCreation -> 60+ valeurs : {'2001-01-01': 124, '1942-08-10': 7, '1982-01-01': 3, '2006-02-01': 2, '1994-01-01': 1, '1961-01-01': 1, '1997-02-16': 1, '1991-01-01': 1, '1989-05-05': 1, '2008-04-01': 1, '1983-05-02': 1, '1986-06-16': 1}
+pmej.informationsGeneralesPMEJ.dateFermeture -> 60+ valeurs : {'2019-03-03': 29, '2002-07-10': 21, '2014-03-31': 16, '2010-01-01': 7, '2016-01-06': 6, '2004-03-04': 2, '2019-12-31': 2, '2006-07-12': 2, '1997-02-06': 2, '2011-12-06': 2, '2008-04-21': 1, '2008-11-12': 1}
+pmej.informationsGeneralesPMEJ.denominationLonguePmSmsse -> 60+ valeurs : {'PHARMACIE ROUX': 4, 'CLINIQUE CONVERT': 1, "EHPAD L'ALBIZIA": 1, 'C N R O': 1, 'S.A. LA CIGOGNE': 1, 'LABM DE THOISSEY': 1, 'SELARL LIENHART': 1, 'LABM BERGER': 1, 'JEANBLANC HUBERT': 1, 'COURTIN VIRGINIE': 1, 'LABM AXEL TRENY': 1, 'LABM LALANDE': 1}
+pmej.informationsGeneralesPMEJ.denominationPm -> 60+ valeurs : {'PHARMACIE ROUX': 4, 'CLINIQUE CONVERT': 1, 'SARL LA ROCHETTE': 1, "EHPAD L'ALBIZIA": 1, 'C N R O': 1, 'ASS ADAPA': 1, 'ALFA 3 A': 1, 'S.A. LA CIGOGNE': 1, 'SGMR': 1, 'SARL LES OREADES': 1, 'LABM DE THOISSEY': 1, 'SELARL LIENHART': 1}
+pmej.informationsGeneralesPMEJ.fonctionPublique -> 3 valeurs : {'01': 12021, '02': 1874, '03': 1671}
+pmej.informationsGeneralesPMEJ.numFinessPm -> 60+ valeurs : {'010000016': 1, '010000156': 1, '010000164': 1, '010000172': 1, '010000206': 1, '010000222': 1, '010000230': 1, '010000248': 1, '010000255': 1, '010000263': 1, '010000271': 1, '010000289': 1}
+pmej.informationsGeneralesPMEJ.pmSmsseId -> 60+ valeurs : {'1': 1, '2': 1, '3': 1, '4': 1, '5': 1, '6': 1, '7': 1, '8': 1, '9': 1, '10': 1, '11': 1, '12': 1}
+pmej.informationsGeneralesPMEJ.siren -> 60+ valeurs : {'260104633': 1, '772201489': 1, '304368764': 1, '759200256': 1, '546920075': 1, '546120122': 1, '779335686': 1, '397598863': 1, '779309194': 1, '345328033': 1, '770200483': 1, '348909664': 1}
+pmej.informationsGeneralesPMEJ.statutJuridique -> 60+ valeurs : {'60': 3609, '85': 2199, '72': 1253, '70': 1038, '17': 734, '61': 704, '91': 657, '95': 571, '78': 433, '03': 374, '80': 368, '73': 298}
+pmej.informationsGeneralesPMEJ.typeGroupeGco -> 4 valeurs : {'003': 942, '001': 814, '004': 66, '002': 36}
+pmej.informationsGeneralesPMEJ.typePersonneMorale -> 1 valeurs : {'01': 98180}

@@ -1,333 +1,380 @@
-# Recensement : /mnt/user-data/uploads/finess-structures-mensuel-202607_json.gz
-# Duree 47 s | tableaux racines : {'__entete__': 2, 'gco': 1856, 'gcc': 135, 'pmej': 98168}
+# Recensement : /mnt/user-data/uploads/finess-activites-mensuel-202607_json.gz
+# Duree 82 s | tableaux racines : {'__entete__': 2, 'pmej': 45656}
 
 CHEMIN                                                                                             PRESENT       NULS TYPES                        CARDINALITES           MAXLEN
-gcc                                                                                                    135          0 {'objet': 135}                                      
-gcc.dateDerniereMaj                                                                                    135          0 {'str': 135}                                        19
-gcc.egeDuGcc                                                                                           135          0 {'liste': 135}               {0: 135}               
-gcc.engagement                                                                                         135          0 {'liste': 135}               {0: 135}               
-gcc.etatObjet                                                                                          135          0 {'str': 135}                                        1
-gcc.evenement                                                                                          135          0 {'liste': 135}               {1: 135}               
-gcc.evenement[].codeEvenement                                                                          135          0 {'str': 135}                                        3
-gcc.evenement[].dateEnregistrement                                                                     135          0 {'str': 135}                                        19
-gcc.evenement[].dateEvenement                                                                          135          0 {'str': 135}                                        10
-gcc.evenement[].etatObjet1                                                                             135          0 {'str': 135}                                        3
-gcc.evenement[].evenementId                                                                            135          0 {'str': 135}                                        6
-gcc.evenement[].identifiantObjet1                                                                      135          0 {'str': 135}                                        3
-gcc.evenement[].identifiantObjet2                                                                      135        135 {'null': 135}                                       
-gcc.evenement[].systemeMaitre                                                                          135          0 {'str': 135}                                        2
-gcc.evenement[].typeObjet1                                                                             135          0 {'str': 135}                                        2
-gcc.evenement[].typeObjet2                                                                             135        135 {'null': 135}                                       
-gcc.gccId                                                                                              135          0 {'str': 135}                                        3
-gcc.nomGcc                                                                                             135          0 {'str': 135}                                        75
-gcc.numFinessGcc                                                                                       135          0 {'str': 135}                                        11
-gcc.pmejDuGcc                                                                                          135          0 {'liste': 135}               {1: 11, 2: 14, 3: 20   
-gcc.pmejDuGcc[].pmSmsseId                                                                              761          0 {'str': 761}                                        5
-gcc.pmejDuGcc[].typeRoleEntiteGroupe                                                                   761          0 {'str': 761}                                        1
-gcc.typeGcc                                                                                            135          0 {'str': 135}                                        3
-gco                                                                                                   1856          0 {'objet': 1856}                                     
-gco.egeDuGco                                                                                          1856          0 {'liste': 1856}              {0: 1856}              
-gco.pmSmsseId                                                                                         1856          0 {'str': 1856}                                       5
-gco.pmejDuGco                                                                                         1856          0 {'liste': 1856}              {0: 1855, 2: 1}        
-gco.pmejDuGco[].pmSmsseId                                                                                2          0 {'str': 2}                                          5
-gco.pmejDuGco[].typeRoleEntiteGroupe                                                                     2          0 {'str': 2}                                          1
-gco.typeGco                                                                                           1856          0 {'str': 1856}                                       3
-pmej                                                                                                 98168          0 {'objet': 98168}                                    
-pmej.adresse                                                                                         98168          0 {'liste': 98168}             {1: 98168}             
-pmej.adresse[].codePostal                                                                            98168          0 {'str': 98168}                                      5
-pmej.adresse[].cogCommune                                                                            98168          0 {'str': 98168}                                      5
-pmej.adresse[].complementPointGeographique                                                           98168      84928 {'null': 84928, 'str': 132                          37
-pmej.adresse[].complementVoie                                                                        98168      95642 {'null': 95642, 'str': 252                          1
-pmej.adresse[].coordonneesGeographique                                                               98168      31707 {'objet': 66461, 'null': 3                          
-pmej.adresse[].coordonneesGeographique.cleInInteropBAN                                               66461          0 {'str': 66461}                                      22
-pmej.adresse[].coordonneesGeographique.coordonneeX                                                   66461          0 {'str': 66461}                                      10
-pmej.adresse[].coordonneesGeographique.coordonneeY                                                   66461          0 {'str': 66461}                                      10
-pmej.adresse[].coordonneesGeographique.directionLatitude                                             66461          0 {'str': 66461}                                      10
-pmej.adresse[].coordonneesGeographique.directionLongitude                                            66461          0 {'str': 66461}                                      10
-pmej.adresse[].coordonneesGeographique.scoreBAN                                                      66461          0 {'str': 66461}                                      18
-pmej.adresse[].libelleVoie                                                                           98168       8537 {'str': 89631, 'null': 853                          61
-pmej.adresse[].lieuDit                                                                               98168      89568 {'null': 89568, 'str': 860                          32
-pmej.adresse[].ligneAcheminement                                                                     98168          0 {'str': 98168}                                      45
-pmej.adresse[].ligneCinq                                                                             98168      98167 {'null': 98167, 'str': 1}                           8
-pmej.adresse[].ligneDeux                                                                             98168      98168 {'null': 98168}                                     
-pmej.adresse[].ligneQuatre                                                                           98168       8336 {'str': 89832, 'null': 833                          64
-pmej.adresse[].ligneSix                                                                              98168      78622 {'null': 78622, 'str': 195                          51
-pmej.adresse[].ligneTrois                                                                            98168      98168 {'null': 98168}                                     
-pmej.adresse[].ligneUne                                                                              98168      74326 {'null': 74326, 'str': 238                          72
-pmej.adresse[].numeroVoie                                                                            98168      24087 {'str': 74081, 'null': 240                          6
-pmej.adresse[].typeVoie                                                                              98168      32182 {'str': 65986, 'null': 321                          4
-pmej.adresse[].usageAdresse                                                                          98168          0 {'str': 98168}                                      2
-pmej.contact                                                                                         98168          0 {'liste': 98168}             {0: 21516, 1: 76652}   
-pmej.contact[].telecom                                                                               76652          0 {'objet': 76652}                                    
-pmej.contact[].telecom.courriel                                                                      76652      76632 {'null': 76632, 'str': 20}                          40
-pmej.contact[].telecom.telecopie                                                                     76652      45426 {'null': 45426, 'str': 312                          14
-pmej.contact[].telecom.telephone                                                                     76652        185 {'str': 76467, 'null': 185                          14
-pmej.contact[].typeContact                                                                           76652          0 {'objet': 76652}                                    
-pmej.contact[].typeContact.roleContact                                                               76652          0 {'str': 76652}                                      2
-pmej.dateDerniereMaj                                                                                 98168          0 {'str': 98168}                                      19
-pmej.ege                                                                                             98168          0 {'liste': 98168}             {0: 19646, 1: 63560,   
-pmej.ege[].adresse                                                                                  174508          0 {'liste': 174508}            {1: 169831, 2: 4245,   
-pmej.ege[].adresse[].codePostal                                                                     180447          0 {'str': 180447}                                     5
-pmej.ege[].adresse[].cogCommune                                                                     180447          0 {'str': 180447}                                     5
-pmej.ege[].adresse[].complementPointGeographique                                                    180447     152714 {'null': 152714, 'str': 27                          89
-pmej.ege[].adresse[].complementVoie                                                                 180447     174740 {'null': 174740, 'str': 57                          1
-pmej.ege[].adresse[].coordonneesGeographique                                                        180447      59975 {'objet': 120472, 'null':                           
-pmej.ege[].adresse[].coordonneesGeographique.cleInInteropBAN                                        120472          0 {'str': 120472}                                     23
-pmej.ege[].adresse[].coordonneesGeographique.coordonneeX                                            120472          0 {'str': 120472}                                     10
-pmej.ege[].adresse[].coordonneesGeographique.coordonneeY                                            120472          0 {'str': 120472}                                     10
-pmej.ege[].adresse[].coordonneesGeographique.directionLatitude                                      120472          0 {'str': 120472}                                     10
-pmej.ege[].adresse[].coordonneesGeographique.directionLongitude                                     120472          0 {'str': 120472}                                     10
-pmej.ege[].adresse[].coordonneesGeographique.scoreBAN                                               120472          0 {'str': 120472}                                     18
-pmej.ege[].adresse[].libelleVoie                                                                    180447      10544 {'str': 169903, 'null': 10                          61
-pmej.ege[].adresse[].lieuDit                                                                        180447     163174 {'str': 17273, 'null': 163                          32
-pmej.ege[].adresse[].ligneAcheminement                                                              180447       3781 {'str': 176666, 'null': 37                          45
-pmej.ege[].adresse[].ligneCinq                                                                      180447     180437 {'null': 180437, 'str': 10                          8
-pmej.ege[].adresse[].ligneDeux                                                                      180447     179969 {'null': 179969, 'str': 47                          32
-pmej.ege[].adresse[].ligneQuatre                                                                    180447      10361 {'str': 170086, 'null': 10                          64
-pmej.ege[].adresse[].ligneSix                                                                       180447     157432 {'null': 157432, 'str': 23                          51
-pmej.ege[].adresse[].ligneTrois                                                                     180447     180447 {'null': 180447}                                    
-pmej.ege[].adresse[].ligneUne                                                                       180447     174003 {'null': 174003, 'str': 64                          80
-pmej.ege[].adresse[].numeroVoie                                                                     180447      39590 {'str': 140857, 'null': 39                          8
-pmej.ege[].adresse[].typeVoie                                                                       180447      39746 {'str': 140701, 'null': 39                          4
-pmej.ege[].adresse[].usageAdresse                                                                   180447          0 {'str': 180447}                                     2
-pmej.ege[].categorieentiteGeographiqueExercice                                                      174508          5 {'str': 174503, 'null': 5}                          3
-pmej.ege[].contact                                                                                  174508          0 {'liste': 174508}            {0: 28655, 1: 145853   
-pmej.ege[].contact[].telecom                                                                        145853          0 {'objet': 145853}                                   
-pmej.ege[].contact[].telecom.courriel                                                               145853     145769 {'null': 145769, 'str': 84                          58
-pmej.ege[].contact[].telecom.telecopie                                                              145853      81123 {'null': 81123, 'str': 647                          14
-pmej.ege[].contact[].telecom.telephone                                                              145853        225 {'str': 145628, 'null': 22                          21
-pmej.ege[].contact[].typeContact                                                                    145853          0 {'objet': 145853}                                   
-pmej.ege[].contact[].typeContact.roleContact                                                        145853          0 {'str': 145853}                                     2
-pmej.ege[].dateDerniereMaj                                                                          174508          0 {'str': 174508}                                     19
-pmej.ege[].engagement                                                                               174508          0 {'liste': 174508}            {0: 131716, 1: 26766   
-pmej.ege[].engagement[].autoriteRegulationEngagement                                                 77260          0 {'liste': 77260}             {0: 77172, 1: 87, 2:   
-pmej.ege[].engagement[].autoriteRegulationEngagement[].autoriteRegulationid                             89          0 {'str': 89}                                         8
-pmej.ege[].engagement[].dateCaduciteEngagement                                                       77260      77258 {'null': 77258, 'str': 2}                           10
-pmej.ege[].engagement[].dateEffetEngagement                                                          77260         24 {'str': 77236, 'null': 24}                          10
-pmej.ege[].engagement[].dateFinEngagement                                                            77260      77172 {'null': 77172, 'str': 88}                          10
-pmej.ege[].engagement[].dateNotificationEngagement                                                   77260      77172 {'null': 77172, 'str': 88}                          10
-pmej.ege[].engagement[].dateSignatureEngagement                                                      77260         24 {'str': 77236, 'null': 24}                          10
-pmej.ege[].engagement[].engagementId                                                                 77260          0 {'str': 77260}                                      5
-pmej.ege[].engagement[].identifiantEngagement                                                        77260      77260 {'null': 77260}                                     
-pmej.ege[].engagement[].motifArrete                                                                  77260      77178 {'null': 77178, 'str': 82}                          1
-pmej.ege[].engagement[].nomEngagement                                                                77260      77260 {'null': 77260}                                     
-pmej.ege[].engagement[].sousTypeEngagement                                                           77260         55 {'str': 77205, 'null': 55}                          3
-pmej.ege[].engagement[].typeEngagement                                                               77260        144 {'str': 77116, 'null': 144                          4
-pmej.ege[].etatObjet                                                                                174508          0 {'str': 174508}                                     1
-pmej.ege[].evenement                                                                                174508          0 {'liste': 174508}            {0: 47, 1: 683, 2: 8   
-pmej.ege[].evenement[].codeEvenement                                                                463838          0 {'str': 463838}                                     3
-pmej.ege[].evenement[].dateEnregistrement                                                           463838          0 {'str': 463838}                                     19
-pmej.ege[].evenement[].dateEvenement                                                                463838          0 {'str': 463838}                                     10
-pmej.ege[].evenement[].etatObjet1                                                                   463838       1095 {'str': 462743, 'null': 10                          3
-pmej.ege[].evenement[].evenementId                                                                  463838          0 {'str': 463838}                                     7
-pmej.ege[].evenement[].identifiantObjet1                                                            463838          0 {'str': 463838}                                     6
-pmej.ege[].evenement[].identifiantObjet2                                                            463838     463682 {'null': 463682, 'str': 15                          5
-pmej.ege[].evenement[].systemeMaitre                                                                463838          0 {'str': 463838}                                     2
-pmej.ege[].evenement[].typeObjet1                                                                   463838          0 {'str': 463838}                                     2
-pmej.ege[].evenement[].typeObjet2                                                                   463838     463682 {'null': 463682, 'str': 15                          2
-pmej.ege[].informationsGeneralesEGE                                                                 174508          0 {'objet': 174508}                                   
-pmej.ege[].informationsGeneralesEGE.complementDenominationEg                                        174508     157985 {'null': 157985, 'str': 16                          70
-pmej.ege[].informationsGeneralesEGE.dateFermeture                                                   174508     104822 {'null': 104822, 'str': 69                          10
-pmej.ege[].informationsGeneralesEGE.dateOuverture                                                   174508         47 {'str': 174461, 'null': 47                          10
-pmej.ege[].informationsGeneralesEGE.datePremiereAutorisation                                        174508       1291 {'str': 173217, 'null': 12                          10
-pmej.ege[].informationsGeneralesEGE.egeId                                                           174508          0 {'str': 174508}                                     6
-pmej.ege[].informationsGeneralesEGE.espic                                                           174508     153198 {'liste': 21310, 'null': 1   {1: 21310}             
-pmej.ege[].informationsGeneralesEGE.nomEgeCourt                                                     174508          0 {'str': 174508}                                     38
-pmej.ege[].informationsGeneralesEGE.nomEgeLong                                                      174508          0 {'str': 174508}                                     80
-pmej.ege[].informationsGeneralesEGE.numFinessEge                                                    174508          0 {'str': 174508}                                     9
-pmej.ege[].informationsGeneralesEGE.numeroEducationNationale                                        174508     169948 {'null': 169948, 'str': 45                          8
-pmej.ege[].informationsGeneralesEGE.numeroReferenceExterne                                          174508     151208 {'null': 151208, 'str': 23                          10
-pmej.ege[].informationsGeneralesEGE.siret                                                           174508      35294 {'str': 139214, 'null': 35                          14
-pmej.ege[].modefixationtarifaire                                                                    174508          5 {'str': 174503, 'null': 5}                          2
-pmej.ege[].roleEge                                                                                  174508          0 {'liste': 174508}            {0: 144804, 1: 26753   
-pmej.ege[].roleEge[].idEgeNonPorteuse                                                                47474          0 {'str': 47474}                                      6
-pmej.ege[].roleEge[].idEgePorteuse                                                                   47474          0 {'str': 47474}                                      6
-pmej.ege[].roleEge[].roleRelationEge                                                                 47474          0 {'str': 47474}                                      1
-pmej.ege[].typeBudget                                                                               174508          5 {'liste': 174503, 'null':    {1: 174503}            
-pmej.engagement                                                                                      98168          0 {'liste': 98168}             {0: 98161, 1: 6, 2:    
-pmej.engagement[].autoriteRegulationEngagement                                                           8          0 {'liste': 8}                 {1: 8}                 
-pmej.engagement[].autoriteRegulationEngagement[].autoriteRegulationid                                    8          0 {'str': 8}                                          6
-pmej.engagement[].dateCaduciteEngagement                                                                 8          8 {'null': 8}                                         
-pmej.engagement[].dateEffetEngagement                                                                    8          0 {'str': 8}                                          10
-pmej.engagement[].dateFinEngagement                                                                      8          0 {'str': 8}                                          10
-pmej.engagement[].dateNotificationEngagement                                                             8          0 {'str': 8}                                          10
-pmej.engagement[].dateSignatureEngagement                                                                8          0 {'str': 8}                                          10
-pmej.engagement[].engagementId                                                                           8          0 {'str': 8}                                          5
-pmej.engagement[].identifiantEngagement                                                                  8          8 {'null': 8}                                         
-pmej.engagement[].motifArrete                                                                            8          4 {'str': 4, 'null': 4}                               1
-pmej.engagement[].nomEngagement                                                                          8          8 {'null': 8}                                         
-pmej.engagement[].sousTypeEngagement                                                                     8          5 {'null': 5, 'str': 3}                               3
-pmej.engagement[].typeEngagement                                                                         8          0 {'str': 8}                                          4
-pmej.etatObjet                                                                                       98168          0 {'str': 98168}                                      1
-pmej.evenement                                                                                       98168          0 {'liste': 98168}             {1: 34248, 2: 61066,   
-pmej.evenement[].codeEvenement                                                                      165102          0 {'str': 165102}                                     3
-pmej.evenement[].dateEnregistrement                                                                 165102          0 {'str': 165102}                                     19
-pmej.evenement[].dateEvenement                                                                      165102          0 {'str': 165102}                                     10
-pmej.evenement[].etatObjet1                                                                         165102          0 {'str': 165102}                                     3
-pmej.evenement[].evenementId                                                                        165102          0 {'str': 165102}                                     7
-pmej.evenement[].identifiantObjet1                                                                  165102          0 {'str': 165102}                                     5
-pmej.evenement[].identifiantObjet2                                                                  165102     165089 {'null': 165089, 'str': 13                          5
-pmej.evenement[].systemeMaitre                                                                      165102          0 {'str': 165102}                                     2
-pmej.evenement[].typeObjet1                                                                         165102          0 {'str': 165102}                                     2
-pmej.evenement[].typeObjet2                                                                         165102     165089 {'null': 165089, 'str': 13                          2
-pmej.informationsGeneralesPMEJ                                                                       98168          0 {'objet': 98168}                                    
-pmej.informationsGeneralesPMEJ.categorieentiteGeographiqueExercice                                   98168      98168 {'null': 98168}                                     
-pmej.informationsGeneralesPMEJ.codeApe                                                               98168      16375 {'str': 81793, 'null': 163                          6
-pmej.informationsGeneralesPMEJ.complementAdressePmSmsse                                              98168      92045 {'null': 92045, 'str': 612                          35
-pmej.informationsGeneralesPMEJ.dateCreation                                                          98168          0 {'str': 98168}                                      10
-pmej.informationsGeneralesPMEJ.dateFermeture                                                         98168      54164 {'str': 44004, 'null': 541                          10
-pmej.informationsGeneralesPMEJ.denominationLonguePmSmsse                                             98168          0 {'str': 98168}                                      98
-pmej.informationsGeneralesPMEJ.denominationPm                                                        98168          0 {'str': 98168}                                      38
-pmej.informationsGeneralesPMEJ.fonctionPublique                                                      98168      82602 {'str': 15566, 'null': 826                          2
-pmej.informationsGeneralesPMEJ.numFinessPm                                                           98168          0 {'str': 98168}                                      9
-pmej.informationsGeneralesPMEJ.pmSmsseId                                                             98168          0 {'str': 98168}                                      5
-pmej.informationsGeneralesPMEJ.siren                                                                 98168      16375 {'str': 81793, 'null': 163                          9
-pmej.informationsGeneralesPMEJ.statutJuridique                                                       98168          0 {'str': 98168}                                      2
-pmej.informationsGeneralesPMEJ.typeGroupeGco                                                         98168      96312 {'null': 96312, 'str': 185                          3
-pmej.informationsGeneralesPMEJ.typePersonneMorale                                                    98168          0 {'str': 98168}                                      2
+pmej                                                                                                 45656          0 {'objet': 45656}                                    
+pmej.activitesAutorisees                                                                             45656          0 {'liste': 45656}             {0: 9, 1: 21568, 2:    
+pmej.activitesAutorisees[].capacite                                                                 292873          0 {'liste': 292873}            {0: 180034, 1: 91351   
+pmej.activitesAutorisees[].capacite[].activiteAeId                                                  138696          0 {'str': 138696}                                     6
+pmej.activitesAutorisees[].capacite[].engagementId                                                  138696     138696 {'null': 138696}                                    
+pmej.activitesAutorisees[].capacite[].genre                                                         138696     134963 {'null': 134963, 'str': 37                          2
+pmej.activitesAutorisees[].capacite[].habilitation                                                  138696     120313 {'null': 120313, 'str': 18                          2
+pmej.activitesAutorisees[].capacite[].idCapacite                                                    138696          0 {'str': 138696}                                     7
+pmej.activitesAutorisees[].capacite[].modeFinancement                                               138696     137857 {'null': 137857, 'str': 83                          2
+pmej.activitesAutorisees[].capacite[].nombre                                                        138696          8 {'str': 138688, 'null': 8}                          4
+pmej.activitesAutorisees[].capacite[].precision                                                     138696     138696 {'null': 138696}                                    
+pmej.activitesAutorisees[].capacite[].statutCapacite                                                138696          0 {'str': 138696}                                     2
+pmej.activitesAutorisees[].capacite[].typeLogement                                                  138696     135263 {'null': 135263, 'str': 34                          2
+pmej.activitesAutorisees[].capacite[].uniteMesureCapacite                                           138696          0 {'str': 138696}                                     2
+pmej.activitesAutorisees[].capacite[].variation                                                     138696     138696 {'null': 138696}                                    
+pmej.activitesAutorisees[].caracteristiquesGeneriques                                               292873          0 {'objet': 292873}                                   
+pmej.activitesAutorisees[].caracteristiquesGeneriques.activiteAeId                                  292873          0 {'str': 292873}                                     6
+pmej.activitesAutorisees[].caracteristiquesGeneriques.dateCaduciteAutorisation                      292873     292579 {'null': 292579, 'str': 29                          10
+pmej.activitesAutorisees[].caracteristiquesGeneriques.dateDebutActiviteAutorisee                    292873      53993 {'str': 238880, 'null': 53                          10
+pmej.activitesAutorisees[].caracteristiquesGeneriques.dateFinActiviteAutorisee                      292873     253696 {'str': 39177, 'null': 253                          10
+pmej.activitesAutorisees[].caracteristiquesGeneriques.dateFinEffectiveActivite                      292873     292579 {'null': 292579, 'str': 29                          10
+pmej.activitesAutorisees[].caracteristiquesGeneriques.egeId                                         292873     292873 {'null': 292873}                                    
+pmej.activitesAutorisees[].caracteristiquesGeneriques.etatObjet                                     292873          0 {'str': 292873}                                     1
+pmej.activitesAutorisees[].caracteristiquesGeneriques.identifiantAutorisation                       292873     292873 {'null': 292873}                                    
+pmej.activitesAutorisees[].caracteristiquesGeneriques.numAutorisationArhgos                         292873     252278 {'str': 40595, 'null': 252                          19
+pmej.activitesAutorisees[].caracteristiquesGeneriques.pmSmsseExploitanteId                          292873     292848 {'null': 292848, 'str': 25                          5
+pmej.activitesAutorisees[].caracteristiquesGeneriques.typeActiviteSMSSE                             292873          0 {'str': 292873}                                     5
+pmej.activitesAutorisees[].engagement                                                               292873          0 {'liste': 292873}            {0: 292657, 1: 213,    
+pmej.activitesAutorisees[].engagement[].autoriteRegulationEngagement                                   219          0 {'liste': 219}               {0: 1, 1: 217, 2: 1}   
+pmej.activitesAutorisees[].engagement[].autoriteRegulationEngagement[].autoriteRegulationid            219          0 {'str': 219}                                        8
+pmej.activitesAutorisees[].engagement[].dateCaduciteEngagement                                         219        208 {'null': 208, 'str': 11}                            10
+pmej.activitesAutorisees[].engagement[].dateEffetEngagement                                            219          0 {'str': 219}                                        10
+pmej.activitesAutorisees[].engagement[].dateFinEngagement                                              219          1 {'str': 218, 'null': 1}                             10
+pmej.activitesAutorisees[].engagement[].dateNotificationEngagement                                     219          1 {'str': 218, 'null': 1}                             10
+pmej.activitesAutorisees[].engagement[].dateSignatureEngagement                                        219          0 {'str': 219}                                        10
+pmej.activitesAutorisees[].engagement[].engagementId                                                   219          0 {'str': 219}                                        5
+pmej.activitesAutorisees[].engagement[].identifiantEngagement                                          219          1 {'str': 218, 'null': 1}                             44
+pmej.activitesAutorisees[].engagement[].motifArrete                                                    219          9 {'str': 210, 'null': 9}                             1
+pmej.activitesAutorisees[].engagement[].nomEngagement                                                  219          1 {'str': 218, 'null': 1}                             65
+pmej.activitesAutorisees[].engagement[].sousTypeEngagement                                             219         96 {'str': 123, 'null': 96}                            3
+pmej.activitesAutorisees[].engagement[].typeEngagement                                                 219          0 {'str': 219}                                        4
+pmej.activitesAutorisees[].evenement                                                                292873          0 {'liste': 292873}            {1: 124073, 2: 15896   
+pmej.activitesAutorisees[].evenement[].codeEvenement                                                474105          0 {'str': 474105}                                     3
+pmej.activitesAutorisees[].evenement[].dateEnregistrement                                           474105          0 {'str': 474105}                                     19
+pmej.activitesAutorisees[].evenement[].dateEvenement                                                474105          0 {'str': 474105}                                     10
+pmej.activitesAutorisees[].evenement[].etatObjet1                                                   474105          0 {'str': 474105}                                     3
+pmej.activitesAutorisees[].evenement[].evenementId                                                  474105          0 {'str': 474105}                                     7
+pmej.activitesAutorisees[].evenement[].identifiantObjet1                                            474105          0 {'str': 474105}                                     6
+pmej.activitesAutorisees[].evenement[].identifiantObjet2                                            474105     106745 {'str': 367360, 'null': 10                          6
+pmej.activitesAutorisees[].evenement[].systemeMaitre                                                474105          0 {'str': 474105}                                     2
+pmej.activitesAutorisees[].evenement[].typeObjet1                                                   474105          0 {'str': 474105}                                     2
+pmej.activitesAutorisees[].evenement[].typeObjet2                                                   474105     106745 {'str': 367360, 'null': 10                          2
+pmej.activitesAutorisees[].nature                                                                   292873          0 {'objet': 292873}                                   
+pmej.activitesAutorisees[].nature.caracteristiquesSpecifiques                                       292873          0 {'objet': 292873}                                   
+pmej.activitesAutorisees[].nature.caracteristiquesSpecifiques.aaAutreActSoinId                        2192          0 {'str': 2192}                                       4
+pmej.activitesAutorisees[].nature.caracteristiquesSpecifiques.aaEmlId                                   68          0 {'str': 68}                                         3
+pmej.activitesAutorisees[].nature.caracteristiquesSpecifiques.aaSanitaireDiverseReguleeId            87205      87205 {'null': 87205}                                     
+pmej.activitesAutorisees[].nature.caracteristiquesSpecifiques.aaSocialeReguleeId                    159178         70 {'str': 159108, 'null': 70                          6
+pmej.activitesAutorisees[].nature.caracteristiquesSpecifiques.aaSoinAmfId                             6872       6872 {'null': 6872}                                      
+pmej.activitesAutorisees[].nature.caracteristiquesSpecifiques.aaSoinAmmId                            31463      31463 {'null': 31463}                                     
+pmej.activitesAutorisees[].nature.caracteristiquesSpecifiques.activiteAeId                          292873     125610 {'str': 167263, 'null': 12                          6
+pmej.activitesAutorisees[].nature.caracteristiquesSpecifiques.ageMaxAutorise                        159178     141345 {'null': 141345, 'str': 17                          4
+pmej.activitesAutorisees[].nature.caracteristiquesSpecifiques.ageMaxInstalle                        159178     141047 {'null': 141047, 'str': 18                          4
+pmej.activitesAutorisees[].nature.caracteristiquesSpecifiques.ageMinAutorise                        159178     141349 {'null': 141349, 'str': 17                          2
+pmej.activitesAutorisees[].nature.caracteristiquesSpecifiques.ageMinInstalle                        159178     141047 {'null': 141047, 'str': 18                          2
+pmej.activitesAutorisees[].nature.caracteristiquesSpecifiques.appareil                               31463          0 {'liste': 31463}             {0: 31463}             
+pmej.activitesAutorisees[].nature.caracteristiquesSpecifiques.dateLimDep                              2192       2192 {'null': 2192}                                      
+pmej.activitesAutorisees[].nature.caracteristiquesSpecifiques.dateLimVisiteConformite                 2192       2192 {'null': 2192}                                      
+pmej.activitesAutorisees[].nature.caracteristiquesSpecifiques.dateVisite                              2192       2192 {'null': 2192}                                      
+pmej.activitesAutorisees[].nature.caracteristiquesSpecifiques.etatArhgos                              2192       2192 {'null': 2192}                                      
+pmej.activitesAutorisees[].nature.caracteristiquesSpecifiques.marque                                    68          0 {'str': 68}                                         4
+pmej.activitesAutorisees[].nature.caracteristiquesSpecifiques.numDecision                             2192          1 {'str': 2191, 'null': 1}                            24
+pmej.activitesAutorisees[].nature.caracteristiquesSpecifiques.numeroSerie                               68         50 {'str': 18, 'null': 50}                             27
+pmej.activitesAutorisees[].nature.caracteristiquesSpecifiques.resultatVisite                          2192       2192 {'null': 2192}                                      
+pmej.activitesAutorisees[].nature.caracteristiquesSpecifiques.typeActiviteAASA                        2192          0 {'objet': 2192}                                     
+pmej.activitesAutorisees[].nature.caracteristiquesSpecifiques.typeActiviteAASA.activiteSanitaireRegulee       2192          0 {'str': 2192}                                       2
+pmej.activitesAutorisees[].nature.caracteristiquesSpecifiques.typeActiviteAASA.formeActivite          2192          0 {'str': 2192}                                       2
+pmej.activitesAutorisees[].nature.caracteristiquesSpecifiques.typeActiviteAASA.modaliteActivite       2192          0 {'str': 2192}                                       2
+pmej.activitesAutorisees[].nature.caracteristiquesSpecifiques.typeActiviteAER                         5895          0 {'objet': 5895}                                     
+pmej.activitesAutorisees[].nature.caracteristiquesSpecifiques.typeActiviteAER.activiteEnseignementRegulee       5895          0 {'str': 5895}                                       3
+pmej.activitesAutorisees[].nature.caracteristiquesSpecifiques.typeActiviteAER.modeFonctionnement       5895          0 {'str': 5895}                                       2
+pmej.activitesAutorisees[].nature.caracteristiquesSpecifiques.typeActiviteAER.public                  5895          0 {'str': 5895}                                       3
+pmej.activitesAutorisees[].nature.caracteristiquesSpecifiques.typeActiviteAMF                         6872          0 {'objet': 6872}                                     
+pmej.activitesAutorisees[].nature.caracteristiquesSpecifiques.typeActiviteAMF.activiteAMF             6872          0 {'str': 6872}                                       2
+pmej.activitesAutorisees[].nature.caracteristiquesSpecifiques.typeActiviteAMF.formeActivite           6872          0 {'str': 6872}                                       2
+pmej.activitesAutorisees[].nature.caracteristiquesSpecifiques.typeActiviteAMF.modaliteActivite        6872          0 {'str': 6872}                                       2
+pmej.activitesAutorisees[].nature.caracteristiquesSpecifiques.typeActiviteAMM                        31463          0 {'objet': 31463}                                    
+pmej.activitesAutorisees[].nature.caracteristiquesSpecifiques.typeActiviteAMM.activiteAMM            31463          0 {'str': 31463}                                      5
+pmej.activitesAutorisees[].nature.caracteristiquesSpecifiques.typeActiviteAMM.declarationAMM         31463          0 {'str': 31463}                                      5
+pmej.activitesAutorisees[].nature.caracteristiquesSpecifiques.typeActiviteAMM.mentionAMM             31463          0 {'str': 31463}                                      5
+pmej.activitesAutorisees[].nature.caracteristiquesSpecifiques.typeActiviteAMM.modaliteAMM            31463          0 {'str': 31463}                                      5
+pmej.activitesAutorisees[].nature.caracteristiquesSpecifiques.typeActiviteAMM.ptsAMM                 31463          0 {'str': 31463}                                      5
+pmej.activitesAutorisees[].nature.caracteristiquesSpecifiques.typeActiviteAMSR                      113420          0 {'objet': 113420}                                   
+pmej.activitesAutorisees[].nature.caracteristiquesSpecifiques.typeActiviteAMSR.activiteSocialeRegulee     113420          0 {'str': 113420}                                     3
+pmej.activitesAutorisees[].nature.caracteristiquesSpecifiques.typeActiviteAMSR.modeFonctionnement     113420          0 {'str': 113420}                                     2
+pmej.activitesAutorisees[].nature.caracteristiquesSpecifiques.typeActiviteAMSR.public               113420          0 {'str': 113420}                                     3
+pmej.activitesAutorisees[].nature.caracteristiquesSpecifiques.typeActiviteASDR                       87205          0 {'objet': 87205}                                    
+pmej.activitesAutorisees[].nature.caracteristiquesSpecifiques.typeActiviteASDR.activiteSanitaireDiverseRegulee      87205          0 {'str': 87205}                                      3
+pmej.activitesAutorisees[].nature.caracteristiquesSpecifiques.typeActiviteASDR.modeFonctionnement      87205          0 {'str': 87205}                                      2
+pmej.activitesAutorisees[].nature.caracteristiquesSpecifiques.typeActiviteASDR.public                87205          0 {'str': 87205}                                      3
+pmej.activitesAutorisees[].nature.caracteristiquesSpecifiques.typeActiviteASOCR                      45758          0 {'objet': 45758}                                    
+pmej.activitesAutorisees[].nature.caracteristiquesSpecifiques.typeActiviteASOCR.activiteSocialeRegulee      45758          0 {'str': 45758}                                      3
+pmej.activitesAutorisees[].nature.caracteristiquesSpecifiques.typeActiviteASOCR.modeFonctionnement      45758          0 {'str': 45758}                                      2
+pmej.activitesAutorisees[].nature.caracteristiquesSpecifiques.typeActiviteASOCR.public               45758          0 {'str': 45758}                                      3
+pmej.activitesAutorisees[].nature.caracteristiquesSpecifiques.typeActiviteEML                           68          0 {'objet': 68}                                       
+pmej.activitesAutorisees[].nature.caracteristiquesSpecifiques.typeActiviteEML.typeEmlId                 68          0 {'str': 68}                                         1
+pmej.activitesAutorisees[].nature.codeNature                                                        292873          0 {'str': 292873}                                     5
+pmej.activitesAutorisees[].zoneIntervention                                                         292873     284537 {'null': 284537, 'objet':                           
+pmej.activitesAutorisees[].zoneIntervention.activiteAeId                                              8336          0 {'str': 8336}                                       6
+pmej.activitesAutorisees[].zoneIntervention.communeZI                                                 8336          0 {'liste': 8336}              {1: 866, 2: 132, 3:    
+pmej.activitesAutorisees[].zoneIntervention.communeZI[].commune                                    1231970          0 {'str': 1231970}                                    5
+pmej.activitesAutorisees[].zoneIntervention.libelleZI                                                 8336       7099 {'null': 7099, 'str': 1237                          109
+pmej.activitesAutorisees[].zoneIntervention.zoneInterventionAutoriseeId                               8336          0 {'str': 8336}                                       4
+pmej.ege                                                                                             45656          0 {'liste': 45656}             {0: 11, 1: 31774, 2:   
+pmej.ege[].activitesExercees                                                                        139675          0 {'liste': 139675}            {0: 10607, 1: 75453,   
+pmej.ege[].activitesExercees[].capacite                                                             292873          0 {'liste': 292873}            {0: 120815, 1: 53105   
+pmej.ege[].activitesExercees[].capacite[].activiteAeId                                              398537          0 {'str': 398537}                                     6
+pmej.ege[].activitesExercees[].capacite[].engagementId                                              398537     398537 {'null': 398537}                                    
+pmej.ege[].activitesExercees[].capacite[].genre                                                     398537     344818 {'null': 344818, 'str': 53                          2
+pmej.ege[].activitesExercees[].capacite[].habilitation                                              398537     339628 {'null': 339628, 'str': 58                          2
+pmej.ege[].activitesExercees[].capacite[].idCapacite                                                398537          0 {'str': 398537}                                     7
+pmej.ege[].activitesExercees[].capacite[].modeFinancement                                           398537     395743 {'null': 395743, 'str': 27                          2
+pmej.ege[].activitesExercees[].capacite[].nombre                                                    398537         14 {'str': 398523, 'null': 14                          4
+pmej.ege[].activitesExercees[].capacite[].precision                                                 398537     398537 {'null': 398537}                                    
+pmej.ege[].activitesExercees[].capacite[].statutCapacite                                            398537          0 {'str': 398537}                                     2
+pmej.ege[].activitesExercees[].capacite[].typeLogement                                              398537     390670 {'null': 390670, 'str': 78                          2
+pmej.ege[].activitesExercees[].capacite[].uniteMesureCapacite                                       398537          0 {'str': 398537}                                     2
+pmej.ege[].activitesExercees[].capacite[].variation                                                 398537     398537 {'null': 398537}                                    
+pmej.ege[].activitesExercees[].caracteristiquesGeneriques                                           292873          0 {'objet': 292873}                                   
+pmej.ege[].activitesExercees[].caracteristiquesGeneriques.activiteAeId                              292873          0 {'str': 292873}                                     6
+pmej.ege[].activitesExercees[].caracteristiquesGeneriques.dateCaduciteAutorisation                  292873     291478 {'null': 291478, 'str': 13                          10
+pmej.ege[].activitesExercees[].caracteristiquesGeneriques.dateDebutActiviteAutorisee                292873      25168 {'str': 267705, 'null': 25                          10
+pmej.ege[].activitesExercees[].caracteristiquesGeneriques.dateFinActiviteAutorisee                  292873     253696 {'null': 253696, 'str': 39                          10
+pmej.ege[].activitesExercees[].caracteristiquesGeneriques.dateFinEffectiveActivite                  292873     292579 {'null': 292579, 'str': 29                          10
+pmej.ege[].activitesExercees[].caracteristiquesGeneriques.egeExploitanteId                          292873     292848 {'null': 292848, 'str': 25                          6
+pmej.ege[].activitesExercees[].caracteristiquesGeneriques.egeFacturante                             292873     292848 {'null': 292848, 'str': 25                          1
+pmej.ege[].activitesExercees[].caracteristiquesGeneriques.egeId                                     292873          0 {'str': 292873}                                     6
+pmej.ege[].activitesExercees[].caracteristiquesGeneriques.etatObjet                                 292873          0 {'str': 292873}                                     1
+pmej.ege[].activitesExercees[].caracteristiquesGeneriques.identifiantAutorisation                   292873          0 {'str': 292873}                                     6
+pmej.ege[].activitesExercees[].caracteristiquesGeneriques.numAutorisationArhgos                     292873     259122 {'null': 259122, 'str': 33                          19
+pmej.ege[].activitesExercees[].caracteristiquesGeneriques.typeActiviteSMSSE                         292873          0 {'str': 292873}                                     5
+pmej.ege[].activitesExercees[].engagement                                                           292873          0 {'liste': 292873}            {0: 292873}            
+pmej.ege[].activitesExercees[].evenement                                                            292873          0 {'liste': 292873}            {1: 24201, 2: 114922   
+pmej.ege[].activitesExercees[].evenement[].codeEvenement                                            857944          0 {'str': 857944}                                     3
+pmej.ege[].activitesExercees[].evenement[].dateEnregistrement                                       857944          0 {'str': 857944}                                     19
+pmej.ege[].activitesExercees[].evenement[].dateEvenement                                            857944          0 {'str': 857944}                                     10
+pmej.ege[].activitesExercees[].evenement[].etatObjet1                                               857944          0 {'str': 857944}                                     3
+pmej.ege[].activitesExercees[].evenement[].evenementId                                              857944          0 {'str': 857944}                                     7
+pmej.ege[].activitesExercees[].evenement[].identifiantObjet1                                        857944          0 {'str': 857944}                                     6
+pmej.ege[].activitesExercees[].evenement[].identifiantObjet2                                        857944     106745 {'str': 751199, 'null': 10                          6
+pmej.ege[].activitesExercees[].evenement[].systemeMaitre                                            857944          0 {'str': 857944}                                     2
+pmej.ege[].activitesExercees[].evenement[].typeObjet1                                               857944          0 {'str': 857944}                                     2
+pmej.ege[].activitesExercees[].evenement[].typeObjet2                                               857944     106745 {'str': 751199, 'null': 10                          2
+pmej.ege[].activitesExercees[].nature                                                               292873          0 {'objet': 292873}                                   
+pmej.ege[].activitesExercees[].nature.caracteristiquesSpecifiques                                   292873          0 {'objet': 292873}                                   
+pmej.ege[].activitesExercees[].nature.caracteristiquesSpecifiques.aaAutreActSoinId                    2192          0 {'str': 2192}                                       4
+pmej.ege[].activitesExercees[].nature.caracteristiquesSpecifiques.aaEmlId                               68         68 {'null': 68}                                        
+pmej.ege[].activitesExercees[].nature.caracteristiquesSpecifiques.aaSanitaireDiverseReguleeId        87205      38836 {'str': 48369, 'null': 388                          5
+pmej.ege[].activitesExercees[].nature.caracteristiquesSpecifiques.aaSocialeReguleeId                159178         70 {'str': 159108, 'null': 70                          6
+pmej.ege[].activitesExercees[].nature.caracteristiquesSpecifiques.aaSoinAmfId                         6872          0 {'str': 6872}                                       4
+pmej.ege[].activitesExercees[].nature.caracteristiquesSpecifiques.aaSoinAmmId                        31463          0 {'str': 31463}                                      5
+pmej.ege[].activitesExercees[].nature.caracteristiquesSpecifiques.activiteAeId                      292873      38974 {'str': 253899, 'null': 38                          6
+pmej.ege[].activitesExercees[].nature.caracteristiquesSpecifiques.ageMaxAutorise                    159178     141345 {'str': 17833, 'null': 141                          4
+pmej.ege[].activitesExercees[].nature.caracteristiquesSpecifiques.ageMaxInstalle                    159178     141041 {'str': 18137, 'null': 141                          4
+pmej.ege[].activitesExercees[].nature.caracteristiquesSpecifiques.ageMinAutorise                    159178     141349 {'str': 17829, 'null': 141                          2
+pmej.ege[].activitesExercees[].nature.caracteristiquesSpecifiques.ageMinInstalle                    159178     141041 {'str': 18137, 'null': 141                          2
+pmej.ege[].activitesExercees[].nature.caracteristiquesSpecifiques.appareil                           31463          0 {'liste': 31463}             {0: 29451, 8: 2012}    
+pmej.ege[].activitesExercees[].nature.caracteristiquesSpecifiques.appareil[].nombreAppareilAMM       16096          0 {'str': 16096}                                      1
+pmej.ege[].activitesExercees[].nature.caracteristiquesSpecifiques.appareil[].statutAppareilAMM       16096          0 {'str': 16096}                                      2
+pmej.ege[].activitesExercees[].nature.caracteristiquesSpecifiques.appareil[].typeAppareilAMM         16096          0 {'str': 16096}                                      3
+pmej.ege[].activitesExercees[].nature.caracteristiquesSpecifiques.dateLimDep                          2192         36 {'str': 2156, 'null': 36}                           10
+pmej.ege[].activitesExercees[].nature.caracteristiquesSpecifiques.dateLimVisiteConformite             2192       2092 {'null': 2092, 'str': 100}                          10
+pmej.ege[].activitesExercees[].nature.caracteristiquesSpecifiques.dateVisite                          2192       2190 {'null': 2190, 'str': 2}                            10
+pmej.ege[].activitesExercees[].nature.caracteristiquesSpecifiques.etatArhgos                          2192          0 {'str': 2192}                                       2
+pmej.ege[].activitesExercees[].nature.caracteristiquesSpecifiques.marque                                68         68 {'null': 68}                                        
+pmej.ege[].activitesExercees[].nature.caracteristiquesSpecifiques.numDecision                         2192       2192 {'null': 2192}                                      
+pmej.ege[].activitesExercees[].nature.caracteristiquesSpecifiques.numeroSerie                           68         68 {'null': 68}                                        
+pmej.ege[].activitesExercees[].nature.caracteristiquesSpecifiques.resultatVisite                      2192       2192 {'null': 2192}                                      
+pmej.ege[].activitesExercees[].nature.caracteristiquesSpecifiques.typeActiviteAASA                    2192          0 {'objet': 2192}                                     
+pmej.ege[].activitesExercees[].nature.caracteristiquesSpecifiques.typeActiviteAASA.activiteSanitaireRegulee       2192          0 {'str': 2192}                                       2
+pmej.ege[].activitesExercees[].nature.caracteristiquesSpecifiques.typeActiviteAASA.formeActivite       2192          0 {'str': 2192}                                       2
+pmej.ege[].activitesExercees[].nature.caracteristiquesSpecifiques.typeActiviteAASA.modaliteActivite       2192          0 {'str': 2192}                                       2
+pmej.ege[].activitesExercees[].nature.caracteristiquesSpecifiques.typeActiviteAER                     5895          0 {'objet': 5895}                                     
+pmej.ege[].activitesExercees[].nature.caracteristiquesSpecifiques.typeActiviteAER.activiteEnseignementRegulee       5895          0 {'str': 5895}                                       3
+pmej.ege[].activitesExercees[].nature.caracteristiquesSpecifiques.typeActiviteAER.modeFonctionnement       5895          0 {'str': 5895}                                       2
+pmej.ege[].activitesExercees[].nature.caracteristiquesSpecifiques.typeActiviteAER.public              5895          0 {'str': 5895}                                       3
+pmej.ege[].activitesExercees[].nature.caracteristiquesSpecifiques.typeActiviteAMF                     6872          0 {'objet': 6872}                                     
+pmej.ege[].activitesExercees[].nature.caracteristiquesSpecifiques.typeActiviteAMF.activiteAMF         6872          0 {'str': 6872}                                       2
+pmej.ege[].activitesExercees[].nature.caracteristiquesSpecifiques.typeActiviteAMF.formeActivite       6872          0 {'str': 6872}                                       2
+pmej.ege[].activitesExercees[].nature.caracteristiquesSpecifiques.typeActiviteAMF.modaliteActivite       6872          0 {'str': 6872}                                       2
+pmej.ege[].activitesExercees[].nature.caracteristiquesSpecifiques.typeActiviteAMM                    31463          0 {'objet': 31463}                                    
+pmej.ege[].activitesExercees[].nature.caracteristiquesSpecifiques.typeActiviteAMM.activiteAMM        31463          0 {'str': 31463}                                      5
+pmej.ege[].activitesExercees[].nature.caracteristiquesSpecifiques.typeActiviteAMM.declarationAMM      31463          0 {'str': 31463}                                      5
+pmej.ege[].activitesExercees[].nature.caracteristiquesSpecifiques.typeActiviteAMM.mentionAMM         31463          0 {'str': 31463}                                      5
+pmej.ege[].activitesExercees[].nature.caracteristiquesSpecifiques.typeActiviteAMM.modaliteAMM        31463          0 {'str': 31463}                                      5
+pmej.ege[].activitesExercees[].nature.caracteristiquesSpecifiques.typeActiviteAMM.ptsAMM             31463          0 {'str': 31463}                                      5
+pmej.ege[].activitesExercees[].nature.caracteristiquesSpecifiques.typeActiviteAMSR                  113420          0 {'objet': 113420}                                   
+pmej.ege[].activitesExercees[].nature.caracteristiquesSpecifiques.typeActiviteAMSR.activiteSocialeRegulee     113420          0 {'str': 113420}                                     3
+pmej.ege[].activitesExercees[].nature.caracteristiquesSpecifiques.typeActiviteAMSR.modeFonctionnement     113420          0 {'str': 113420}                                     2
+pmej.ege[].activitesExercees[].nature.caracteristiquesSpecifiques.typeActiviteAMSR.public           113420          0 {'str': 113420}                                     3
+pmej.ege[].activitesExercees[].nature.caracteristiquesSpecifiques.typeActiviteASDR                   87205          0 {'objet': 87205}                                    
+pmej.ege[].activitesExercees[].nature.caracteristiquesSpecifiques.typeActiviteASDR.activiteSanitaireDiverseRegulee      87205          0 {'str': 87205}                                      3
+pmej.ege[].activitesExercees[].nature.caracteristiquesSpecifiques.typeActiviteASDR.modeFonctionnement      87205          0 {'str': 87205}                                      2
+pmej.ege[].activitesExercees[].nature.caracteristiquesSpecifiques.typeActiviteASDR.public            87205          0 {'str': 87205}                                      3
+pmej.ege[].activitesExercees[].nature.caracteristiquesSpecifiques.typeActiviteASOCR                  45758          0 {'objet': 45758}                                    
+pmej.ege[].activitesExercees[].nature.caracteristiquesSpecifiques.typeActiviteASOCR.activiteSocialeRegulee      45758          0 {'str': 45758}                                      3
+pmej.ege[].activitesExercees[].nature.caracteristiquesSpecifiques.typeActiviteASOCR.modeFonctionnement      45758          0 {'str': 45758}                                      2
+pmej.ege[].activitesExercees[].nature.caracteristiquesSpecifiques.typeActiviteASOCR.public           45758          0 {'str': 45758}                                      3
+pmej.ege[].activitesExercees[].nature.caracteristiquesSpecifiques.typeActiviteEML                       68          0 {'objet': 68}                                       
+pmej.ege[].activitesExercees[].nature.caracteristiquesSpecifiques.typeActiviteEML.typeEmlId             68          0 {'str': 68}                                         1
+pmej.ege[].activitesExercees[].nature.codeNature                                                    292873          0 {'str': 292873}                                     5
+pmej.ege[].activitesExercees[].zoneIntervention                                                     292873     292873 {'null': 292873}                                    
+pmej.ege[].egeId                                                                                    139675          0 {'str': 139675}                                     6
+pmej.ege[].numFinessEge                                                                             139675          0 {'str': 139675}                                     9
+pmej.numFiness                                                                                       45656          0 {'str': 45656}                                      9
+pmej.pmSmsseId                                                                                       45656          0 {'str': 45656}                                      5
 
 
 # Valeurs distinctes observees (champs courts)
-gcc.dateDerniereMaj -> 0 valeurs : {}
-gcc.etatObjet -> 1 valeurs : {'A': 135}
-gcc.evenement[].codeEvenement -> 1 valeurs : {'003': 135}
-gcc.evenement[].dateEnregistrement -> 0 valeurs : {}
-gcc.evenement[].dateEvenement -> 8 valeurs : {'2017-01-01': 127, '2023-01-01': 2, '2022-04-01': 1, '2018-07-01': 1, '2024-01-01': 1, '2019-01-01': 1, '2020-01-01': 1, '2023-03-01': 1}
-gcc.evenement[].etatObjet1 -> 1 valeurs : {'003': 135}
-gcc.evenement[].evenementId -> 60+ valeurs : {'732817': 1, '733302': 1, '733303': 1, '733397': 1, '733403': 1, '732685': 1, '732691': 1, '732917': 1, '732696': 1, '732959': 1, '732708': 1, '732713': 1}
-gcc.evenement[].identifiantObjet1 -> 60+ valeurs : {'1': 1, '2': 1, '3': 1, '4': 1, '5': 1, '6': 1, '7': 1, '8': 1, '9': 1, '10': 1, '11': 1, '12': 1}
-gcc.evenement[].systemeMaitre -> 1 valeurs : {'01': 135}
-gcc.evenement[].typeObjet1 -> 1 valeurs : {'GR': 135}
-gcc.gccId -> 60+ valeurs : {'1': 1, '2': 1, '3': 1, '4': 1, '5': 1, '6': 1, '7': 1, '8': 1, '9': 1, '10': 1, '11': 1, '12': 1}
-gcc.nomGcc -> 60+ valeurs : {'77 Nord': 1, '77 Sud': 1, '93/95': 1, 'Aisne Nord': 1, 'Alpes Dauphiné': 1, 'Alpes du Sud': 1, 'Alpes Maritimes': 1, 'Armor': 1, 'Artois': 1, 'Artois-Ternois': 1, 'Atlantique 17': 1, 'Béarn-Soule': 1}
-gcc.numFinessGcc -> 60+ valeurs : {'49824516535': 1, '49649033062': 1, '49473549597': 1, '49298066124': 1, '49122582650': 1, '48947099189': 1, '48771615712': 1, '48596132240': 1, '48420648775': 1, '48245165302': 1, '48069681830': 1, '47894198366': 1}
-gcc.pmejDuGcc[].pmSmsseId -> 60+ valeurs : {'15052': 1, '15159': 1, '15163': 1, '15165': 1, '45502': 1, '45503': 1, '45505': 1, '15155': 1, '15156': 1, '75685': 1, '75686': 1, '75983': 1}
-gcc.pmejDuGcc[].typeRoleEntiteGroupe -> 2 valeurs : {'M': 626, 'S': 135}
-gcc.typeGcc -> 2 valeurs : {'001': 131, '002': 4}
-gco.pmSmsseId -> 60+ valeurs : {'403': 1, '405': 1, '421': 1, '422': 1, '448': 1, '459': 1, '499': 1, '512': 1, '520': 1, '524': 1, '536': 1, '547': 1}
-gco.pmejDuGco[].pmSmsseId -> 2 valeurs : {'72065': 1, '69656': 1}
-gco.pmejDuGco[].typeRoleEntiteGroupe -> 1 valeurs : {'M': 2}
-gco.typeGco -> 4 valeurs : {'003': 940, '001': 814, '004': 66, '002': 36}
-pmej.adresse[].codePostal -> 60+ valeurs : {'01000': 39, '01110': 18, '01100': 17, '01500': 11, '01300': 10, '01150': 9, '01120': 9, '01700': 9, '01480': 8, '01400': 8, '01200': 8, '01170': 7}
-pmej.adresse[].cogCommune -> 60+ valeurs : {'01053': 12, '01185': 10, '01034': 4, '01004': 3, '01384': 3, '01194': 2, '01216': 2, '01272': 2, '01108': 2, '01202': 2, '01262': 2, '01263': 2}
-pmej.adresse[].complementPointGeographique -> 60+ valeurs : {'MAIRIE': 91, 'HOTEL DE VILLE': 11, 'COURS LADOUCETTE': 2, 'ZUP NORD': 1, 'LE KEYNES': 1, 'LES LUYERS': 1, 'LA SAULSAIE': 1, "LA COMBE D'EVUAZ": 1, 'CENTRE SOCIAL': 1, 'LE TALISMAN': 1, 'CITE SENIORS': 1, 'CHASSIN': 1}
-pmej.adresse[].complementVoie -> 4 valeurs : {'B': 2143, 'T': 290, 'C': 76, 'Q': 17}
-pmej.adresse[].coordonneesGeographique.cleInInteropBAN -> 60+ valeurs : {'01143_0515_00240': 1, '01053_1950_00062': 1, '01053_1890_00012': 1, '01034_0400_00054': 1, '01185_0070_00311': 1, '01185_0070': 1, '01185_0440': 1, '01053_2380_00005': 1, '01185_0100': 1, '01185_0620_00038': 1, '01272_0180_00150': 1, '01185_0200': 1}
-pmej.adresse[].coordonneesGeographique.coordonneeX -> 60+ valeurs : {'5.684769': 2, '5.35032': 2, '6.139885': 1, '5.254203': 1, '5.237126': 1, '5.60329': 1, '5.602988': 1, '5.602752': 1, '5.226104': 1, '5.605159': 1, '5.602917': 1, '5.001857': 1}
-pmej.adresse[].coordonneesGeographique.coordonneeY -> 60+ valeurs : {'45.761585': 2, '45.90124': 2, '46.362063': 1, '46.211257': 1, '46.191013': 1, '45.980306': 1, '45.979741': 1, '45.984814': 1, '46.200985': 1, '45.89027': 1, '45.985367': 1, '46.163165': 1}
-pmej.adresse[].coordonneesGeographique.directionLatitude -> 60+ valeurs : {'6521545.08': 2, '6536218.29': 2, '6589480.53': 1, '6570414.61': 1, '6568129.95': 1, '6545608.92': 1, '6545545.44': 1, '6546107.89': 1, '6569212.89': 1, '6535620.61': 1, '6546169.69': 1, '6564551.4': 1}
-pmej.adresse[].coordonneesGeographique.directionLongitude -> 60+ valeurs : {'908642.19': 2, '882197.73': 2, '941342.52': 1, '873766.07': 1, '872513.72': 1, '901511.88': 1, '901490.58': 1, '901453.76': 1, '871632.78': 1, '901986.32': 1, '901464.5': 1, '854453.7': 1}
-pmej.adresse[].coordonneesGeographique.scoreBAN -> 60+ valeurs : {'0.96249': 3, '0.964': 3, '0.95243': 2, '0.97018': 2, '0.94941': 2, '0.97551': 2, '0.96513': 2, '0.9596': 2, '0.96462': 2, '0.94633': 1, '0.94487': 1, '0.96143': 1}
-pmej.adresse[].libelleVoie -> 60+ valeurs : {'GRANDE RUE': 3, 'DE JASSERON': 2, 'GEORGES GIRERD': 2, 'DE LA CHAPELLE': 2, 'FELIX MANGINI': 2, 'ALSACE LORRAINE': 2, 'NATIONALE': 1, 'DU LYCEE': 1, "DU CHATEAU D'EAU": 1, 'DES VILLAS': 1, 'DES CHANOINESSES': 1, "DE LA GRAND'COTE": 1}
-pmej.adresse[].lieuDit -> 60+ valeurs : {'BP 114': 2, 'B.P. 818': 2, 'CS 20100': 2, 'BP 41': 2, 'BP 401': 2, 'BP 68': 2, 'BP 139': 2, 'BP 90419': 2, 'BP 59': 2, 'LE VILLAGE': 1, 'ST HENRI': 1, 'SAINT MARTIN': 1}
-pmej.adresse[].ligneAcheminement -> 60+ valeurs : {'BOURG EN BRESSE': 19, 'BELLEY': 5, 'JASSANS RIOTTIER': 4, 'LAGNIEU': 3, 'MONTLUEL': 3, 'MIRIBEL': 3, 'GEX': 3, 'PONT DE VEYLE': 3, 'MEXIMIEUX': 3, 'LHUIS': 2, 'COLIGNY': 2, 'PONT D AIN': 2}
-pmej.adresse[].ligneCinq -> 1 valeurs : {'Mausoleo': 1}
-pmej.adresse[].ligneQuatre -> 60+ valeurs : {'RUE NATIONALE': 1, '5 RUE DU LYCEE': 1, '72 RUE DE LYON': 1, 'RUE CAEERINETTE': 1, 'RUE DE LA MAIRIE': 1, '5 RUE DES CRETS': 1, '2 AVENUE MANGINI': 1, 'RUE ROMAN PETIT': 1, 'GRANDE RUE': 1, '9 RUE DU LEVANT': 1, 'LES MURES': 1, 'RUE DES VILLAS': 1}
-pmej.adresse[].ligneSix -> 60+ valeurs : {'01100 Oyonnax': 10, '01200 Valserhône': 6, '01300 Belley': 4, '01170 Gex': 3, '01700 Miribel': 3, '01150 Lagnieu': 2, '01800 Meximieux': 2, '01120 Montluel': 2, '01130 Nantua': 2, '01960 Péronnas': 2, '01600 Trévoux': 2, '01440 Viriat': 2}
-pmej.adresse[].ligneUne -> 60+ valeurs : {'PHARMACIE ROUX': 4, 'PHARMACIE DOUCE': 2, 'PHARMACIE FAYET': 2, 'LABM AXEL TRENY': 1, 'PHARMACIE ORSET': 1, 'PHARMACIE TRAN': 1, 'PHARMACIE GROSS': 1, 'SELARL TONY MENU': 1, 'PHARMACIE SCRIVE': 1, 'PHARMACIE DEBOVE': 1, 'PHARMACIE CHAPON': 1, 'PHARMACIE REVOL': 1}
-pmej.adresse[].numeroVoie -> 60+ valeurs : {'2': 6, '14': 4, '17': 3, '5': 3, '10': 3, '40': 3, '1': 3, '9': 3, '34': 2, '11': 2, '13': 2, '240': 1}
-pmej.adresse[].typeVoie -> 60+ valeurs : {'R': 826, 'AV': 567, 'BD': 230, 'PL': 221, 'RTE': 182, 'R   ': 148, 'CHE': 110, 'AV  ': 90, 'BD  ': 50, 'PL  ': 35, 'ALL': 33, 'QUA': 32}
-pmej.adresse[].usageAdresse -> 1 valeurs : {'02': 98168}
-pmej.contact[].telecom.courriel -> 3 valeurs : {'info@acdemes.fr': 1, 'contact@epdef.fr': 1, 'dg@glaubitz.fr': 1}
-pmej.contact[].telecom.telecopie -> 60+ valeurs : {'0474226107': 2, '0479817589': 1, '0474404999': 1, '0474402303': 1, '0385301915': 1, '0474731002': 1, '0474210887': 1, '0474228941': 1, '0474381693': 1, '0474218136': 1, '0479425996': 1, '0474347184': 1}
-pmej.contact[].telecom.telephone -> 60+ valeurs : {'0450201235': 1, '0428631234': 1, '0474383000': 1, '0474223655': 1, '0479817580': 1, '0474404949': 1, '0474402323': 1, '0474352222': 1, '0474226685': 1, '0474360999': 1, '0474098900': 1, '0474398129': 1}
-pmej.contact[].typeContact.roleContact -> 1 valeurs : {'01': 76652}
-pmej.dateDerniereMaj -> 0 valeurs : {}
-pmej.ege[].adresse[].codePostal -> 60+ valeurs : {'01000': 41, '01110': 15, '01500': 12, '01700': 12, '01100': 11, '01300': 9, '01150': 9, '01120': 9, '01170': 7, '01200': 7, '01800': 6, '01480': 5}
-pmej.ege[].adresse[].cogCommune -> 60+ valeurs : {'01053': 20, '01185': 12, '01004': 6, '01249': 5, '01034': 4, '01202': 3, '01262': 3, '01283': 3, '01173': 3, '01079': 2, '01108': 2, '01388': 2}
-pmej.ege[].adresse[].complementPointGeographique -> 60+ valeurs : {'CH FLEYRIAT': 4, 'CHEF LIEU': 3, 'ORSAC': 3, 'MAIRIE': 3, 'CLINIQUE CONVERT': 2, '1ER ETAGE': 2, 'CENTRE SOCIAL': 2, 'HALTE GARDERIE': 2, 'MAISON DE SANTE': 2, 'PARC FOCH': 2, 'ZUP NORD': 1, 'LE VILLAGE': 1}
-pmej.ege[].adresse[].complementVoie -> 5 valeurs : {'B': 4794, 'T': 668, 'C': 161, ' ': 43, 'Q': 41}
-pmej.ege[].adresse[].coordonneesGeographique.cleInInteropBAN -> 60+ valeurs : {'01053_2380_00005': 3, '01283_0050_00188': 3, '01249_0250_00080': 3, '01185_0620': 2, '01004_0246_00010': 2, '01053_3615_00004': 2, '01053_1950_00062': 1, '01053_1890_00012': 1, '01034_0400_00052': 1, '01034_0400_00054': 1, '01185_0620_00135': 1, '01185_0070_00311': 1}
-pmej.ege[].adresse[].coordonneesGeographique.coordonneeX -> 60+ valeurs : {'5.226104': 3, '5.65062': 3, '4.954051': 3, '5.684769': 2, '5.602874': 2, '5.35109': 2, '5.35032': 2, '5.23254': 2, '5.254203': 1, '5.237126': 1, '5.602678': 1, '5.60329': 1}
-pmej.ege[].adresse[].coordonneesGeographique.coordonneeY -> 60+ valeurs : {'46.200985': 3, '46.254637': 3, '45.82699': 3, '45.761585': 2, '45.985913': 2, '45.968378': 2, '45.90124': 2, '46.196487': 2, '46.211257': 1, '46.191013': 1, '45.986236': 1, '45.980306': 1}
-pmej.ege[].adresse[].coordonneesGeographique.directionLatitude -> 60+ valeurs : {'6569212.89': 3, '6576178.36': 3, '6527138.03': 3, '6521545.08': 2, '6546230.18': 2, '6543672.45': 2, '6536218.29': 2, '6568727.59': 2, '6570414.61': 1, '6568129.95': 1, '6546265.53': 1, '6545608.92': 1}
-pmej.ege[].adresse[].coordonneesGeographique.directionLongitude -> 60+ valeurs : {'871632.78': 3, '904151.72': 3, '851689.74': 3, '908642.19': 2, '901459.17': 2, '882035.45': 2, '882197.73': 2, '872142.99': 2, '873766.07': 1, '872513.72': 1, '901442.83': 1, '901511.88': 1}
-pmej.ege[].adresse[].coordonneesGeographique.scoreBAN -> 60+ valeurs : {'0.97018': 6, '0.96249': 4, '0.96209': 3, '0.95267': 3, '0.94941': 2, '0.97393': 2, '0.95162': 2, '0.95805': 2, '0.97551': 2, '0.9596': 2, '0.94633': 1, '0.94487': 1}
-pmej.ege[].adresse[].libelleVoie -> 60+ valeurs : {'DU LYCEE': 4, 'DES VILLAS': 3, 'ANATOLE FRANCE': 3, 'TONY FERRET': 3, 'DE JASSERON': 2, 'GEORGES GIRERD': 2, 'FELIX MANGINI': 2, 'GRANDE RUE': 2, "DE L'HIPPODROME": 1, 'DE LA CHAPELLE': 1, 'DE LYON': 1, 'NATIONALE': 1}
-pmej.ege[].adresse[].lieuDit -> 60+ valeurs : {'BP 41': 6, 'CS 90401': 4, 'BP 401': 3, 'BP 68': 3, 'BP 415': 3, 'BP 437': 3, 'BP 132': 2, 'BP 139': 2, 'BP 818': 2, 'BP 615': 2, 'BP 55': 2, 'BP 102': 2}
-pmej.ege[].adresse[].ligneAcheminement -> 60+ valeurs : {'BOURG EN BRESSE': 19, 'Valserhône': 5, 'BELLEY': 4, 'OYONNAX': 4, 'MIRIBEL': 4, 'Belley': 4, 'LAGNIEU': 3, 'MONTLUEL': 3, 'GEX': 3, 'COLIGNY': 2, 'ARBENT': 2, 'MEXIMIEUX': 2}
-pmej.ege[].adresse[].ligneCinq -> 2 valeurs : {'': 9, 'Mausoleo': 1}
-pmej.ege[].adresse[].ligneDeux -> 60+ valeurs : {'\\ ': 45, 'ANTENNE': 8, 'MAIRIE': 7, 'CENTRE SOCIAL': 6, ' ': 6, 'MAISON MEDICALE': 3, '1° ETAGE': 3, 'ANTENNE DE TULLE': 2, 'CCAS': 2, 'ESPACE PEJ': 1, 'HOP. DE CANNES': 1, 'VILLA ROSE': 1}
-pmej.ege[].adresse[].ligneQuatre -> 60+ valeurs : {'5 RUE DU LYCEE': 3, 'RUE DES VILLAS': 2, 'RUE NATIONALE': 1, '6 RUE DU LYCEE': 1, 'CHEF LIEU': 1, 'GRANGE POURRET': 1, '5 RUE DES CRETS': 1, '2 RUE DU DR ROUX': 1, '190 RUE MASONOD': 1, 'RUE ROMAN PETIT': 1, 'RUE ROMANS PETIT': 1, 'CITE DU PLANET': 1}
-pmej.ege[].adresse[].ligneSix -> 60+ valeurs : {'01100 Oyonnax': 9, '01200 Valserhône': 6, '01300 Belley': 4, '01170 Gex': 3, '01700 Miribel': 3, '01150 Lagnieu': 2, '01800 Meximieux': 2, '01120 Montluel': 2, '01130 Nantua': 2, '01960 Péronnas': 2, '01600 Trévoux': 2, '01440 Viriat': 2}
-pmej.ege[].adresse[].ligneUne -> 60+ valeurs : {'CENTRE DE PMI': 10, 'LBM DYNALAB': 8, 'CAMSP': 3, 'SSIAD': 3, 'NORAMEDIC': 3, 'SAMSAH': 2, 'ANTENNE': 2, 'AIN MEDICAL': 1, 'MEDICALIA AIN': 1, 'ISIS LYON NORD': 1, "EQUIPE D'OYONNAX": 1, 'ANTENNE HIRSON': 1}
-pmej.ege[].adresse[].numeroVoie -> 60+ valeurs : {'5': 5, '2': 5, '10': 4, '17': 3, '6': 3, '188': 3, '80': 3, '4': 3, '68': 2, '34': 2, '1': 2, '40': 2}
-pmej.ege[].adresse[].typeVoie -> 60+ valeurs : {'R': 1560, 'AV': 537, 'RTE': 256, 'PL': 209, 'BD': 148, 'R   ': 136, 'CHE': 109, 'ALL': 55, 'QUA': 42, 'IMP': 37, 'AV  ': 36, 'RTE ': 18}
-pmej.ege[].adresse[].usageAdresse -> 3 valeurs : {'03': 174508, '06': 3788, '04': 2151}
-pmej.ege[].categorieentiteGeographiqueExercice -> 60+ valeurs : {'620': 166, '202': 26, '610': 25, '500': 24, '170': 16, '460': 14, '355': 10, '200': 8, '209': 6, '181': 6, '108': 5, '362': 4}
-pmej.ege[].contact[].telecom.courriel -> 5 valeurs : {'info@acdemes.fr': 1, 'centre@unhaj.org': 1, 'caudry@epdsae.fr': 1, 'dg@acces68.fr': 1, 'hla@apap80.org': 1}
-pmej.ege[].contact[].telecom.telecopie -> 60+ valeurs : {'0478550019': 3, '0474221223': 2, '0474461429': 2, '0474307340': 2, '0474382540': 2, '0479817589': 1, '0474404999': 1, '0474402303': 1, '0474402017': 1, '0474352603': 1, '0474400130': 1, '0474402400': 1}
-pmej.ege[].contact[].telecom.telephone -> 60+ valeurs : {'0474226685': 3, '0474307044': 2, '0478557620': 2, '0385386826': 2, '0428631234': 1, '0474383000': 1, '0474223655': 1, '0479817580': 1, '0474404949': 1, '0474402323': 1, '0474402020': 1, '0474353384': 1}
-pmej.ege[].contact[].typeContact.roleContact -> 1 valeurs : {'01': 145853}
-pmej.ege[].dateDerniereMaj -> 0 valeurs : {}
-pmej.ege[].engagement[].autoriteRegulationEngagement[].autoriteRegulationid -> 20 valeurs : {'ARS-75': 36, 'ARS-84': 8, 'ARS-76': 6, 'CD-59': 6, 'ARS-11': 5, 'ARS-94': 4, 'ARS-53': 4, 'CD-44': 3, 'CR-32': 2, 'CD-15': 2, 'ARS-28': 2, 'ARS-52': 2}
-pmej.ege[].engagement[].dateCaduciteEngagement -> 2 valeurs : {'2027-12-31': 1, '2086-12-30': 1}
-pmej.ege[].engagement[].dateEffetEngagement -> 60+ valeurs : {'2018-12-28': 4, '1974-03-25': 2, '1990-12-11': 2, '2007-08-09': 2, '2025-08-20': 2, '1980-01-01': 2, '2026-01-01': 2, '1948-05-12': 1, '1947-06-25': 1, '1973-08-01': 1, '1990-10-11': 1, '2006-12-21': 1}
-pmej.ege[].engagement[].dateFinEngagement -> 60+ valeurs : {'2041-07-21': 7, '2041-04-08': 4, '2041-07-24': 3, '2041-06-17': 3, '2041-07-09': 3, '2041-07-17': 3, '2026-07-01': 2, '2041-06-29': 2, '2041-07-07': 2, '2031-10-28': 2, '2041-06-18': 2, '2028-12-31': 2}
-pmej.ege[].engagement[].dateNotificationEngagement -> 46 valeurs : {'2026-07-21': 9, '2026-07-24': 5, '2026-07-17': 5, '2026-06-18': 5, '2026-06-25': 4, '2026-07-09': 4, '2026-04-09': 4, '2026-06-29': 3, '2026-07-07': 3, '2026-07-15': 3, '2026-06-26': 2, '2026-07-20': 2}
-pmej.ege[].engagement[].dateSignatureEngagement -> 60+ valeurs : {'2018-12-28': 4, '1974-03-25': 2, '1990-12-11': 2, '2007-08-09': 2, '2025-08-20': 2, '1980-01-01': 2, '2026-01-01': 2, '1948-05-12': 1, '1947-06-25': 1, '1973-08-01': 1, '1990-10-11': 1, '2006-12-21': 1}
-pmej.ege[].engagement[].engagementId -> 60+ valeurs : {'27585': 1, '11520': 1, '19842': 1, '14537': 1, '721': 1, '29851': 1, '45822': 1, '45823': 1, '46486': 1, '50535': 1, '72166': 1, '30894': 1}
-pmej.ege[].engagement[].motifArrete -> 7 valeurs : {'C': 32, 'P': 17, 'T': 15, 'V': 7, 'F': 5, 'X': 5, 'R': 1}
-pmej.ege[].engagement[].sousTypeEngagement -> 35 valeurs : {'ARR': 39329, 'ASE': 11419, 'ASD': 11374, 'QAL': 6426, 'CPM': 3840, 'JUS': 1005, 'DIT': 751, 'PAD': 514, 'APL': 406, 'ACI': 398, 'HPR': 241, 'PCP': 198}
-pmej.ege[].engagement[].typeEngagement -> 4 valeurs : {'ARRT': 39380, 'CONV': 35711, 'DISP': 1620, 'LABL': 405}
-pmej.ege[].etatObjet -> 2 valeurs : {'A': 104699, 'I': 69809}
-pmej.ege[].evenement[].codeEvenement -> 7 valeurs : {'003': 174466, '007': 173217, '005': 69972, '036': 23019, '035': 23008, '018': 78, '019': 78}
-pmej.ege[].evenement[].dateEnregistrement -> 0 valeurs : {}
-pmej.ege[].evenement[].dateEvenement -> 60+ valeurs : {'2017-01-03': 19, '1956-11-16': 2, '1982-03-04': 2, '1967-07-01': 2, '2003-05-14': 2, '2005-05-11': 2, '1948-01-01': 2, '2020-10-27': 2, '1926-01-01': 2, '1973-01-01': 2, '1994-08-04': 2, '1952-01-01': 2}
-pmej.ege[].evenement[].etatObjet1 -> 11 valeurs : {'003': 174466, '007': 173217, '100': 40575, '036': 23019, '035': 23008, '102': 20078, '101': 6629, '103': 1239, '005': 356, '018': 78, '019': 78}
-pmej.ege[].evenement[].evenementId -> 60+ valeurs : {'142960': 1, '156371': 1, '143203': 1, '152387': 1, '156614': 1, '142962': 1, '152262': 1, '156373': 1, '142233': 1, '152103': 1, '155651': 1, '142236': 1}
-pmej.ege[].evenement[].identifiantObjet1 -> 60+ valeurs : {'1076': 3, '835': 3, '106': 3, '109': 3, '840': 3, '841': 3, '843': 3, '1282': 3, '863': 3, '864': 3, '869': 3, '925': 3}
-pmej.ege[].evenement[].identifiantObjet2 -> 58 valeurs : {'11399': 34, '74093': 34, '81541': 5, '3727': 5, '46869': 5, '46878': 5, '23492': 4, '82792': 3, '29752': 3, '579': 3, '63978': 3, '13386': 2}
-pmej.ege[].evenement[].systemeMaitre -> 3 valeurs : {'01': 417311, '04': 46122, '05': 405}
-pmej.ege[].evenement[].typeObjet1 -> 1 valeurs : {'EG': 463838}
-pmej.ege[].evenement[].typeObjet2 -> 1 valeurs : {'PM': 156}
-pmej.ege[].informationsGeneralesEGE.complementDenominationEg -> 60+ valeurs : {'ORSAC': 9, 'ALFA3A': 6, 'ALFA 3A': 6, 'ESPACE COTIERE': 2, 'TREMPLIN': 2, 'LES NIVEOLES': 1, 'ST VULBAS': 1, 'CLINIQUE CONVERT': 1, 'LABM VERWAERDE': 1, 'MME NICOLAI ANNE': 1, 'DALLEX ALLOMBERT': 1, 'ESPACE TERREAUX': 1}
-pmej.ege[].informationsGeneralesEGE.dateFermeture -> 60+ valeurs : {'2014-03-31': 16, '2016-01-06': 6, '2013-01-25': 3, '2011-12-05': 3, '2020-10-27': 2, '2002-03-20': 2, '1997-01-16': 2, '2007-12-06': 2, '2011-12-06': 2, '2012-03-29': 2, '1993-01-01': 1, '1996-08-29': 1}
-pmej.ege[].informationsGeneralesEGE.dateOuverture -> 60+ valeurs : {'1904-04-04': 7, '1973-01-01': 2, '1984-01-01': 2, '1980-01-01': 2, '1982-01-01': 2, '1956-11-16': 1, '1982-03-04': 1, '1967-07-01': 1, '2003-05-14': 1, '2005-05-11': 1, '1948-01-01': 1, '1926-01-01': 1}
-pmej.ege[].informationsGeneralesEGE.datePremiereAutorisation -> 60+ valeurs : {'2017-01-03': 27, '1904-04-04': 8, '1991-09-01': 2, '1956-11-16': 1, '1982-03-04': 1, '1967-07-01': 1, '2003-05-14': 1, '2005-05-11': 1, '1948-01-01': 1, '1926-01-01': 1, '2019-01-16': 1, '1973-01-01': 1}
-pmej.ege[].informationsGeneralesEGE.egeId -> 60+ valeurs : {'833': 1, '1076': 1, '835': 1, '106': 1, '109': 1, '840': 1, '841': 1, '664': 1, '843': 1, '428': 1, '850': 1, '1282': 1}
-pmej.ege[].informationsGeneralesEGE.espic[] -> 9 valeurs : {'1': 10489, '0': 6430, '6': 2189, '9': 1401, '2': 401, '7': 365, '3': 23, '5': 6, '4': 6}
-pmej.ege[].informationsGeneralesEGE.nomEgeCourt -> 60+ valeurs : {'LABM AXEL TRENY': 2, 'CLINIQUE CONVERT': 1, 'SAFEP-SSEFIS': 1, 'SAD 01': 1, 'SAAD ADAPA': 1, 'AP DU BUGEY': 1, '16': 1, 'MARPA LA VALETTE': 1, 'LABM VERWAERDE': 1, 'LABM': 1, 'LABM NICOLAI': 1, 'LABM CHAUVY': 1}
-pmej.ege[].informationsGeneralesEGE.nomEgeLong -> 60+ valeurs : {'LABM AXEL TRENY': 2, "GRETA DE L'AIN": 2, 'SAFEP-SSEFIS': 1, 'SAAD ADAPA': 1, 'MARPA LA VALETTE': 1, 'LABM VERWAERDE': 1, 'LABM': 1, 'LABM NICOLAI': 1, 'LABM CHAUVY': 1, 'LABM LACOUR': 1, 'JEANBLANC HUBERT': 1, 'LABM FORNIER': 1}
-pmej.ege[].informationsGeneralesEGE.numFinessEge -> 60+ valeurs : {'010780195': 1, '010787190': 1, '010780211': 1, '010002699': 1, '010002749': 1, '010780310': 1, '010780328': 1, '010011641': 1, '010780427': 1, '010008183': 1, '010780575': 1, '010790061': 1}
-pmej.ege[].informationsGeneralesEGE.numeroEducationNationale -> 60+ valeurs : {'0010908G': 1, '0010021T': 1, '0011361Z': 1, '0010989V': 1, '0010016M': 1, '0010006B': 1, '0010032E': 1, '0011048J': 1, '0011160F': 1, '0010909H': 1, '0382367S': 1, '0692666Y': 1}
-pmej.ege[].informationsGeneralesEGE.numeroReferenceExterne -> 60+ valeurs : {'01#000066': 1, '01#000401': 1, '01#000365': 1, '01#000230': 1, '01#000334': 1, '01#000379': 1, '01#000376': 1, '01#000363': 1, '01#000323': 1, '01#000187': 1, '01#000341': 1, '01#000262': 1}
-pmej.ege[].informationsGeneralesEGE.siret -> 60+ valeurs : {'77930919400024': 3, '77220148900022': 1, '75920025600015': 1, '54692007500043': 1, '54612012200017': 1, '54612012200025': 1, '54612012200033': 1, '39759886300017': 1, '33824018700017': 1, '33408695600029': 1, '54582007800016': 1, '26010001100014': 1}
-pmej.ege[].modefixationtarifaire -> 49 valeurs : {'01': 83007, '08': 18373, '99': 15967, '03': 9124, '05': 5613, '36': 4782, '07': 4098, '57': 3968, '34': 3963, '45': 3197, '09': 2561, '30': 2416}
-pmej.ege[].roleEge[].idEgeNonPorteuse -> 60+ valeurs : {'786': 2, '925': 2, '723': 2, '14': 2, '15': 2, '419': 2, '3': 2, '258': 2, '1212': 2, '4': 2, '154': 2, '776': 2}
-pmej.ege[].roleEge[].idEgePorteuse -> 60+ valeurs : {'19': 132, '1341': 78, '1309': 22, '1481': 14, '2349': 10, '115146': 8, '4': 6, '16': 4, '245': 4, '1027': 4, '919': 4, '549': 4}
-pmej.ege[].roleEge[].roleRelationEge -> 2 valeurs : {'B': 47462, 'C': 12}
-pmej.ege[].typeBudget[] -> 2 valeurs : {'01': 156525, '02': 17978}
-pmej.engagement[].autoriteRegulationEngagement[].autoriteRegulationid -> 5 valeurs : {'ARS-11': 3, 'ARS-75': 2, 'ARS-53': 1, 'ARS-94': 1, 'ARS-05': 1}
-pmej.engagement[].dateEffetEngagement -> 7 valeurs : {'2026-07-24': 2, '2026-07-15': 1, '2026-01-01': 1, '2026-07-01': 1, '2026-07-23': 1, '2026-01-15': 1, '2026-06-24': 1}
-pmej.engagement[].dateFinEngagement -> 7 valeurs : {'2036-07-24': 2, '2070-07-15': 1, '2026-12-31': 1, '2026-07-01': 1, '2099-07-23': 1, '2028-12-31': 1, '2036-06-24': 1}
-pmej.engagement[].dateNotificationEngagement -> 6 valeurs : {'2026-07-15': 2, '2026-07-24': 2, '2026-02-26': 1, '2026-07-23': 1, '2026-01-15': 1, '2026-06-24': 1}
-pmej.engagement[].dateSignatureEngagement -> 6 valeurs : {'2026-07-15': 2, '2026-07-24': 2, '2026-02-26': 1, '2026-07-23': 1, '2026-01-15': 1, '2026-06-24': 1}
-pmej.engagement[].engagementId -> 8 valeurs : {'77208': 1, '77207': 1, '77174': 1, '77249': 1, '77269': 1, '77270': 1, '77345': 1, '77346': 1}
-pmej.engagement[].motifArrete -> 2 valeurs : {'C': 3, 'F': 1}
-pmej.engagement[].sousTypeEngagement -> 2 valeurs : {'CPM': 2, 'ARR': 1}
-pmej.engagement[].typeEngagement -> 3 valeurs : {'ARRT': 4, 'CONV': 2, 'LABL': 2}
-pmej.etatObjet -> 2 valeurs : {'A': 56219, 'I': 41949}
-pmej.evenement[].codeEvenement -> 6 valeurs : {'001': 98169, '005': 30202, '034': 22687, '002': 13888, '037': 143, '016': 13}
-pmej.evenement[].dateEnregistrement -> 0 valeurs : {}
-pmej.evenement[].dateEvenement -> 60+ valeurs : {'2001-01-01': 123, '2019-03-03': 26, '2002-07-10': 21, '2014-03-31': 15, '2016-01-06': 6, '2010-01-01': 6, '1982-01-01': 3, '2015-04-07': 3, '2016-11-18': 3, '2004-03-04': 2, '2019-12-31': 2, '2006-07-12': 2}
-pmej.evenement[].etatObjet1 -> 8 valeurs : {'001': 98169, '005': 29002, '034': 22687, '002': 13888, '101': 1103, '037': 143, '004': 97, '016': 13}
-pmej.evenement[].evenementId -> 60+ valeurs : {'1': 1, '2103': 1, '2': 1, '3': 1, '2078': 1, '4': 1, '2081': 1, '5': 1, '2106': 1, '6': 1, '7': 1, '2084': 1}
-pmej.evenement[].identifiantObjet1 -> 60+ valeurs : {'1': 2, '3': 2, '4': 2, '5': 2, '7': 2, '8': 2, '10': 2, '11': 2, '12': 2, '13': 2, '14': 2, '15': 2}
-pmej.evenement[].identifiantObjet2 -> 3 valeurs : {'98159': 9, '98160': 2, '98187': 2}
-pmej.evenement[].systemeMaitre -> 3 valeurs : {'01': 142155, '04': 22927, '05': 20}
-pmej.evenement[].typeObjet1 -> 1 valeurs : {'PM': 165102}
-pmej.evenement[].typeObjet2 -> 1 valeurs : {'PM': 13}
-pmej.informationsGeneralesPMEJ.codeApe -> 60+ valeurs : {'47.73Z': 159, '88.10A': 42, '87.10A': 37, '88.99B': 35, '86.10Z': 27, '86.21Z': 26, '94.99Z': 22, '87.30A': 20, '84.11Z': 20, '86.90B': 20, '85.1A': 11, '88.91A': 9}
-pmej.informationsGeneralesPMEJ.complementAdressePmSmsse -> 60+ valeurs : {'GROUPE KANTYS': 4, 'ASS AFIS': 1, 'LA VALETTE': 1, 'CLINIQUE CONVERT': 1, 'SERVICE SCANNER': 1, 'CHARLES BRISSET': 1, 'SAINT CLAUDE': 1, 'CS DU VERMANDOIS': 1, 'DU MONT RENAUD': 1, "THIÉRA'NATURA": 1, '( CEPMS)': 1, 'OPTIQUE DENTAIRE': 1}
-pmej.informationsGeneralesPMEJ.dateCreation -> 60+ valeurs : {'2001-01-01': 124, '1942-08-10': 7, '1982-01-01': 3, '2006-02-01': 2, '1994-01-01': 1, '1961-01-01': 1, '1997-02-16': 1, '1991-01-01': 1, '1989-05-05': 1, '2008-04-01': 1, '1983-05-02': 1, '1986-06-16': 1}
-pmej.informationsGeneralesPMEJ.dateFermeture -> 60+ valeurs : {'2019-03-03': 29, '2002-07-10': 21, '2014-03-31': 16, '2010-01-01': 7, '2016-01-06': 6, '2004-03-04': 2, '2019-12-31': 2, '2006-07-12': 2, '1997-02-06': 2, '2011-12-06': 2, '2008-04-21': 1, '2008-11-12': 1}
-pmej.informationsGeneralesPMEJ.denominationLonguePmSmsse -> 60+ valeurs : {'PHARMACIE ROUX': 4, 'CLINIQUE CONVERT': 1, "EHPAD L'ALBIZIA": 1, 'C N R O': 1, 'S.A. LA CIGOGNE': 1, 'LABM DE THOISSEY': 1, 'SELARL LIENHART': 1, 'LABM BERGER': 1, 'JEANBLANC HUBERT': 1, 'COURTIN VIRGINIE': 1, 'LABM AXEL TRENY': 1, 'LABM LALANDE': 1}
-pmej.informationsGeneralesPMEJ.denominationPm -> 60+ valeurs : {'PHARMACIE ROUX': 4, 'CLINIQUE CONVERT': 1, 'SARL LA ROCHETTE': 1, "EHPAD L'ALBIZIA": 1, 'C N R O': 1, 'ASS ADAPA': 1, 'ALFA 3 A': 1, 'S.A. LA CIGOGNE': 1, 'SGMR': 1, 'SARL LES OREADES': 1, 'LABM DE THOISSEY': 1, 'SELARL LIENHART': 1}
-pmej.informationsGeneralesPMEJ.fonctionPublique -> 3 valeurs : {'01': 12021, '02': 1874, '03': 1671}
-pmej.informationsGeneralesPMEJ.numFinessPm -> 60+ valeurs : {'010000016': 1, '010000156': 1, '010000164': 1, '010000172': 1, '010000206': 1, '010000222': 1, '010000230': 1, '010000248': 1, '010000255': 1, '010000263': 1, '010000271': 1, '010000289': 1}
-pmej.informationsGeneralesPMEJ.pmSmsseId -> 60+ valeurs : {'1': 1, '2': 1, '3': 1, '4': 1, '5': 1, '6': 1, '7': 1, '8': 1, '9': 1, '10': 1, '11': 1, '12': 1}
-pmej.informationsGeneralesPMEJ.siren -> 60+ valeurs : {'260104633': 1, '772201489': 1, '304368764': 1, '759200256': 1, '546920075': 1, '546120122': 1, '779335686': 1, '397598863': 1, '779309194': 1, '345328033': 1, '770200483': 1, '348909664': 1}
-pmej.informationsGeneralesPMEJ.statutJuridique -> 60+ valeurs : {'60': 3609, '85': 2197, '72': 1254, '70': 1038, '17': 734, '61': 704, '91': 658, '95': 571, '78': 433, '03': 374, '80': 368, '73': 298}
-pmej.informationsGeneralesPMEJ.typeGroupeGco -> 4 valeurs : {'003': 940, '001': 814, '004': 66, '002': 36}
-pmej.informationsGeneralesPMEJ.typePersonneMorale -> 1 valeurs : {'01': 98168}
+pmej.activitesAutorisees[].capacite[].activiteAeId -> 60+ valeurs : {'415733': 2, '415735': 2, '415737': 2, '415739': 2, '415741': 2, '484027': 2, '415747': 2, '415749': 2, '415753': 2, '415759': 2, '484033': 2, '415761': 2}
+pmej.activitesAutorisees[].capacite[].genre -> 2 valeurs : {'01': 1874, '02': 1859}
+pmej.activitesAutorisees[].capacite[].habilitation -> 1 valeurs : {'02': 18383}
+pmej.activitesAutorisees[].capacite[].idCapacite -> 60+ valeurs : {'169153': 1, '167839': 1, '1076284': 1, '1070992': 1, '1071013': 1, '1071412': 1, '2523058': 1, '2974684': 1, '1387945': 1, '1076557': 1, '3057424': 1, '1726657': 1}
+pmej.activitesAutorisees[].capacite[].modeFinancement -> 3 valeurs : {'01': 674, '03': 161, '02': 4}
+pmej.activitesAutorisees[].capacite[].nombre -> 60+ valeurs : {'0': 28, '20': 14, '12': 13, '2': 11, '1': 9, '14': 8, '15': 7, '3': 6, '4': 6, '8': 5, '25': 5, '80': 5}
+pmej.activitesAutorisees[].capacite[].statutCapacite -> 1 valeurs : {'09': 138696}
+pmej.activitesAutorisees[].capacite[].typeLogement -> 6 valeurs : {'02': 1019, '04': 660, '03': 584, '05': 510, '01': 435, '06': 225}
+pmej.activitesAutorisees[].capacite[].uniteMesureCapacite -> 2 valeurs : {'02': 136648, '03': 2048}
+pmej.activitesAutorisees[].caracteristiquesGeneriques.activiteAeId -> 60+ valeurs : {'3887': 1, '15631': 1, '90241': 1, '116469': 1, '147575': 1, '169843': 1, '171937': 1, '219449': 1, '810703': 1, '831719': 1, '831721': 1, '843817': 1}
+pmej.activitesAutorisees[].caracteristiquesGeneriques.dateCaduciteAutorisation -> 60+ valeurs : {'2026-08-06': 19, '2026-07-17': 17, '2024-08-30': 11, '2026-06-11': 8, '2025-04-27': 7, '2026-07-27': 5, '2026-07-28': 5, '2026-07-03': 4, '2026-07-24': 4, '2026-07-01': 3, '2024-11-02': 3, '2025-05-01': 3}
+pmej.activitesAutorisees[].caracteristiquesGeneriques.dateDebutActiviteAutorisee -> 60+ valeurs : {'2025-05-09': 24, '2017-01-03': 24, '1903-03-03': 5, '2025-12-11': 5, '2025-08-20': 3, '2026-02-04': 3, '2024-08-26': 3, '2022-04-28': 3, '2023-01-01': 3, '2024-12-24': 2, '2026-05-06': 2, '2020-05-26': 2}
+pmej.activitesAutorisees[].caracteristiquesGeneriques.dateFinActiviteAutorisee -> 60+ valeurs : {'2032-05-09': 106, '2029-02-01': 25, '2032-12-11': 25, '2031-10-02': 25, '2031-10-08': 24, '2031-08-12': 22, '2032-05-14': 20, '2033-02-12': 17, '2031-11-22': 11, '2028-01-31': 11, '2032-05-19': 10, '2031-12-24': 9}
+pmej.activitesAutorisees[].caracteristiquesGeneriques.dateFinEffectiveActivite -> 60+ valeurs : {'2026-08-06': 19, '2026-07-17': 17, '2024-08-30': 11, '2026-06-11': 8, '2025-04-27': 7, '2026-07-27': 5, '2026-07-28': 5, '2026-07-03': 4, '2026-07-24': 4, '2026-07-01': 3, '2024-11-02': 3, '2025-05-01': 3}
+pmej.activitesAutorisees[].caracteristiquesGeneriques.etatObjet -> 2 valeurs : {'A': 160561, 'I': 132312}
+pmej.activitesAutorisees[].caracteristiquesGeneriques.numAutorisationArhgos -> 60+ valeurs : {'84-82-52321': 1, '84-82-126': 1, '84-82-5489': 1, '84-82-69395': 1, '84-82-52586': 1, '84-82-90': 1, '84-82-57970': 1, '84-82-4835': 1, '84-82-4832': 1, '84-82-4828': 1, '84-82-4829': 1, '84-82-175': 1}
+pmej.activitesAutorisees[].caracteristiquesGeneriques.pmSmsseExploitanteId -> 7 valeurs : {'30057': 8, '60121': 6, '30065': 4, '79335': 4, '5272': 1, '14068': 1, '97848': 1}
+pmej.activitesAutorisees[].caracteristiquesGeneriques.typeActiviteSMSSE -> 60+ valeurs : {'50648': 10, '50362': 2, '50246': 2, '30003': 1, '20001': 1, '50426': 1, '50083': 1, '50278': 1, '50281': 1, '50490': 1, '40064': 1, '40066': 1}
+pmej.activitesAutorisees[].engagement[].autoriteRegulationEngagement[].autoriteRegulationid -> 32 valeurs : {'ARS-76': 48, 'ARS-75': 42, 'ARS-52': 16, 'CD-59': 16, 'ARS-84': 15, 'ARS-94': 11, 'DDETS-68': 10, 'ARS-28': 8, 'ARS-11': 7, 'CD-15': 6, 'ARS-44': 4, 'CD-41': 4}
+pmej.activitesAutorisees[].engagement[].dateCaduciteEngagement -> 6 valeurs : {'2027-01-27': 4, '2028-06-23': 2, '2086-12-31': 2, '2027-07-24': 1, '2026-12-31': 1, '2026-06-29': 1}
+pmej.activitesAutorisees[].engagement[].dateEffetEngagement -> 60+ valeurs : {'2026-07-03': 16, '2026-06-11': 16, '2026-07-24': 13, '2026-07-01': 12, '2026-07-22': 12, '2026-07-21': 9, '2026-07-17': 9, '2026-04-09': 9, '2026-06-15': 7, '2026-07-15': 7, '2026-06-04': 6, '2026-07-06': 5}
+pmej.activitesAutorisees[].engagement[].dateFinEngagement -> 60+ valeurs : {'2041-04-08': 12, '2032-01-03': 11, '2026-07-03': 9, '2041-07-24': 8, '2041-07-21': 7, '2041-06-15': 6, '2026-06-11': 6, '2041-06-17': 5, '2099-07-27': 4, '2099-07-24': 4, '2041-07-06': 4, '2041-07-17': 4}
+pmej.activitesAutorisees[].engagement[].dateNotificationEngagement -> 60+ valeurs : {'2026-07-03': 16, '2026-06-11': 16, '2026-07-24': 13, '2026-06-26': 12, '2026-07-22': 12, '2026-04-09': 12, '2026-07-21': 9, '2026-07-17': 9, '2026-06-29': 7, '2026-06-15': 7, '2026-07-15': 7, '2026-06-23': 6}
+pmej.activitesAutorisees[].engagement[].dateSignatureEngagement -> 60+ valeurs : {'2026-07-03': 16, '2026-06-11': 16, '2026-07-24': 13, '2026-06-26': 12, '2026-07-22': 12, '2026-04-09': 12, '2026-07-21': 9, '2026-07-17': 9, '2026-06-29': 7, '2026-06-15': 7, '2026-07-15': 7, '2026-06-23': 6}
+pmej.activitesAutorisees[].engagement[].engagementId -> 60+ valeurs : {'77355': 9, '77275': 4, '77403': 4, '77383': 3, '77388': 2, '77402': 2, '77238': 2, '77279': 2, '77278': 2, '77226': 2, '77359': 2, '77233': 2}
+pmej.activitesAutorisees[].engagement[].identifiantEngagement -> 22 valeurs : {'': 157, '2026-4242': 3, '2793': 2, 'N°2025-180': 2, '26003680': 1, '25003016': 1, '1661-2026': 1, '2026-3069': 1, '2026-14-0382': 1, '23-3330': 1, '26-1871': 1, '26-1438': 1}
+pmej.activitesAutorisees[].engagement[].motifArrete -> 7 valeurs : {'C': 56, 'P': 55, 'V': 40, 'F': 28, 'X': 14, 'T': 13, 'R': 4}
+pmej.activitesAutorisees[].engagement[].nomEngagement -> 9 valeurs : {'arrêté 23-4219': 2, '26-759-10-07-26': 1, 'DECISION 2026-10': 1, 'AT DU 18/03/2024': 1, 'AT 04-06-26 ': 1, 'AT 04-06-2026 ': 1, 'PVVC06072026': 1, 'Convention-CPOM': 1, 'AT ': 1}
+pmej.activitesAutorisees[].engagement[].sousTypeEngagement -> 3 valeurs : {'ARR': 119, 'ASE': 2, 'CPM': 2}
+pmej.activitesAutorisees[].engagement[].typeEngagement -> 3 valeurs : {'ARRT': 211, 'CONV': 6, 'LABL': 2}
+pmej.activitesAutorisees[].evenement[].codeEvenement -> 6 valeurs : {'010': 330556, '013': 134052, '008': 9314, '030': 78, '031': 78, '009': 27}
+pmej.activitesAutorisees[].evenement[].dateEnregistrement -> 0 valeurs : {}
+pmej.activitesAutorisees[].evenement[].dateEvenement -> 60+ valeurs : {'2017-01-03': 39, '2025-05-09': 24, '2026-07-01': 14, '1990-01-01': 7, '2017-06-08': 5, '1903-03-03': 5, '2025-12-11': 5, '1904-04-04': 4, '2020-05-26': 3, '2026-02-04': 3, '2024-12-24': 2, '2026-05-06': 2}
+pmej.activitesAutorisees[].evenement[].etatObjet1 -> 6 valeurs : {'010': 330556, '013': 134052, '008': 9314, '030': 78, '031': 78, '009': 27}
+pmej.activitesAutorisees[].evenement[].evenementId -> 60+ valeurs : {'899890': 1, '917506': 1, '1347888': 1, '1347887': 1, '1334088': 1, '1334087': 1, '3172274': 1, '3172275': 1, '3196207': 1, '3196208': 1, '3198421': 1, '3198422': 1}
+pmej.activitesAutorisees[].evenement[].identifiantObjet1 -> 60+ valeurs : {'90241': 2, '116469': 2, '147575': 2, '169843': 2, '171937': 2, '219449': 2, '91029': 2, '116473': 2, '162977': 2, '110305': 2, '116467': 2, '116481': 2}
+pmej.activitesAutorisees[].evenement[].identifiantObjet2 -> 60+ valeurs : {'2': 40, '17': 15, '9': 14, '54': 12, '41': 10, '87': 10, '104': 10, '35': 9, '22': 8, '36': 8, '114': 8, '26': 7}
+pmej.activitesAutorisees[].evenement[].systemeMaitre -> 3 valeurs : {'01': 422581, '02': 50146, '05': 1378}
+pmej.activitesAutorisees[].evenement[].typeObjet1 -> 1 valeurs : {'AC': 474105}
+pmej.activitesAutorisees[].evenement[].typeObjet2 -> 2 valeurs : {'PM': 367348, 'EG': 12}
+pmej.activitesAutorisees[].nature.caracteristiquesSpecifiques.aaAutreActSoinId -> 60+ valeurs : {'3887': 1, '4045': 1, '3947': 1, '3723': 1, '3829': 1, '3847': 1, '4075': 1, '1541': 1, '1787': 1, '1799': 1, '1833': 1, '1785': 1}
+pmej.activitesAutorisees[].nature.caracteristiquesSpecifiques.aaEmlId -> 60+ valeurs : {'117': 1, '119': 1, '121': 1, '81': 1, '123': 1, '125': 1, '91': 1, '129': 1, '131': 1, '133': 1, '135': 1, '111': 1}
+pmej.activitesAutorisees[].nature.caracteristiquesSpecifiques.aaSocialeReguleeId -> 60+ valeurs : {'12699': 1, '212152': 1, '73649': 1, '75714': 1, '80431': 1, '83773': 1, '87670': 1, '5034': 1, '7343': 1, '65182': 1, '110963': 1, '117468': 1}
+pmej.activitesAutorisees[].nature.caracteristiquesSpecifiques.activiteAeId -> 60+ valeurs : {'3887': 1, '263273': 1, '345265': 1, '346457': 1, '348659': 1, '353061': 1, '355677': 1, '360109': 1, '253831': 1, '253833': 1, '327305': 1, '415733': 1}
+pmej.activitesAutorisees[].nature.caracteristiquesSpecifiques.ageMaxAutorise -> 54 valeurs : {'20': 6100, '18': 3522, '21': 2360, '0': 1636, '14': 679, '16': 613, '6': 576, '17': 370, '12': 337, '25': 296, '3': 225, '30': 136}
+pmej.activitesAutorisees[].nature.caracteristiquesSpecifiques.ageMaxInstalle -> 57 valeurs : {'20': 6179, '18': 3570, '21': 2420, '0': 1642, '14': 689, '16': 624, '6': 591, '17': 373, '12': 343, '25': 314, '3': 231, '30': 155}
+pmej.activitesAutorisees[].nature.caracteristiquesSpecifiques.ageMinAutorise -> 28 valeurs : {'0': 6296, '6': 2775, '3': 1961, '14': 996, '12': 911, '13': 810, '16': 797, '4': 631, '15': 462, '5': 398, '10': 340, '18': 299}
+pmej.activitesAutorisees[].nature.caracteristiquesSpecifiques.ageMinInstalle -> 28 valeurs : {'0': 6337, '6': 2798, '3': 2023, '14': 1030, '12': 917, '13': 826, '16': 815, '4': 636, '15': 477, '5': 412, '10': 355, '18': 316}
+pmej.activitesAutorisees[].nature.caracteristiquesSpecifiques.marque -> 1 valeurs : {'0000': 68}
+pmej.activitesAutorisees[].nature.caracteristiquesSpecifiques.numDecision -> 60+ valeurs : {'0000': 11, 'DT06': 9, '98-066': 7, '05-2012': 5, 'ARH080543': 3, '2013-48': 3, '2012-362': 3, '98-065': 3, '98-068': 3, '98-22': 3, '2012-863': 3, '2026-0492': 3}
+pmej.activitesAutorisees[].nature.caracteristiquesSpecifiques.numeroSerie -> 16 valeurs : {'MEDICYC': 1, 'TIM': 1, '032371': 1, '1043 clinic2100C': 1, 'CBDGG2200104HM': 1, 'UA1469': 1, 'CBDWG2300044HM': 1, 'HDLVX2200013CN': 1, '172866': 1, 'CBCG1900109HM': 1, 'CJRPX1800070CN': 1, '201402': 1}
+pmej.activitesAutorisees[].nature.caracteristiquesSpecifiques.typeActiviteAASA.activiteSanitaireRegulee -> 7 valeurs : {'A1': 696, 'A0': 552, 'A6': 376, 'A5': 215, 'A4': 188, 'A3': 132, 'A2': 33}
+pmej.activitesAutorisees[].nature.caracteristiquesSpecifiques.typeActiviteAASA.formeActivite -> 7 valeurs : {'00': 1049, '21': 335, '15': 268, '20': 214, '01': 214, '07': 70, '22': 42}
+pmej.activitesAutorisees[].nature.caracteristiquesSpecifiques.typeActiviteAASA.modaliteActivite -> 17 valeurs : {'00': 787, 'M0': 363, 'M2': 199, '31': 173, 'P4': 163, 'M1': 134, 'AQ': 74, 'M8': 54, 'M5': 36, 'M7': 36, 'AR': 36, '13': 34}
+pmej.activitesAutorisees[].nature.caracteristiquesSpecifiques.typeActiviteAER.activiteEnseignementRegulee -> 51 valeurs : {'419': 1166, '414': 702, '590': 533, '586': 451, '438': 342, '456': 290, '587': 245, '437': 158, '413': 146, '433': 144, '422': 133, '432': 126}
+pmej.activitesAutorisees[].nature.caracteristiquesSpecifiques.typeActiviteAER.modeFonctionnement -> 3 valeurs : {'34': 5867, '14': 17, '11': 11}
+pmej.activitesAutorisees[].nature.caracteristiquesSpecifiques.typeActiviteAER.public -> 1 valeurs : {'990': 5895}
+pmej.activitesAutorisees[].nature.caracteristiquesSpecifiques.typeActiviteAMF.activiteAMF -> 35 valeurs : {'01': 1136, '16': 1120, '14': 785, '17': 610, '03': 544, '04': 503, '50': 481, '07': 342, '18': 259, '59': 218, '02': 177, '12': 108}
+pmej.activitesAutorisees[].nature.caracteristiquesSpecifiques.typeActiviteAMF.formeActivite -> 15 valeurs : {'01': 2131, '00': 2084, '14': 1097, '02': 936, '03': 342, '07': 91, '05': 39, '15': 37, '09': 25, '13': 22, '04': 21, '10': 17}
+pmej.activitesAutorisees[].nature.caracteristiquesSpecifiques.typeActiviteAMF.modaliteActivite -> 60+ valeurs : {'00': 369, '23': 74, '09': 64, '01': 62, '44': 60, '26': 55, '06': 54, '46': 46, '45': 39, '42': 38, '07': 37, '43': 32}
+pmej.activitesAutorisees[].nature.caracteristiquesSpecifiques.typeActiviteAMM.activiteAMM -> 25 valeurs : {'QA002': 13226, 'QA018': 4433, 'QA050': 3696, 'QEML1': 1538, 'QA004': 1452, 'QA015': 1129, 'QA016': 1092, 'QA001': 1030, 'QA020': 639, 'QA017': 618, 'QA003': 548, 'QA011': 541}
+pmej.activitesAutorisees[].nature.caracteristiquesSpecifiques.typeActiviteAMM.declarationAMM -> 23 valeurs : {'DE000': 12485, 'DE022': 6892, 'DE023': 6805, 'DE025': 1452, 'DE018': 1221, 'DE015': 783, 'DE026': 639, 'DE005': 280, 'DE016': 247, 'DE017': 101, 'DE001': 90, 'DE004': 89}
+pmej.activitesAutorisees[].nature.caracteristiquesSpecifiques.typeActiviteAMM.mentionAMM -> 60+ valeurs : {'ME000': 1875, 'ME050': 143, 'ME032': 110, 'ME031': 73, 'ME059': 70, 'ME049': 49, 'ME042': 48, 'ME065': 47, 'ME051': 47, 'ME016': 43, 'ME030': 38, 'ME052': 32}
+pmej.activitesAutorisees[].nature.caracteristiquesSpecifiques.typeActiviteAMM.modaliteAMM -> 51 valeurs : {'MO006': 12916, 'MO000': 8794, 'MO008': 3875, 'MO007': 981, 'MO011': 617, 'MO010': 497, 'MO003': 321, 'MO016': 301, 'MO021': 294, 'MO023': 282, 'MO032': 239, 'MO020': 195}
+pmej.activitesAutorisees[].nature.caracteristiquesSpecifiques.typeActiviteAMM.ptsAMM -> 21 valeurs : {'PTS00': 17854, 'PTS12': 1378, 'PTS16': 1373, 'PTS17': 1242, 'PTS21': 1239, 'PTS20': 1228, 'PTS11': 1206, 'PTS19': 1169, 'PTS15': 1099, 'PTS13': 1084, 'PTS18': 481, 'PTS14': 402}
+pmej.activitesAutorisees[].nature.caracteristiquesSpecifiques.typeActiviteAMSR.activiteSocialeRegulee -> 60+ valeurs : {'469': 1046, '924': 572, '358': 208, '657': 202, '844': 106, '961': 103, '965': 97, '908': 90, '177': 88, '927': 77, '966': 75, '964': 74}
+pmej.activitesAutorisees[].nature.caracteristiquesSpecifiques.typeActiviteAMSR.modeFonctionnement -> 23 valeurs : {'16': 43073, '11': 40650, '21': 15501, '13': 4096, '14': 1579, '40': 1361, '97': 1073, '47': 1044, '48': 848, '18': 842, '15': 589, '17': 530}
+pmej.activitesAutorisees[].nature.caracteristiquesSpecifiques.typeActiviteAMSR.public -> 60+ valeurs : {'700': 1840, '010': 1693, '711': 950, '436': 761, '701': 448, '117': 359, '437': 343, '200': 180, '110': 179, '500': 153, '206': 89, '111': 52}
+pmej.activitesAutorisees[].nature.caracteristiquesSpecifiques.typeActiviteASDR.activiteSanitaireDiverseRegulee -> 60+ valeurs : {'824': 37, '230': 23, '084': 20, '176': 18, '466': 11, '223': 10, '232': 9, '231': 8, '181': 7, '172': 7, '170': 6, '855': 6}
+pmej.activitesAutorisees[].nature.caracteristiquesSpecifiques.typeActiviteASDR.modeFonctionnement -> 33 valeurs : {'03': 16816, '26': 15982, '07': 10226, '60': 8905, '09': 7288, '04': 7019, '97': 4694, '19': 4106, '31': 1775, '44': 1756, '10': 1229, '32': 1204}
+pmej.activitesAutorisees[].nature.caracteristiquesSpecifiques.typeActiviteASDR.public -> 5 valeurs : {'990': 77891, '842': 4501, '843': 2499, '844': 1977, '841': 337}
+pmej.activitesAutorisees[].nature.caracteristiquesSpecifiques.typeActiviteASOCR.activiteSocialeRegulee -> 60+ valeurs : {'912': 1055, '911': 625, '469': 577, '910': 526, '959': 378, '932': 200, '957': 190, '258': 189, '916': 138, '913': 122, '383': 119, '934': 107}
+pmej.activitesAutorisees[].nature.caracteristiquesSpecifiques.typeActiviteASOCR.modeFonctionnement -> 25 valeurs : {'11': 14314, '16': 7290, '13': 7034, '21': 6731, '18': 5283, '97': 2379, '15': 698, '50': 587, '14': 566, '07': 211, '27': 193, '51': 134}
+pmej.activitesAutorisees[].nature.caracteristiquesSpecifiques.typeActiviteASOCR.public -> 60+ valeurs : {'808': 3188, '800': 2367, '821': 1122, '899': 1100, '990': 817, '810': 549, '803': 504, '826': 403, '804': 340, '802': 327, '860': 246, '831': 173}
+pmej.activitesAutorisees[].nature.caracteristiquesSpecifiques.typeActiviteEML.typeEmlId -> 6 valeurs : {'1': 26, '8': 17, '2': 12, '4': 6, '6': 4, '7': 3}
+pmej.activitesAutorisees[].nature.codeNature -> 8 valeurs : {'ASMR': 113420, 'ASDR': 87205, 'ASOCR': 45758, 'AMM': 31463, 'AMF': 6872, 'AER': 5895, 'AASA': 2192, 'EML': 68}
+pmej.activitesAutorisees[].zoneIntervention.activiteAeId -> 60+ valeurs : {'253831': 1, '253833': 1, '253835': 1, '252561': 1, '253845': 1, '253847': 1, '253827': 1, '253829': 1, '252567': 1, '253857': 1, '253859': 1, '266051': 1}
+pmej.activitesAutorisees[].zoneIntervention.communeZI[].commune -> 60+ valeurs : {'01004': 2, '01149': 2, '01002': 2, '01089': 2, '01041': 2, '01379': 2, '01007': 2, '01345': 2, '01016': 1, '01102': 1, '01175': 1, '01305': 1}
+pmej.activitesAutorisees[].zoneIntervention.libelleZI -> 60+ valeurs : {'GRANDEST': 11, 'ESA': 6, '\\ ': 4, 'SSIAD - ADMR': 2, 'SPASAD - OFAS': 2, 'esa': 2, 'enquête 2011': 2, 'PAU': 2, 'ZI CHAUFFAILLES': 2, 'ZI MARCIGNY': 2, 'ZI LOUHANS': 2, 'ZI LA CLAYETTE': 2}
+pmej.activitesAutorisees[].zoneIntervention.zoneInterventionAutoriseeId -> 60+ valeurs : {'7075': 1, '3362': 1, '3401': 1, '3371': 1, '3372': 1, '3373': 1, '7291': 1, '3378': 1, '3312': 1, '7108': 1, '7107': 1, '7257': 1}
+pmej.ege[].activitesExercees[].capacite[].activiteAeId -> 60+ valeurs : {'415808': 5, '415734': 4, '415736': 4, '415738': 4, '415742': 4, '415740': 4, '484028': 4, '415748': 4, '415750': 4, '415754': 4, '484034': 4, '415760': 4}
+pmej.ege[].activitesExercees[].capacite[].genre -> 2 valeurs : {'01': 26926, '02': 26793}
+pmej.ege[].activitesExercees[].capacite[].habilitation -> 1 valeurs : {'02': 58909}
+pmej.ege[].activitesExercees[].capacite[].idCapacite -> 60+ valeurs : {'202704': 1, '239613': 1, '225444': 1, '102531': 1, '169154': 1, '217923': 1, '217782': 1, '97317': 1, '65010': 1, '167840': 1, '217386': 1, '65025': 1}
+pmej.ege[].activitesExercees[].capacite[].modeFinancement -> 5 valeurs : {'01': 1345, '03': 660, '02': 573, '04': 161, '05': 55}
+pmej.ege[].activitesExercees[].capacite[].nombre -> 60+ valeurs : {'0': 112, '20': 17, '14': 14, '1': 12, '2': 11, '80': 10, '12': 8, '95': 8, '44': 8, '66': 8, '10': 7, '15': 7}
+pmej.ege[].activitesExercees[].capacite[].statutCapacite -> 2 valeurs : {'08': 259841, '09': 138696}
+pmej.ege[].activitesExercees[].capacite[].typeLogement -> 6 valeurs : {'02': 2428, '03': 1393, '04': 1355, '05': 1168, '01': 1003, '06': 520}
+pmej.ege[].activitesExercees[].capacite[].uniteMesureCapacite -> 2 valeurs : {'02': 393972, '03': 4565}
+pmej.ege[].activitesExercees[].caracteristiquesGeneriques.activiteAeId -> 60+ valeurs : {'116470': 1, '843848': 1, '843860': 1, '843844': 1, '867772': 1, '15632': 1, '843838': 1, '843840': 1, '843830': 1, '867770': 1, '862728': 1, '147576': 1}
+pmej.ege[].activitesExercees[].caracteristiquesGeneriques.dateCaduciteAutorisation -> 60+ valeurs : {'2028-10-29': 7, '2030-03-26': 6, '2029-12-10': 4, '2030-05-05': 4, '2029-06-03': 3, '2029-12-15': 3, '2029-03-13': 3, '2029-09-14': 3, '2029-02-12': 3, '2028-12-18': 2, '2030-01-22': 2, '2030-04-20': 2}
+pmej.ege[].activitesExercees[].caracteristiquesGeneriques.dateDebutActiviteAutorisee -> 60+ valeurs : {'2025-05-09': 24, '2017-01-03': 24, '1990-01-01': 7, '1903-03-03': 5, '2025-12-11': 5, '1904-04-04': 4, '2026-02-04': 3, '2025-08-20': 3, '2024-08-26': 3, '2022-04-28': 3, '2023-01-01': 3, '2026-05-06': 2}
+pmej.ege[].activitesExercees[].caracteristiquesGeneriques.dateFinActiviteAutorisee -> 60+ valeurs : {'2032-05-09': 106, '2032-12-11': 25, '2031-10-02': 25, '2029-02-01': 24, '2031-10-08': 24, '2031-08-12': 22, '2032-05-14': 20, '2033-02-12': 17, '2031-11-22': 11, '2028-01-31': 11, '2032-05-19': 10, '2031-12-24': 9}
+pmej.ege[].activitesExercees[].caracteristiquesGeneriques.dateFinEffectiveActivite -> 60+ valeurs : {'2026-08-06': 19, '2026-07-17': 17, '2024-08-30': 11, '2026-06-11': 8, '2025-04-27': 7, '2026-07-27': 5, '2026-07-28': 5, '2026-07-03': 4, '2026-07-24': 4, '2026-07-01': 3, '2024-11-02': 3, '2025-05-01': 3}
+pmej.ege[].activitesExercees[].caracteristiquesGeneriques.egeExploitanteId -> 11 valeurs : {'49854': 5, '106738': 5, '141051': 4, '49877': 3, '49853': 2, '9217': 1, '24339': 1, '49883': 1, '49876': 1, '106743': 1, '173584': 1}
+pmej.ege[].activitesExercees[].caracteristiquesGeneriques.egeFacturante -> 1 valeurs : {'O': 25}
+pmej.ege[].activitesExercees[].caracteristiquesGeneriques.egeId -> 60+ valeurs : {'833': 42, '874': 6, '879': 6, '880': 4, '883': 4, '1232': 4, '82': 4, '835': 3, '876': 3, '884': 3, '934': 3, '948': 3}
+pmej.ege[].activitesExercees[].caracteristiquesGeneriques.etatObjet -> 2 valeurs : {'A': 160561, 'I': 132312}
+pmej.ege[].activitesExercees[].caracteristiquesGeneriques.identifiantAutorisation -> 60+ valeurs : {'116469': 1, '843847': 1, '843859': 1, '843843': 1, '867771': 1, '15631': 1, '843837': 1, '843839': 1, '843829': 1, '867769': 1, '862727': 1, '147575': 1}
+pmej.ege[].activitesExercees[].caracteristiquesGeneriques.numAutorisationArhgos -> 60+ valeurs : {'84-82-52321': 1, '84-82-5489': 1, '84-82-69395': 1, '84-82-52586': 1, '84-82-4832': 1, '84-82-4835': 1, '84-82-4828': 1, '84-82-4829': 1, '84-82-118': 1, '84-82-5488': 1, '84-82-113': 1, '84-82-115': 1}
+pmej.ege[].activitesExercees[].caracteristiquesGeneriques.typeActiviteSMSSE -> 60+ valeurs : {'50648': 9, '50362': 2, '50246': 2, '40019': 1, '40025': 1, '40017': 1, '40049': 1, '20001': 1, '40016': 1, '40015': 1, '40012': 1, '40044': 1}
+pmej.ege[].activitesExercees[].evenement[].codeEvenement -> 8 valeurs : {'010': 340490, '012': 249420, '013': 141584, '015': 117095, '008': 9314, '009': 27, '021': 7, '022': 7}
+pmej.ege[].activitesExercees[].evenement[].dateEnregistrement -> 0 valeurs : {}
+pmej.ege[].activitesExercees[].evenement[].dateEvenement -> 60+ valeurs : {'2017-01-03': 29, '2025-05-09': 24, '2025-05-10': 24, '2026-07-01': 23, '1990-01-01': 14, '1903-03-03': 10, '2017-06-08': 10, '1904-04-04': 10, '2020-05-26': 7, '2025-12-11': 5, '2025-12-12': 5, '2011-04-15': 5}
+pmej.ege[].activitesExercees[].evenement[].etatObjet1 -> 8 valeurs : {'010': 340490, '012': 249420, '013': 141584, '015': 117095, '008': 9314, '009': 27, '021': 7, '022': 7}
+pmej.ege[].activitesExercees[].evenement[].evenementId -> 60+ valeurs : {'1334089': 1, '1334090': 1, '1189469': 1, '1189470': 1, '3508774': 1, '3508775': 1, '3508792': 1, '3508793': 1, '3508768': 1, '3508769': 1, '3544109': 1, '3544110': 1}
+pmej.ege[].activitesExercees[].evenement[].identifiantObjet1 -> 60+ valeurs : {'360110': 7, '116470': 4, '147576': 4, '219450': 4, '171938': 4, '90242': 4, '169844': 4, '162978': 4, '91030': 4, '116474': 4, '187570': 4, '116482': 4}
+pmej.ege[].activitesExercees[].evenement[].identifiantObjet2 -> 60+ valeurs : {'833': 86, '874': 17, '879': 16, '883': 12, '934': 12, '1232': 11, '835': 10, '850': 10, '880': 10, '884': 8, '894': 8, '948': 8}
+pmej.ege[].activitesExercees[].evenement[].systemeMaitre -> 3 valeurs : {'01': 765646, '02': 89542, '05': 2756}
+pmej.ege[].activitesExercees[].evenement[].typeObjet1 -> 1 valeurs : {'AC': 857944}
+pmej.ege[].activitesExercees[].evenement[].typeObjet2 -> 1 valeurs : {'EG': 751199}
+pmej.ege[].activitesExercees[].nature.caracteristiquesSpecifiques.aaAutreActSoinId -> 60+ valeurs : {'3888': 1, '4046': 1, '3948': 1, '3830': 1, '4076': 1, '3724': 1, '3848': 1, '1800': 1, '1542': 1, '1834': 1, '1788': 1, '1826': 1}
+pmej.ege[].activitesExercees[].nature.caracteristiquesSpecifiques.aaSanitaireDiverseReguleeId -> 60+ valeurs : {'43244': 1, '30796': 1, '31563': 1, '43246': 1, '43243': 1, '40313': 1, '43250': 1, '43251': 1, '43252': 1, '43257': 1, '43258': 1, '43261': 1}
+pmej.ege[].activitesExercees[].nature.caracteristiquesSpecifiques.aaSocialeReguleeId -> 60+ valeurs : {'74968': 1, '72832': 1, '79556': 1, '86427': 1, '211785': 1, '82825': 1, '12019': 1, '110429': 1, '63992': 1, '156235': 1, '116766': 1, '5790': 1}
+pmej.ege[].activitesExercees[].nature.caracteristiquesSpecifiques.aaSoinAmfId -> 60+ valeurs : {'5564': 1, '5902': 1, '5563': 1, '5573': 1, '5562': 1, '5571': 1, '5568': 1, '5569': 1, '5567': 1, '5432': 1, '5554': 1, '5570': 1}
+pmej.ege[].activitesExercees[].nature.caracteristiquesSpecifiques.aaSoinAmmId -> 60+ valeurs : {'18814': 1, '18820': 1, '18812': 1, '30776': 1, '18809': 1, '18810': 1, '18805': 1, '30775': 1, '28254': 1, '18806': 1, '18807': 1, '18813': 1}
+pmej.ege[].activitesExercees[].nature.caracteristiquesSpecifiques.activiteAeId -> 60+ valeurs : {'116470': 1, '843848': 1, '843860': 1, '843844': 1, '867772': 1, '15632': 1, '843838': 1, '843840': 1, '843830': 1, '867770': 1, '862728': 1, '843832': 1}
+pmej.ege[].activitesExercees[].nature.caracteristiquesSpecifiques.ageMaxAutorise -> 54 valeurs : {'20': 6100, '18': 3522, '21': 2360, '0': 1636, '14': 679, '16': 613, '6': 576, '17': 370, '12': 337, '25': 296, '3': 225, '30': 136}
+pmej.ege[].activitesExercees[].nature.caracteristiquesSpecifiques.ageMaxInstalle -> 57 valeurs : {'20': 6179, '18': 3570, '21': 2422, '0': 1642, '14': 689, '16': 624, '6': 593, '17': 373, '12': 343, '25': 314, '3': 231, '30': 157}
+pmej.ege[].activitesExercees[].nature.caracteristiquesSpecifiques.ageMinAutorise -> 28 valeurs : {'0': 6296, '6': 2775, '3': 1961, '14': 996, '12': 911, '13': 810, '16': 797, '4': 631, '15': 462, '5': 398, '10': 340, '18': 299}
+pmej.ege[].activitesExercees[].nature.caracteristiquesSpecifiques.ageMinInstalle -> 28 valeurs : {'0': 6340, '6': 2798, '3': 2023, '14': 1030, '12': 917, '13': 826, '16': 818, '4': 636, '15': 477, '5': 412, '10': 355, '18': 316}
+pmej.ege[].activitesExercees[].nature.caracteristiquesSpecifiques.appareil[].nombreAppareilAMM -> 8 valeurs : {'0': 10240, '1': 3179, '2': 1975, '3': 508, '4': 146, '5': 39, '6': 7, '8': 2}
+pmej.ege[].activitesExercees[].nature.caracteristiquesSpecifiques.appareil[].statutAppareilAMM -> 2 valeurs : {'09': 8048, '08': 8048}
+pmej.ege[].activitesExercees[].nature.caracteristiquesSpecifiques.appareil[].typeAppareilAMM -> 4 valeurs : {'231': 4024, '232': 4024, '233': 4024, '230': 4024}
+pmej.ege[].activitesExercees[].nature.caracteristiquesSpecifiques.dateLimDep -> 60+ valeurs : {'2027-09-16': 13, '2026-10-27': 5, '2027-04-02': 4, '2025-09-09': 4, '2027-11-12': 4, '2027-08-20': 3, '2027-12-23': 3, '2027-01-29': 3, '2027-03-02': 3, '2027-09-08': 3, '2027-09-01': 3, '2027-05-31': 3}
+pmej.ege[].activitesExercees[].nature.caracteristiquesSpecifiques.dateLimVisiteConformite -> 60+ valeurs : {'2011-11-02': 4, '2016-08-22': 3, '2019-07-02': 3, '2023-04-11': 3, '2019-12-26': 2, '2021-12-15': 2, '2020-10-30': 2, '2024-01-26': 2, '2022-08-14': 2, '2018-02-03': 2, '2016-06-18': 2, '2022-12-27': 2}
+pmej.ege[].activitesExercees[].nature.caracteristiquesSpecifiques.dateVisite -> 2 valeurs : {'2023-02-09': 1, '2026-06-02': 1}
+pmej.ege[].activitesExercees[].nature.caracteristiquesSpecifiques.etatArhgos -> 3 valeurs : {'02': 2176, '01': 13, '04': 3}
+pmej.ege[].activitesExercees[].nature.caracteristiquesSpecifiques.typeActiviteAASA.activiteSanitaireRegulee -> 7 valeurs : {'A1': 696, 'A0': 552, 'A6': 376, 'A5': 215, 'A4': 188, 'A3': 132, 'A2': 33}
+pmej.ege[].activitesExercees[].nature.caracteristiquesSpecifiques.typeActiviteAASA.formeActivite -> 7 valeurs : {'00': 1049, '21': 335, '15': 268, '20': 214, '01': 214, '07': 70, '22': 42}
+pmej.ege[].activitesExercees[].nature.caracteristiquesSpecifiques.typeActiviteAASA.modaliteActivite -> 17 valeurs : {'00': 787, 'M0': 363, 'M2': 199, '31': 173, 'P4': 163, 'M1': 134, 'AQ': 74, 'M8': 54, 'M7': 36, 'M5': 36, 'AR': 36, '13': 34}
+pmej.ege[].activitesExercees[].nature.caracteristiquesSpecifiques.typeActiviteAER.activiteEnseignementRegulee -> 51 valeurs : {'419': 1166, '414': 702, '590': 533, '586': 451, '438': 342, '456': 290, '587': 245, '437': 158, '413': 146, '433': 144, '422': 133, '432': 126}
+pmej.ege[].activitesExercees[].nature.caracteristiquesSpecifiques.typeActiviteAER.modeFonctionnement -> 3 valeurs : {'34': 5867, '14': 17, '11': 11}
+pmej.ege[].activitesExercees[].nature.caracteristiquesSpecifiques.typeActiviteAER.public -> 1 valeurs : {'990': 5895}
+pmej.ege[].activitesExercees[].nature.caracteristiquesSpecifiques.typeActiviteAMF.activiteAMF -> 35 valeurs : {'01': 1136, '16': 1120, '14': 785, '17': 610, '03': 544, '04': 503, '50': 481, '07': 342, '18': 259, '59': 218, '02': 177, '12': 108}
+pmej.ege[].activitesExercees[].nature.caracteristiquesSpecifiques.typeActiviteAMF.formeActivite -> 15 valeurs : {'01': 2131, '00': 2084, '14': 1097, '02': 936, '03': 342, '07': 91, '05': 39, '15': 37, '09': 25, '13': 22, '04': 21, '10': 17}
+pmej.ege[].activitesExercees[].nature.caracteristiquesSpecifiques.typeActiviteAMF.modaliteActivite -> 60+ valeurs : {'00': 369, '23': 74, '09': 64, '01': 62, '44': 60, '26': 55, '06': 54, '46': 46, '45': 39, '42': 38, '07': 37, '43': 32}
+pmej.ege[].activitesExercees[].nature.caracteristiquesSpecifiques.typeActiviteAMM.activiteAMM -> 25 valeurs : {'QA002': 13226, 'QA018': 4433, 'QA050': 3696, 'QEML1': 1538, 'QA004': 1452, 'QA015': 1129, 'QA016': 1092, 'QA001': 1030, 'QA020': 639, 'QA017': 618, 'QA003': 548, 'QA011': 541}
+pmej.ege[].activitesExercees[].nature.caracteristiquesSpecifiques.typeActiviteAMM.declarationAMM -> 23 valeurs : {'DE000': 12485, 'DE022': 6892, 'DE023': 6805, 'DE025': 1452, 'DE018': 1221, 'DE015': 783, 'DE026': 639, 'DE005': 280, 'DE016': 247, 'DE017': 101, 'DE001': 90, 'DE004': 89}
+pmej.ege[].activitesExercees[].nature.caracteristiquesSpecifiques.typeActiviteAMM.mentionAMM -> 60+ valeurs : {'ME000': 1850, 'ME050': 143, 'ME032': 104, 'ME031': 72, 'ME059': 71, 'ME049': 49, 'ME065': 47, 'ME042': 47, 'ME051': 47, 'ME016': 43, 'ME030': 37, 'ME052': 32}
+pmej.ege[].activitesExercees[].nature.caracteristiquesSpecifiques.typeActiviteAMM.modaliteAMM -> 51 valeurs : {'MO006': 12916, 'MO000': 8794, 'MO008': 3875, 'MO007': 981, 'MO011': 617, 'MO010': 497, 'MO003': 321, 'MO016': 301, 'MO021': 294, 'MO023': 282, 'MO032': 239, 'MO020': 195}
+pmej.ege[].activitesExercees[].nature.caracteristiquesSpecifiques.typeActiviteAMM.ptsAMM -> 21 valeurs : {'PTS00': 17854, 'PTS12': 1378, 'PTS16': 1373, 'PTS17': 1242, 'PTS21': 1239, 'PTS20': 1228, 'PTS11': 1206, 'PTS19': 1169, 'PTS15': 1099, 'PTS13': 1084, 'PTS18': 481, 'PTS14': 402}
+pmej.ege[].activitesExercees[].nature.caracteristiquesSpecifiques.typeActiviteAMSR.activiteSocialeRegulee -> 60+ valeurs : {'469': 1046, '924': 572, '358': 208, '657': 202, '844': 106, '965': 106, '961': 103, '908': 92, '177': 88, '927': 77, '966': 76, '964': 75}
+pmej.ege[].activitesExercees[].nature.caracteristiquesSpecifiques.typeActiviteAMSR.modeFonctionnement -> 23 valeurs : {'16': 43073, '11': 40650, '21': 15501, '13': 4096, '14': 1579, '40': 1361, '97': 1073, '47': 1044, '48': 848, '18': 842, '15': 589, '17': 530}
+pmej.ege[].activitesExercees[].nature.caracteristiquesSpecifiques.typeActiviteAMSR.public -> 60+ valeurs : {'700': 1840, '010': 1693, '711': 950, '436': 761, '701': 448, '117': 359, '437': 343, '200': 180, '110': 179, '500': 153, '206': 89, '111': 52}
+pmej.ege[].activitesExercees[].nature.caracteristiquesSpecifiques.typeActiviteASDR.activiteSanitaireDiverseRegulee -> 60+ valeurs : {'824': 31, '084': 19, '176': 17, '864': 17, '867': 13, '868': 12, '230': 11, '466': 11, '223': 10, '181': 7, '855': 6, '309': 5}
+pmej.ege[].activitesExercees[].nature.caracteristiquesSpecifiques.typeActiviteASDR.modeFonctionnement -> 33 valeurs : {'03': 16816, '26': 15982, '07': 10226, '60': 8905, '09': 7288, '04': 7019, '97': 4694, '19': 4106, '31': 1775, '44': 1756, '10': 1229, '32': 1204}
+pmej.ege[].activitesExercees[].nature.caracteristiquesSpecifiques.typeActiviteASDR.public -> 5 valeurs : {'990': 77891, '842': 4501, '843': 2499, '844': 1977, '841': 337}
+pmej.ege[].activitesExercees[].nature.caracteristiquesSpecifiques.typeActiviteASOCR.activiteSocialeRegulee -> 60+ valeurs : {'912': 1054, '911': 625, '469': 577, '910': 526, '959': 378, '932': 200, '957': 190, '258': 189, '916': 138, '913': 122, '383': 119, '934': 107}
+pmej.ege[].activitesExercees[].nature.caracteristiquesSpecifiques.typeActiviteASOCR.modeFonctionnement -> 25 valeurs : {'11': 14314, '16': 7290, '13': 7034, '21': 6731, '18': 5283, '97': 2379, '15': 698, '50': 587, '14': 566, '07': 211, '27': 193, '51': 134}
+pmej.ege[].activitesExercees[].nature.caracteristiquesSpecifiques.typeActiviteASOCR.public -> 60+ valeurs : {'808': 3188, '800': 2367, '821': 1122, '899': 1100, '990': 817, '810': 549, '803': 504, '826': 403, '804': 340, '802': 327, '860': 246, '831': 173}
+pmej.ege[].activitesExercees[].nature.caracteristiquesSpecifiques.typeActiviteEML.typeEmlId -> 6 valeurs : {'1': 26, '8': 17, '2': 12, '4': 6, '6': 4, '7': 3}
+pmej.ege[].activitesExercees[].nature.codeNature -> 8 valeurs : {'ASMR': 113420, 'ASDR': 87205, 'ASOCR': 45758, 'AMM': 31463, 'AMF': 6872, 'AER': 5895, 'AASA': 2192, 'EML': 68}
+pmej.ege[].egeId -> 60+ valeurs : {'833': 1, '835': 1, '106': 1, '109': 1, '840': 1, '841': 1, '664': 1, '843': 1, '428': 1, '850': 1, '1282': 1, '684': 1}
+pmej.ege[].numFinessEge -> 60+ valeurs : {'010780195': 1, '010780211': 1, '010002699': 1, '010002749': 1, '010780310': 1, '010780328': 1, '010011641': 1, '010780427': 1, '010008183': 1, '010780575': 1, '010790061': 1, '010011914': 1}
+pmej.numFiness -> 60+ valeurs : {'010000156': 1, '010000172': 1, '010000206': 1, '010000222': 1, '010000248': 1, '010000255': 1, '010000297': 1, '010000305': 1, '010000321': 1, '010000339': 1, '010000347': 1, '010000354': 1}
+pmej.pmSmsseId -> 60+ valeurs : {'2': 1, '4': 1, '5': 1, '6': 1, '8': 1, '9': 1, '13': 1, '14': 1, '16': 1, '17': 1, '18': 1, '19': 1}
