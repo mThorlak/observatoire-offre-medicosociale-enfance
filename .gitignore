@@ -10,6 +10,10 @@
 *.sqlite-shm
 *.sqlite-journal
 
+# Export JSON pour le front (résultat de export_front.py, OOM-19) — régénéré
+# à volonté depuis l'entrepôt, jamais versionné.
+/front/data/
+
 # Python
 __pycache__/
 *.pyc
