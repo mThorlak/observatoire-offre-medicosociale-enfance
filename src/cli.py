@@ -1,13 +1,14 @@
 """
 cli.py — Orchestration, étape E6.
 
-Point d'entrée unique de la chaîne d'acquisition. Cinq commandes :
+Point d'entrée unique de la chaîne d'acquisition. Six commandes :
 
     inspecter   volumétrie, en-tête, anomalies et échantillon d'un fichier
     inventaire  registre des codes observés (étape E5)
     integrite   contrôles de rattachement entre tables (migrés d'E5)
     tout        les trois précédentes, dans l'ordre
     charger     écrit structures (et activités) dans l'entrepôt SQLite (couche 2)
+    restituer   export CSV département × catégorie + rapport (couche 6, OOM-14)
 
 La commande `integrite` accueille les contrôles retirés de l'inventaire : ils
 portent sur les rattachements, non sur les codes, et n'avaient pas leur place
@@ -43,6 +44,7 @@ from finess_activites import SourceFinessActivites
 from finess_structures import SourceFinessStructures
 from entrepot import Entrepot, ErreurEntrepot
 from chargement import charger, ErreurChargement, REFUSER, REMPLACER, LOT_DEFAUT
+import export_tabulaire as et
 
 SOURCES = {
     "structures": SourceFinessStructures,
@@ -206,6 +208,24 @@ def commande_charger(arguments) -> int:
 
 
 # ---------------------------------------------------------------------------
+# restituer
+# ---------------------------------------------------------------------------
+
+def commande_restituer(arguments) -> int:
+    """Ouvre l'entrepôt déjà chargé, calcule l'indicateur, exporte le CSV et
+    le rapport de synthèse. Rejouable en une seule commande après `charger`.
+
+    S'appuie sur `export_tabulaire.restituer` (couche 6, OOM-14), qui recourt
+    pour l'instant à un stub en attendant l'indicateur réel d'OOM-13 — voir
+    le docstring de ce module.
+    """
+    with Entrepot(arguments.base) as entrepot:
+        resultat = et.restituer(entrepot, arguments.sortie)
+    print(resultat["texte_rapport"])
+    return 0
+
+
+# ---------------------------------------------------------------------------
 
 def construire_analyseur() -> argparse.ArgumentParser:
     analyseur = argparse.ArgumentParser(
@@ -259,6 +279,12 @@ def construire_analyseur() -> argparse.ArgumentParser:
     charger_cmd.add_argument("--remplacer", action="store_true",
                              help="remplace un lot déjà chargé pour la même source")
     charger_cmd.set_defaults(fonction=commande_charger)
+
+    restituer_cmd = commandes.add_parser(
+        "restituer", help="export CSV département × catégorie + rapport (OOM-14)")
+    restituer_cmd.add_argument("base", type=Path, help="fichier de l'entrepôt SQLite, déjà chargé")
+    restituer_cmd.add_argument("--sortie", type=Path, default=Path("restitution"))
+    restituer_cmd.set_defaults(fonction=commande_restituer)
     return analyseur
 
 

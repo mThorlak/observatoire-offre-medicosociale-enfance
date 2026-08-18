@@ -199,7 +199,7 @@ L'objectif est de faciliter la production de connaissances sur l'offre médico-s
 
 ☑ Export Excel
 
-⬜ Indicateurs territoriaux
+☑ Indicateurs territoriaux
 
 ⬜ Croisement avec INSEE
 
