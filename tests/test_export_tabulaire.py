@@ -1,8 +1,9 @@
-"""test_export_tabulaire.py — Critère de sortie d'OOM-14 (stub en attente d'OOM-13).
+"""test_export_tabulaire.py — Critère de sortie d'OOM-14.
 
-Vérifie le stub de `export_tabulaire.py` sur des totaux calculables à la
-main, ainsi que l'export CSV et le rapport de synthèse qui en découlent.
-Voir le docstring du module pour le statut provisoire du calcul lui-même.
+Le calcul de l'indicateur lui-même (établissements actifs par département ×
+catégorie, résolution des libellés, définition d'« actif ») est couvert par
+`test_indicateurs.py` (OOM-13). Ce fichier vérifie la couche restante :
+l'écriture CSV, le rapport de synthèse, et l'enchaînement `restituer`.
 """
 from __future__ import annotations
 import csv, sys
@@ -12,6 +13,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
 import finess_commun as fc
 from entrepot import Entrepot
+from indicateurs import Resultat
 import export_tabulaire as et
 
 BASE = Path("/tmp/tests_export_tabulaire"); BASE.mkdir(exist_ok=True)
@@ -66,82 +68,60 @@ def adresse(ege_id, rang, code_usage, cog_commune, code_postal="01000"):
                 code_postal=code_postal, cog_commune=cog_commune, id_lot=LOT["id_lot"])
 
 
-print("1. tableau_departement_categorie — totaux vérifiables à la main")
+print("1. ecrire_csv — sur un Resultat construit à la main")
+resultat = Resultat()
+resultat.ajouter("01", "Institut Médico-Educatif (I.M.E.)")
+resultat.ajouter("01", "Institut Médico-Educatif (I.M.E.)")
+resultat.ajouter("75", "Etablissement d'hébergement pour personnes âgées dépendantes")
+chemin_csv = BASE / "sortie" / "departement_categorie.csv"
+et.ecrire_csv(resultat, chemin_csv)
+verifier("CSV écrit", chemin_csv.exists())
+with open(chemin_csv, encoding="utf-8", newline="") as f:
+    contenu = list(csv.reader(f, delimiter=";"))
+verifier("en-tête + 2 lignes de données", len(contenu) == 3, contenu)
+verifier("en-tête attendu", contenu[0] ==
+         ["code_departement", "libelle_categorie", "effectif"], contenu[0])
+verifier("dept 01 × IME = 2", ["01", "Institut Médico-Educatif (I.M.E.)", "2"] in contenu, contenu)
+
+
+print("\n2. restituer — bout en bout sur un entrepôt réel, indicateur réel (OOM-13)")
 chemin = neuve()
 with Entrepot(chemin) as e:
     e.creer()
     c = e.connexion
     inserer(c, "entete", **LOT)
     inserer(c, "entite_juridique", **EJ)
-    # Dept 01, catégorie 183 (IME) — deux établissements actifs.
     inserer(c, "etablissement", **etablissement("010000001", "G0", "183", "A", "IME Un"))
     inserer(c, "adresse", **adresse("G0", 1, "03", "01053"))
     inserer(c, "etablissement", **etablissement("010000002", "G1", "183", "A", "IME Deux"))
     inserer(c, "adresse", **adresse("G1", 1, "03", "01001"))
-    # Dept 75, catégorie 500 (EHPAD) — un établissement actif.
-    inserer(c, "etablissement", **etablissement("750000003", "G2", "500", "A", "EHPAD"))
-    inserer(c, "adresse", **adresse("G2", 1, "03", "75056"))
-    # Dept 01, actif mais fermé (I) — ne doit pas être compté.
-    inserer(c, "etablissement", **etablissement("010000004", "G3", "183", "I", "IME Fermé"))
-    inserer(c, "adresse", **adresse("G3", 1, "03", "01001"))
-    # Dept 01, catégorie absente — actif, doit apparaître comme non renseignée.
-    inserer(c, "etablissement", **etablissement("010000005", "G4", None, "A", "Sans catégorie"))
-    inserer(c, "adresse", **adresse("G4", 1, "03", "01001"))
-    # Dept 01, catégorie hors référentiel — actif, doit apparaître comme inconnue.
-    inserer(c, "etablissement", **etablissement("010000006", "G5", "999", "A", "Catégorie inconnue"))
-    inserer(c, "adresse", **adresse("G5", 1, "03", "01001"))
-    # Actif, sans adresse principale — département non résoluble.
-    inserer(c, "etablissement", **etablissement("010000007", "G6", "183", "A", "Sans adresse"))
+    inserer(c, "etablissement", **etablissement("010000003", "G2", "183", "I", "IME Fermé"))
+    inserer(c, "adresse", **adresse("G2", 1, "03", "01001"))
 
-    lignes, diagnostics = et.tableau_departement_categorie(e)
-
-    verifier("6 établissements actifs comptés (le fermé G3 est exclu)",
-             diagnostics.actifs_total == 6, diagnostics)
-    verifier("1 établissement actif sans département résoluble (G6)",
-             diagnostics.sans_departement_resolu == 1, diagnostics)
-    verifier("1 établissement actif sans catégorie renseignée (G4)",
-             diagnostics.sans_categorie == 1, diagnostics)
-    verifier("1 établissement actif à catégorie hors référentiel (G5)",
-             diagnostics.categories_inconnues == 1, diagnostics)
-    verifier("4 lignes département×catégorie", len(lignes) == 4, lignes)
-
-    par_cle = {(l.code_departement, l.code_categorie): l for l in lignes}
-    verifier("dept 01 × IME (183) = 2", par_cle[("01", "183")].effectif == 2, lignes)
-    verifier("libellé IME résolu", par_cle[("01", "183")].libelle_categorie ==
-             "Institut Médico-Educatif (I.M.E.)", lignes)
-    verifier("dept 75 × EHPAD (500) = 1", par_cle[("75", "500")].effectif == 1, lignes)
-    verifier("dept 01 × catégorie absente = 1, libellé explicite",
-             par_cle[("01", None)].effectif == 1 and
-             par_cle[("01", None)].libelle_categorie == et.LIBELLE_CATEGORIE_ABSENTE, lignes)
-    verifier("dept 01 × catégorie inconnue (999) = 1, libellé explicite",
-             par_cle[("01", "999")].effectif == 1 and
-             "999" in par_cle[("01", "999")].libelle_categorie, lignes)
-
-    print("\n2. ecrire_csv — fichier écrit, lisible")
-    chemin_csv = BASE / "sortie" / "departement_categorie.csv"
-    et.ecrire_csv(lignes, chemin_csv)
-    verifier("CSV écrit", chemin_csv.exists())
-    with open(chemin_csv, encoding="utf-8", newline="") as f:
-        contenu = list(csv.reader(f, delimiter=";"))
-    verifier("en-tête + 4 lignes de données", len(contenu) == 5, contenu)
-    verifier("en-tête attendu", contenu[0] ==
-             ["code_departement", "code_categorie", "libelle_categorie", "effectif"], contenu[0])
-
-    print("\n3. restituer — CSV + rapport écrits, cohérents")
     dossier = BASE / "restitution"
     resultat = et.restituer(e, dossier)
     verifier("departement_categorie.csv écrit", resultat["chemin_csv"].exists())
     verifier("rapport.txt écrit", resultat["chemin_rapport"].exists())
+    verifier("2 actifs comptés (le fermé exclu)",
+             resultat["resultat"].total_actifs == 2, resultat["resultat"].total_actifs)
+    verifier("total vérifiable à la main", resultat["resultat"].verifier_total())
+
     texte = resultat["chemin_rapport"].read_text(encoding="utf-8")
     verifier("rapport mentionne la volumétrie", "Volumétrie chargée" in texte, texte)
     verifier("rapport mentionne les invariants", "Invariants vérifiés" in texte, texte)
     verifier("rapport mentionne le résultat produit", "Résultat produit" in texte, texte)
-    verifier("rapport mentionne le total d'actifs (6)", "6" in texte, texte)
+    verifier("rapport mentionne l'IME (183)",
+             "Institut Médico-Educatif (I.M.E.)" in texte, texte)
     verifier("texte retourné = contenu du fichier", resultat["texte_rapport"] == texte)
 
-print("\n4. entrepôt non ouvert -> échec explicite")
+    with open(resultat["chemin_csv"], encoding="utf-8", newline="") as f:
+        lignes_csv = list(csv.reader(f, delimiter=";"))
+    verifier("CSV : dept 01 × IME = 2",
+             ["01", "Institut Médico-Educatif (I.M.E.)", "2"] in lignes_csv, lignes_csv)
+
+print("\n3. entrepôt non ouvert -> échec explicite")
 try:
-    et.tableau_departement_categorie(Entrepot(neuve("jamais_ouvert.db")))
+    et.restituer(Entrepot(neuve("jamais_ouvert.db")), BASE / "jamais")
     verifier("refuse un entrepôt non ouvert", False)
 except et.ErreurExportTabulaire:
     verifier("refuse un entrepôt non ouvert", True)
