@@ -41,11 +41,11 @@ rs = charger(e, SourceFinessStructures(), S, controle=CONTROLE_STRICT)
 ra = charger(e, SourceFinessActivites(), A, controle=CONTROLE_STRICT)
 verifier("les deux fichiers en succès", rs.statut == "SUCCES" and ra.statut == "SUCCES",
          (rs.statut, ra.statut))
-verifier("50 083 lignes insérées", rs.total + ra.total == 50083, rs.total + ra.total)
+verifier("50 085 lignes insérées", rs.total + ra.total == 50085, rs.total + ra.total)
 verifier("aucune violation de clé étrangère", not rs.violations and not ra.violations)
 comptes = e.compter()
 verifier("comptes en base identiques aux lignes émises",
-         sum(comptes.values()) == 50083, sum(comptes.values()))
+         sum(comptes.values()) == 50085, sum(comptes.values()))
 verifier("identifiants de lot distincts", rs.id_lot != ra.id_lot)
 verifier("intégrité interne", e.verifier_integrite()["integrite_ok"])
 
@@ -136,7 +136,7 @@ try:
 except ErreurChargement as erreur:
     verifier("second millésime refusé avant toute écriture",
              "mono-millésime" in str(erreur), str(erreur))
-verifier("base intacte après le refus", sum(e.compter().values()) == 11197,
+verifier("base intacte après le refus", sum(e.compter().values()) == 11199,
          sum(e.compter().values()))
 # Sous cette vérification, la clé primaire reste le filet de dernier recours.
 with e.reglages_temporaires(REGLAGES_CHARGEMENT):

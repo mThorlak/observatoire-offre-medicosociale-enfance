@@ -9,10 +9,10 @@ contrat sans que le test lui-même le signale.
 from __future__ import annotations
 
 import json
-import resource
 import sys
 from pathlib import Path
 
+from mesure_rss import rss_max_mio
 from contrat_source import (CONTROLE_STRICT, InventaireCodes, Lot, RapportIngestion,
                             RegistreAnomalies, parcourir_source)
 import finess_commun as fc
@@ -296,9 +296,9 @@ verifier("identifiant de lot déterministe", rap_a.lot.identifiant == rap_b.lot.
 verifier("séquence de lignes identique d'une exécution à l'autre", lignes_a == lignes_b)
 
 gros = ecrire("volumineux-202607.json", document(nb_pmej=1500, nb_ege=4))
-avant = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024
+avant = rss_max_mio()
 _, r_gros = executer(gros, accumuler=False)
-apres = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024
+apres = rss_max_mio()
 verifier("gros document ingéré sans anomalie",
          r_gros.statut == "SUCCES" and r_gros.emis["etablissement"] == 6000,
          (r_gros.statut, r_gros.emis.get("etablissement")))

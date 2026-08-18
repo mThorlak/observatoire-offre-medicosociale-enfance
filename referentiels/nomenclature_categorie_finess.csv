@@ -1,0 +1,313 @@
+# Référentiel — nomenclature des catégories d'établissements FINESS
+# (domaine "categorie_etablissement", champ etablissement.code_categorie /
+# entite_juridique.code_categorie du pivot ; source JSON FINESS :
+# categorieentiteGeographiqueExercice).
+#
+# Source : DREES/DMSI, documentation FINESS.
+#   Dataset data.gouv.fr « FINESS - Extraction des principales nomenclatures »
+#   (producteur : Ministère chargé de la Santé) :
+#   https://www.data.gouv.fr/datasets/finess-extraction-des-principales-nomenclatures/
+#   Ressources utilisées :
+#     - « Catégories ouvertes - Caractéristiques » (situation au 01-06-2021)
+#       https://static.data.gouv.fr/resources/finess-extraction-des-principales-nomenclatures/20210625-130441/categories-ouvertes-caracteristiques.pdf
+#     - « Catégories fermées » (situation au 08-06-2021)
+#       https://static.data.gouv.fr/resources/finess-extraction-des-principales-nomenclatures/20210625-130947/categories-fermees.pdf
+# Date d'extraction dans ce dépôt : 2026-08-18.
+#
+# Couverture : 274 codes (151 catégories ouvertes + 123 catégories fermées),
+# sur les 300 valeurs distinctes de code_categorie observées dans un extrait
+# réel FINESS-Structures (millésime 202607 ; cf.
+# artefacts/01_INVENTAIRE_CODES_202607.csv, domaine categorie_etablissement).
+# Les 40 codes non couverts (ex. la série 60x-65x apparue après 2021) ne sont
+# pas devinés : ils restent absents du référentiel et sont donc signalés
+# explicitement par nomenclatures.resoudre_categorie, jamais approximés.
+# Le code 259 est volontairement omis : son libellé est tronqué en plein mot
+# dans le document source ("...Pension de Fami"), à la différence des autres
+# libellés de 60 caractères qui se terminent tous sur une frontière de mot ;
+# faute de pouvoir vérifier la fin exacte, il n'est pas complété par hypothèse.
+#
+# Colonnes :
+#   code            code catégorie FINESS, tel qu'émis par la source (aucun
+#                   remplissage de zéros, aucune transformation).
+#   libelle         libellé long officiel de la catégorie.
+#   statut          "ouverte" si la catégorie est utilisable pour une nouvelle
+#                   création à la date de la source, "fermee" sinon. Une
+#                   catégorie fermée peut néanmoins subsister sur des
+#                   établissements existants non encore requalifiés.
+#   date_fermeture  date de fermeture de la catégorie (AAAA-MM-JJ), renseignée
+#                   uniquement pour les catégories fermées.
+code;libelle;statut;date_fermeture
+001;Autres lits de m.R.;fermee;1999-09-15
+002;Autres places de l-f.;fermee;1999-09-15
+003;Autres lits de l-s;fermee;1999-09-15
+101;Centre Hospitalier Régional (C.H.R.);ouverte;
+106;Centre hospitalier, ex Hôpital local;ouverte;
+108;Etablissement de Convalescence et de Repos;fermee;2013-06-25
+109;Etablissement de santé privé autorisé en SSR;ouverte;
+112;Centre de Convalescence Cure ou Réadaptation;fermee;1999-09-15
+114;Hôpital des armées;ouverte;
+115;Etablissement de Soins du Service de Santé des Armées;ouverte;
+119;Maison de Régime;fermee;2013-06-25
+122;Etablissement Soins Obstétriques Chirurgico-Gynécologiques;ouverte;
+124;Centre de Santé;ouverte;
+125;Centre de Santé Dentaire;fermee;2013-12-19
+126;Etablissement Thermal;ouverte;
+127;Hospitalisation à Domicile;ouverte;
+128;Etablissement de Soins Chirurgicaux;ouverte;
+129;Etablissement de Soins Médicaux;ouverte;
+130;Centre de Soins Médicaux;fermee;2013-12-19
+131;Centre de Lutte Contre Cancer;ouverte;
+132;Etablissement de Transfusion Sanguine;ouverte;
+135;Etablissement Réadaptation Fonctionnelle;fermee;2013-06-25
+136;Banque de Sperme;fermee;1999-09-15
+137;Banque d'Organes;fermee;1999-09-15
+138;Centre de Dialyse Périodique;fermee;2002-02-18
+139;Centre de Dialyse et d'entraînement à la Dialyse;fermee;2002-02-18
+140;Centre d'Entraînement à la Dialyse;fermee;2002-02-18
+141;Centre de dialyse;ouverte;
+142;Dispensaire Antituberculeux;ouverte;
+143;Centre de Vaccination BCG;ouverte;
+144;Etablissement de Lutte Contre la Tuberculose;fermee;2013-06-25
+146;Structure d'Alternative à la dialyse en centre;ouverte;
+156;Centre Médico-Psychologique (C.M.P.);ouverte;
+157;Centre de Postcure;fermee;1994-09-19
+159;Centre parental;ouverte;
+160;Centre de Soins Spécifiques pour Toxicomanes (C.S.S.T.);fermee;2012-12-31
+161;Maison de Santé pour Maladies Mentales;ouverte;
+162;Centre de Cure Ambulatoire en Alcoologie (C.C.A.A.);fermee;2012-12-31
+163;Maison d'Enfants à Caractère Sanitaire Temporaire;fermee;2013-06-25
+164;Etablissements Expérimentaux Accueil de la Petite Enfance;fermee;2014-03-31
+165;Appartement de Coordination Thérapeutique (A.C.T.);ouverte;
+166;Etablissement d'Accueil Mère-Enfant;ouverte;
+167;Crèche Collective;fermee;2014-03-31
+168;Service Accueil Familial pour la Petite Enfance;fermee;2014-03-31
+169;Crèche Multi Accueil Collectif et Familial;fermee;2014-03-31
+170;Halte Garderie;fermee;2014-03-31
+171;Garderie et Jardin d'Enfants;fermee;2014-03-31
+172;Pouponnière à Caractère Social;ouverte;
+173;Pouponnière à Caractère Sanitaire;fermee;2013-06-25
+174;Etablissement d'Accueil Collectif Régulier et Occasionnel;fermee;2014-03-31
+175;Foyer de l'Enfance;ouverte;
+176;Village d'Enfants;ouverte;
+177;Maison d'Enfants à Caractère Social;ouverte;
+178;Ctre.Accueil/ Accomp.Réduc.Risq.Usag. Drogues (C.A.A.R.U.D.);ouverte;
+179;Maison d'Enfants à Caractère Sanitaire Permanente;fermee;2013-06-25
+180;Lits Halte Soins Santé (L.H.S.S.);ouverte;
+181;Maison Familiale de Vacances;fermee;2016-01-06
+182;Service d'Éducation Spéciale et de Soins à Domicile;ouverte;
+183;Institut Médico-Educatif (I.M.E.);ouverte;
+184;Institut Médico-Pédagogique (I.M.P.);fermee;2005-07-06
+185;Institut Médico-Professionnel (I.M.Pro.);fermee;2005-07-06
+186;Institut Thérapeutique Éducatif et Pédagogique (I.T.E.P.);ouverte;
+188;Etablissement pour Enfants ou Adolescents Polyhandicapés;ouverte;
+189;Centre Médico-Psycho-Pédagogique (C.M.P.P.);ouverte;
+190;Centre Action Médico-Sociale Précoce (C.A.M.S.P.);ouverte;
+191;Etablissement pour Déficients Moteurs Cérébraux;fermee;2005-07-06
+192;Institut d'éducation motrice;ouverte;
+193;Etablissement pour Déficients Moteurs et Moteurs Cérébraux;fermee;2005-07-06
+194;Institut pour Déficients Visuels;ouverte;
+195;Institut pour Déficients Auditifs;ouverte;
+196;Institut d'Education Sensorielle Sourd/Aveugle;ouverte;
+197;Centre soins accompagnement prévention addictologie (CSAPA);ouverte;
+198;Etablissement et Service de Préorientation;ouverte;
+199;Hospice;fermee;2015-01-05
+200;Maison de Retraite;fermee;2015-01-01
+202;Résidences autonomie;ouverte;
+205;Foyer Club Restaurant;fermee;2020-10-01
+207;Centre de Jour pour Personnes Agées;ouverte;
+208;Service d'Aide Ménagère à Domicile;fermee;2018-03-07
+209;Service Polyvalent Aide et Soins A Domicile (S.P.A.S.A.D.);ouverte;
+212;Alarme Médico-Sociale;fermee;2018-03-07
+213;Lits d'Accueil Médicalisés (L.A.M.);ouverte;
+214;Centre Hébergement & Réinsertion Sociale (C.H.R.S.);ouverte;
+215;Maison Relai;fermee;2008-06-26
+216;Résidence Hôtelière à Vocation Sociale (R.H.V.S.);ouverte;
+217;Cité de Transit;fermee;2001-07-31
+219;Autre Centre d'Accueil;ouverte;
+221;Bureau d'Aide Psychologique Universitaire (B.A.P.U.);ouverte;
+223;Protection Maternelle et Infantile (P.M.I.);ouverte;
+224;Etablissement de Consultation Pré et Post-natale;ouverte;
+225;Consultations de Nourrissons;fermee;1994-09-19
+228;Centre Planification ou Education Familiale;ouverte;
+229;Consultation Problèmes naissance;fermee;1994-09-19
+230;Etablissement Consultation Protection Infantile;ouverte;
+231;Etablissement Information Consultation Conseil Familial;ouverte;
+233;Lactarium;fermee;2015-03-04
+236;Centre Placement Familial Socio-Educatif (C.P.F.S.E.);ouverte;
+237;Centre de Placement Familial Spécialisé;fermee;2005-07-06
+238;Centre d'Accueil Familial Spécialisé;ouverte;
+241;Foyer d'Action Educative (F.A.E.);ouverte;
+246;Etablissement et Service d'Aide par le Travail (E.S.A.T.);ouverte;
+247;Entreprise adaptée;ouverte;
+249;Etablissement et Service de Réadaptation Professionnelle;ouverte;
+250;Centre Réentrainement au travail;fermee;1994-09-19
+251;Maison Vacances pour Handicapés;fermee;1994-09-19
+252;Foyer Hébergement Adultes Handicapés;ouverte;
+253;Foyer d'Accueil Polyvalent pour Adultes Handicapés;ouverte;
+255;Maison d'Accueil Spécialisée (M.A.S.);ouverte;
+256;Foyer Travailleurs Migrants non transformé en Résidence Soc.;ouverte;
+257;Foyer de Jeunes Travailleurs (résidence sociale ou non);ouverte;
+258;Maisons Relais - Pensions de Famille;ouverte;
+261;D.D.A.S.S.;fermee;1999-09-15
+262;Etablissement Régional d'Enseignement Adapté;fermee;2005-06-09
+265;Section Education Spéciale Classe Atelier;fermee;2005-06-09
+266;Dispensaire Antivénérien;ouverte;
+267;Dispensaire Antihansénien;ouverte;
+268;Centre Médico-Scolaire;ouverte;
+269;Centre de Médecine Universitaire;ouverte;
+270;Centre de Médecine Sportive;ouverte;
+271;Maisons d'accueil hospitalières (M.A.H.);ouverte;
+272;Ecole d'ambulanciers;fermee;2005-11-14
+273;Institut de formation en soins infirmiers (I.F.S.I.);fermee;2005-11-14
+274;Ecole de sages_femmes;fermee;2005-11-14
+275;Ecole de masseurs-kinésithérapeutes;fermee;2005-11-14
+276;Ecole de laborantins d'analyses médicales;fermee;2005-11-14
+277;Ecole de péricultrices;fermee;2005-11-14
+278;Etablissement de formation polyvalent;fermee;2005-11-14
+279;Ecole de service social;fermee;2005-11-14
+280;Ecole d'éducateurs spécialisés;fermee;2005-11-14
+281;Centre de formation d'aides soignants;fermee;2005-11-14
+282;Ecole de pédicures-podologues;fermee;2005-11-14
+283;Ecole de manipulateurs d'électro-radiologie;fermee;2005-11-14
+284;Ecole de travailleuses familiales;fermee;2005-11-14
+285;Centres de Loisirs sans Hébergement;fermee;2016-01-06
+286;Club Equipe de Prévention;ouverte;
+289;Centre de Soins Infirmiers;fermee;2013-12-19
+292;Centre Hospitalier Spécialisé lutte Maladies Mentales;ouverte;
+294;Centre de Consultations Cancer;ouverte;
+295;Services AEMO et AED;ouverte;
+297;Dispensaire Polyvalent;fermee;1992-01-01
+300;Ecoles Formant aux Professions Sanitaires;ouverte;
+303;Ecole de conseillers en économie sociale et familiale;fermee;2005-11-14
+304;Ecole d'ergothérapeutes;fermee;2005-11-14
+305;Ecole de psycho-motriciens;fermee;2005-11-14
+306;Ecole d'infirmiers anesthésistes;fermee;2005-11-14
+307;Ecole d'infirmiers de bloc opératoire;fermee;2005-11-14
+308;Centre de formation professionnelle de secteur psychiatrique;fermee;2005-11-14
+309;Ecole de cadres infirmiers;fermee;2005-11-14
+310;Ecole de cadres de secteur psychiatrique;fermee;2005-11-14
+311;Ecole de cadres de masseurs-kinésithérapeutes;fermee;2005-11-14
+312;Ecole de cadres de manipulateurs d'électro-radiologie;fermee;2005-11-14
+313;Ecole d'éducateurs de jeunes enfants;fermee;2005-11-14
+314;Ecole d'éducateurs techniques spécialisés;fermee;2005-11-14
+315;Ecole de moniteurs-éducateurs;fermee;2005-11-14
+316;Ecole d'aides médico-psychologiques;fermee;2005-11-14
+317;Ecole d'animateurs socio-éducatifs;fermee;2005-11-14
+319;Inst. régional de formation des travailleurs sociaux;fermee;2005-11-14
+320;S.A.M.U. et Centre 15;fermee;1999-09-15
+321;Unité Mobile Hospitalière;fermee;1999-09-15
+322;Centre Rég.Informatiq.Hospit.;fermee;1999-09-15
+326;Ecole de cadres;fermee;2005-11-14
+327;Service d'Ambulances;fermee;2019-04-22
+328;Centre Consultation Soins Dentaire;fermee;1994-09-19
+329;Sectorisation Psychiatrique;fermee;1994-09-19
+330;Ecoles Formant aux Professions Sociales;ouverte;
+340;Service mandataire judiciaire à la protection des majeurs;ouverte;
+341;Service dédié mesures d'accompagnement social personnalisé;ouverte;
+342;Service d'information et de soutien aux tuteurs familiaux;ouverte;
+343;Equipe Préparation et Suite Reclassement (EPSR);fermee;2005-06-09
+344;Service délégué aux prestations familiales;ouverte;
+346;Service de Travailleuses Familiales;fermee;2018-03-07
+347;Centre d'Examens de Santé;ouverte;
+349;Ecole de cadres de sages-femmes;fermee;2005-11-14
+350;Centre de formation d'auxiliaires de puériculture;fermee;2005-11-14
+352;Centre de Psychothérapie;fermee;1994-09-19
+353;Hôpital de Jour Spécialités Médicales;fermee;1994-09-19
+354;Service de Soins Infirmiers A Domicile (S.S.I.A.D);ouverte;
+355;Centre Hospitalier (C.H.);ouverte;
+357;Association Aide aux Insuffisants Respiratoires;fermee;1999-09-15
+361;Centre de Cure Médicale;fermee;1999-09-15
+362;Etablissement de Soins Longue Durée;ouverte;
+363;Centre moyen et long séjour;fermee;1999-09-15
+365;Etablissement de Soins Pluridisciplinaire;ouverte;
+366;Atelier Thérapeutique;ouverte;
+367;Maison d'Enfants non Conventionnée ni Habilitée;fermee;2014-03-31
+368;Service de Repas à Domicile;fermee;2018-03-07
+369;Centre Adaptation Vie Active (C.A.V.A.);fermee;2001-07-31
+370;Etablissement Expérimental pour personnes handicapées;ouverte;
+371;Service Action Socio-Educative pour Familles en difficulté;fermee;2001-07-31
+373;Centre de formation supérieure des travailleurs sociaux;fermee;2005-11-14
+374;Ecole des Hautes Etudes en Santé Publique (E.H.E.S.P.);ouverte;
+375;Classe d'Adaptation;fermee;1994-09-19
+376;Classe Spéciale Ecole Primaire;fermee;2005-06-09
+377;Etablissement Expérimental pour Enfance Handicapée;ouverte;
+378;Etablissement Expérimental Enfance Protégée;ouverte;
+379;Etablissement Expérimental pour Adultes Handicapés;ouverte;
+380;Etablissement Expérimental Autres Adultes;ouverte;
+381;Etablissement Expérimental pour Personnes Agées;ouverte;
+382;Foyer de Vie pour Adultes Handicapés;ouverte;
+386;Ecole Secondaire Spéciale;fermee;1994-09-19
+390;Etablissement d'Accueil Temporaire d'Enfants Handicapés;ouverte;
+393;Autre résidence But lucratif pr personnes Âgées;fermee;1994-09-19
+394;Etablissement d'Accueil Temporaire pour Personnes Agées;fermee;2015-01-01
+395;Etablissement d'Accueil Temporaire pour Adultes Handicapés;ouverte;
+396;Foyer Hébergement Enfants et Adolescents Handicapés;ouverte;
+397;Service Auxiliaire de Vie pour Handicapés;fermee;2005-07-06
+398;Crèche Parentale;fermee;2014-03-31
+399;Halte Garderie Parentale;fermee;2014-03-31
+401;D.R.A.S.S.;fermee;1999-09-15
+402;Jardin d'Enfants Spécialisé;ouverte;
+404;Etablissement Acc.Collect.Parental Régulier & Occasionnel;fermee;2014-03-31
+411;Intermédiaire de Placement Social;ouverte;
+412;Appartement Thérapeutique;ouverte;
+413;C.E.C.O.S;fermee;1999-09-15
+414;Centre Anti Poison;fermee;1999-09-15
+415;Service Médico-Psychologique Régional (S.M.P.R.);ouverte;
+418;Service d'Enquêtes Sociales (S.E.S.);ouverte;
+419;Centre d'Accueil Toxicomanes;fermee;1999-09-15
+420;Entreprise d'Insertion;fermee;2001-07-31
+421;Centre d'enseignement aux secours d'urgence;fermee;2005-11-14
+422;Traitements Spécialisés à Domicile;ouverte;
+423;Ecole des cadres de laborantins d'analyses médicales;fermee;2005-11-14
+425;Centre d'Accueil Thérapeutique à temps partiel (C.A.T.T.P.);ouverte;
+426;Syndicat Inter Hospitalier (S.I.H.);ouverte;
+427;Service Educatif Auprès des Tribunaux (S.E.A.T.);ouverte;
+430;Centre Postcure Malades Mentaux;ouverte;
+431;Centre Postcure pour Alcooliques;fermee;2013-06-25
+432;Centre Postcure pour Toxicomanes;fermee;1999-09-15
+433;Etablissement Sanitaire des Prisons;ouverte;
+434;Classe Spéciale en Ecole Maternelle;fermee;2005-06-09
+435;Centre de formation d'aide à domicile;fermee;2005-11-14
+436;Ecoles Formant aux Professions Sanitaires et Sociales;ouverte;
+437;Foyer d'Accueil Médicalisé pour Adultes Handicapés (F.A.M.);ouverte;
+438;Centre de Médecine collective;ouverte;
+439;Centre Santé Polyvalent;fermee;2013-12-19
+440;Service Investigation Orientation Educative (S.I.O.E.);ouverte;
+441;Centre d'Action Educative (C.A.E.);ouverte;
+442;Centre Provisoire Hébergement (C.P.H.);ouverte;
+443;Centre Accueil Demandeurs Asile (C.A.D.A.);ouverte;
+444;Centre Crise Accueil Permanent;ouverte;
+445;Service d'accompagnement médico-social adultes handicapés;ouverte;
+446;Service d'Accompagnement à la Vie Sociale (S.A.V.S.);ouverte;
+448;Etab.Acc.Médicalisé en tout ou partie personnes handicapées;ouverte;
+449;Etab.Accueil Non Médicalisé pour personnes handicapées;ouverte;
+453;Service de Réparation Pénale;ouverte;
+460;Service d'Aide et d'Accompagnement à Domicile (S.A.A.D.);ouverte;
+461;Centres de Ressources S.A.I. (Sans Aucune Indication);ouverte;
+462;Lieux de vie;ouverte;
+463;Centres Locaux Information Coordination P.A .(C.L.I.C.);ouverte;
+464;Unités Evaluation Réentraînement et d'Orient. Soc. et Pro.;ouverte;
+500;Etablissement d'hébergement pour personnes âgées dépendantes;ouverte;
+501;EHPA percevant des crédits d'assurance maladie;ouverte;
+502;EHPA ne percevant pas des crédits d'assurance maladie;ouverte;
+603;Maison de santé (L.6223-3);ouverte;
+604;Communautés professionnelles territoriales de santé (CPTS);ouverte;
+610;Laboratoire d'Analyses;ouverte;
+611;Laboratoire de Biologie Médicale;ouverte;
+612;Autre Laboratoire de Biologie Médicale sans FSE;ouverte;
+620;Pharmacie d'Officine;ouverte;
+624;Laboratoire pharmaceutique préparant délivrant allergènes;ouverte;
+627;Propharmacie;ouverte;
+628;Pharmacie Minière;ouverte;
+629;Pharmacie Mutualiste;ouverte;
+630;Installation autonome de chirurgie esthétique;ouverte;
+631;Maison de naissance;ouverte;
+632;Structure Dispensatrice à domicile d'Oxygène à usage médical;ouverte;
+633;Structure Expérimentale en Santé;ouverte;
+636;Centre de soins et de prévention;ouverte;
+690;Etablissement de Fabrication Annexe à une Officine;ouverte;
+695;Groupement de coopération sanitaire de moyens - Exploitant;ouverte;
+696;Groupement de coopération sanitaire de moyens;ouverte;
+697;Groupement de coopération sanitaire - Etablissement de santé;ouverte;
+698;Autre Etablissement Loi Hospitalière;ouverte;
+699;Entité Ayant Autorisation;ouverte;

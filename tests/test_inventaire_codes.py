@@ -9,10 +9,10 @@ construits à partir des jeux de clés déclarés.
 from __future__ import annotations
 
 import json
-import resource
 import sys
 from pathlib import Path
 
+from mesure_rss import rss_max_mio
 import finess_commun as fc
 import finess_structures as fs
 import finess_activites as fa
@@ -251,9 +251,9 @@ r1, _ = lancer()
 r2, _ = lancer()
 verifier("registre identique d'une exécution à l'autre",
          r1.par_domaine_a == r2.par_domaine_a)
-avant = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024
+avant = rss_max_mio()
 r3, _ = lancer(ds=doc_structures(nb_ej=300), da=doc_activites(nb_ej=300))
-apres = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024
+apres = rss_max_mio()
 verifier("volume x150 ingéré sans anomalie bloquante",
          sum(r.bloquantes for r in r3.registres) == 0, codes(r3))
 verifier(f"RSS stable ({avant:.0f} → {apres:.0f} Mio)", apres - avant < 25,

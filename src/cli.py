@@ -1,17 +1,24 @@
 """
 cli.py — Orchestration, étape E6.
 
-Point d'entrée unique de la chaîne d'acquisition. Quatre commandes :
+Point d'entrée unique de la chaîne d'acquisition. Cinq commandes :
 
     inspecter   volumétrie, en-tête, anomalies et échantillon d'un fichier
     inventaire  registre des codes observés (étape E5)
     integrite   contrôles de rattachement entre tables (migrés d'E5)
-    tout        les trois, dans l'ordre
+    tout        les trois précédentes, dans l'ordre
+    charger     écrit structures (et activités) dans l'entrepôt SQLite (couche 2)
 
 La commande `integrite` accueille les contrôles retirés de l'inventaire : ils
 portent sur les rattachements, non sur les codes, et n'avaient pas leur place
 dans une passe dédiée aux nomenclatures. Le coût mémoire des index a été ramené
 de 49 à 4,4 Mio par l'encodage entier de `controles.IndexIdentifiants`.
+
+La commande `charger` ne fait qu'exposer `entrepot`/`chargement` (couche 2,
+déjà écrite et testée) depuis ce point d'entrée unique : jusqu'ici, charger
+dans l'entrepôt exigeait de connaître et lancer `chargement.py` directement.
+Elle n'est volontairement pas enchaînée dans `tout` pour l'instant — seul le
+premier POC (structures obligatoire, activités optionnel) en a besoin.
 
 Aucune dépendance tierce. Compatible Python 3.9+.
 """
@@ -19,11 +26,12 @@ Aucune dépendance tierce. Compatible Python 3.9+.
 from __future__ import annotations
 
 import argparse
-import resource
 import sys
 import time
 from pathlib import Path
 from typing import Dict, Optional, Tuple
+
+from mesure_rss import rss_max_mio
 
 from contrat_source import (BLOQUANT, CONTROLE_ECHANTILLON, CONTROLE_MINIMAL,
                             CONTROLE_STRICT, InventaireCodes, Lot, RapportIngestion,
@@ -33,6 +41,8 @@ import finess_commun as fc
 import inventaire_codes as ic
 from finess_activites import SourceFinessActivites
 from finess_structures import SourceFinessStructures
+from entrepot import Entrepot, ErreurEntrepot
+from chargement import charger, ErreurChargement, REFUSER, REMPLACER, LOT_DEFAUT
 
 SOURCES = {
     "structures": SourceFinessStructures,
@@ -41,7 +51,7 @@ SOURCES = {
 
 
 def rss_mio() -> float:
-    return resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024
+    return rss_max_mio()
 
 
 def _source_du_fichier(chemin: Path, force: Optional[str] = None):
@@ -153,6 +163,49 @@ def commande_integrite(arguments) -> int:
 
 
 # ---------------------------------------------------------------------------
+# charger
+# ---------------------------------------------------------------------------
+
+def commande_charger(arguments) -> int:
+    """Charge structures (et activités si fournies) dans l'entrepôt SQLite.
+
+    Porte dans le point d'entrée unique ce que `chargement.py` exposait déjà
+    en exécution directe (`python chargement.py ...`) : mêmes fonctions
+    (`entrepot.Entrepot`, `chargement.charger`), même politique de doublon,
+    aucune logique nouvelle. `--creer` recrée le schéma (écrase toute base
+    existante), à l'identique de `entrepot.creer(ecraser=True)`.
+
+    Portée du premier POC : structures obligatoire, activités optionnel via
+    `--activites`. Les deux sont chargées dans cet ordre quand les deux sont
+    fournies, comme le fait déjà `commande_tout` pour inventaire/integrite.
+    """
+    fichiers = [("structures", arguments.structures)]
+    if arguments.activites is not None:
+        fichiers.append(("activites", arguments.activites))
+
+    retour = 0
+    with Entrepot(arguments.base) as entrepot:
+        if arguments.creer:
+            entrepot.creer(ecraser=True)
+        for cle, chemin in fichiers:
+            source = SOURCES[cle]()
+            try:
+                rapport = charger(entrepot, source, chemin,
+                                  taille_lot=arguments.lot,
+                                  controle=arguments.controle,
+                                  doublon=REMPLACER if arguments.remplacer else REFUSER)
+            except (ErreurChargement, ErreurEntrepot) as erreur:
+                print(f"ÉCHEC — {chemin.name} : {erreur}")
+                retour = 1
+                continue
+            print(rapport.texte())
+            print()
+            retour |= 0 if rapport.statut == "SUCCES" else 1
+        print(entrepot.rapport())
+    return retour
+
+
+# ---------------------------------------------------------------------------
 
 def construire_analyseur() -> argparse.ArgumentParser:
     analyseur = argparse.ArgumentParser(
@@ -191,6 +244,21 @@ def construire_analyseur() -> argparse.ArgumentParser:
                       choices=[CONTROLE_MINIMAL, CONTROLE_ECHANTILLON, CONTROLE_STRICT])
     tout.add_argument("--exemples", type=int, default=10)
     tout.set_defaults(fonction=commande_tout)
+
+    charger_cmd = commandes.add_parser(
+        "charger", help="écrit structures (et activités) dans l'entrepôt SQLite")
+    charger_cmd.add_argument("base", type=Path, help="fichier de l'entrepôt SQLite")
+    charger_cmd.add_argument("structures", type=Path)
+    charger_cmd.add_argument("--activites", type=Path, default=None,
+                             help="optionnel pour ce POC — structures seul suffit")
+    charger_cmd.add_argument("--creer", action="store_true",
+                             help="(re)crée le schéma ; écrase toute base existante")
+    charger_cmd.add_argument("--lot", type=int, default=LOT_DEFAUT)
+    charger_cmd.add_argument("--controle", default=CONTROLE_ECHANTILLON,
+                             choices=[CONTROLE_MINIMAL, CONTROLE_ECHANTILLON, CONTROLE_STRICT])
+    charger_cmd.add_argument("--remplacer", action="store_true",
+                             help="remplace un lot déjà chargé pour la même source")
+    charger_cmd.set_defaults(fonction=commande_charger)
     return analyseur
 
 

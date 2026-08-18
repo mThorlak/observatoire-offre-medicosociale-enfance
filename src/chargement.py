@@ -60,10 +60,11 @@ Aucune dépendance tierce. Compatible Python 3.9+.
 
 from __future__ import annotations
 
-import resource
 import time
 from pathlib import Path
 from typing import Dict, Iterable, List, Optional, Sequence, Tuple
+
+from mesure_rss import rss_max_mio
 
 from contrat_source import (CONTROLE_ECHANTILLON, InventaireCodes, Lot,
                             RapportIngestion, RegistreAnomalies,
@@ -316,7 +317,7 @@ def charger(entrepot: Entrepot, source, chemin: Path,
             rapport.controles = entrepot.executer_controles()
 
     rapport.duree_s = time.time() - depart
-    rapport.rss_max_mio = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024
+    rapport.rss_max_mio = rss_max_mio()
     rapport.octets_base = entrepot.octets()
     rapport.id_lot = rapport_ingestion.lot.identifiant
     rapport.source = rapport_ingestion.lot.source

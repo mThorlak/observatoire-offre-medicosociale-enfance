@@ -162,5 +162,34 @@ verifier("les trois étapes enchaînées", retour == 0
 retour, texte = lancer("tout", CS, CA_ORPH, "--sortie", BASE / "registre3.csv")
 verifier("une seule étape en échec suffit à faire échouer l'ensemble", retour == 1)
 
+print("5. charger")
+BASE_ENTREPOT = BASE / "entrepot_charger.sqlite"
+for suffixe in ("", "-wal", "-shm", "-journal"):
+    p = Path(str(BASE_ENTREPOT) + suffixe)
+    if p.exists():
+        p.unlink()
+
+retour, texte = lancer("charger", BASE_ENTREPOT, CS, "--creer")
+verifier("code de retour nul, structures seules", retour == 0, texte[-500:])
+verifier("établissements chargés", "etablissement" in texte)
+verifier("rapport final de l'entrepôt affiché", "Schéma     : conforme" in texte, texte[-500:])
+
+retour, texte = lancer("charger", BASE_ENTREPOT, CS)
+verifier("fichier déjà chargé (même empreinte) → refus, code de retour 1",
+         retour == 1 and "ÉCHEC" in texte, texte[-300:])
+
+retour, texte = lancer("charger", BASE_ENTREPOT, CS, "--remplacer")
+verifier("remplacement explicite accepté", retour == 0, texte[-300:])
+
+BASE_ENTREPOT_2 = BASE / "entrepot_charger_activites.sqlite"
+for suffixe in ("", "-wal", "-shm", "-journal"):
+    p = Path(str(BASE_ENTREPOT_2) + suffixe)
+    if p.exists():
+        p.unlink()
+
+retour, texte = lancer("charger", BASE_ENTREPOT_2, CS, "--activites", CA, "--creer")
+verifier("structures et activités chargées ensemble",
+         retour == 0 and "activite" in texte, texte[-500:])
+
 print(f"\n{ok} tests réussis, {ko} échecs")
 sys.exit(1 if ko else 0)
