@@ -8,10 +8,10 @@ Aucun fichier FINESS n'est nécessaire.
 
 from __future__ import annotations
 
-import resource
 import sys
 from pathlib import Path
 
+from mesure_rss import rss_max_mio
 from contrat_source import (
     AVERTISSEMENT, BLOQUANT, CONTROLE_ECHANTILLON, CONTROLE_MINIMAL, CONTROLE_STRICT,
     DATE, ENTIER_TEXTE, HORODATAGE, TEXTE,
@@ -286,15 +286,15 @@ verifier("empreinte indépendante de la taille de bloc", e1 == e2 and o1 == o2)
 verifier("empreinte de 64 caractères hexadécimaux", len(e1) == 64 and int(e1, 16) >= 0)
 
 print("9. Mémoire bornée sur un flux volumineux (flux consommé sans accumulation)")
-avant = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024
+avant = rss_max_mio()
 _, r_gros = executer(SourceFactice("nominal", nombre=200_000), accumuler=False)
-apres = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024
+apres = rss_max_mio()
 verifier("400 001 lignes émises", r_gros.total_emis == 400_001, r_gros.total_emis)
 verifier(f"RSS stable ({avant:.0f} → {apres:.0f} Mio)", apres - avant < 10,
          f"croissance {apres - avant:.1f} Mio")
 verifier("inventaire toujours borné", r_gros.inventaire.nombre_distinct("categorie") == 3)
 _, r_gros2 = executer(SourceFactice("nominal", nombre=400_000), accumuler=False)
-encore = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024
+encore = rss_max_mio()
 verifier(f"mémoire indépendante du volume (x2 lignes → {encore:.0f} Mio)",
          encore - apres < 5, f"croissance {encore - apres:.1f} Mio")
 

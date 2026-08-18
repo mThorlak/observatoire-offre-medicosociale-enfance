@@ -44,11 +44,12 @@ Aucune dépendance tierce. Compatible Python 3.9+.
 from __future__ import annotations
 
 import csv
-import resource
 import sys
 import time
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set, Tuple
+
+from mesure_rss import rss_max_mio
 
 from contrat_source import (AVERTISSEMENT, BLOQUANT, CONTROLE_MINIMAL, InventaireCodes,
                             Lot, RapportIngestion, RegistreAnomalies, TypeEnregistrement,
@@ -402,7 +403,7 @@ def executer(chemin_structures: Path, chemin_activites: Path,
                       detail=f"{len(vus)} couples écrits pour {total_couples} observés")
 
     inventaire.duree_s = time.time() - depart
-    inventaire.rss_max_mio = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024
+    inventaire.rss_max_mio = rss_max_mio()
     bloquantes = sum(r.bloquantes for r in inventaire.registres)
     return inventaire, (1 if bloquantes else 0)
 

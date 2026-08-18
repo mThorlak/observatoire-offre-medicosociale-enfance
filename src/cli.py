@@ -26,11 +26,12 @@ Aucune dépendance tierce. Compatible Python 3.9+.
 from __future__ import annotations
 
 import argparse
-import resource
 import sys
 import time
 from pathlib import Path
 from typing import Dict, Optional, Tuple
+
+from mesure_rss import rss_max_mio
 
 from contrat_source import (BLOQUANT, CONTROLE_ECHANTILLON, CONTROLE_MINIMAL,
                             CONTROLE_STRICT, InventaireCodes, Lot, RapportIngestion,
@@ -50,7 +51,7 @@ SOURCES = {
 
 
 def rss_mio() -> float:
-    return resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024
+    return rss_max_mio()
 
 
 def _source_du_fichier(chemin: Path, force: Optional[str] = None):
