@@ -5,15 +5,24 @@ n'est modifiee, seuls des enregistrements racines entiers sont retenus ou
 ecartes. Il est referentiellement clos : les controles d'integrite doivent y
 passer sans orphelin, ce qui impose une fermeture transitive des identifiants
 references.
+
+Usage : python construire_echantillon.py <structures.json.gz> <activites.json.gz> <dossier_sortie>
 """
+import argparse
 import gzip, json, sys
 from pathlib import Path
 from flux_json import parcourir, CLE_ENTETE
 
-S = Path('/mnt/user-data/uploads/finess-structures-mensuel-202607_json.gz')
-A = Path('/mnt/user-data/uploads/finess-activites-mensuel-202607_json.gz')
-SORTIE = Path('/home/claude/proto/echantillon')
-SORTIE.mkdir(exist_ok=True)
+analyseur = argparse.ArgumentParser(description=__doc__)
+analyseur.add_argument("structures", type=Path, help="extrait FINESS-Structures complet (.json.gz)")
+analyseur.add_argument("activites", type=Path, help="extrait FINESS-Activités complet (.json.gz)")
+analyseur.add_argument("sortie", type=Path, help="dossier où écrire l'échantillon")
+arguments = analyseur.parse_args()
+
+S = arguments.structures
+A = arguments.activites
+SORTIE = arguments.sortie
+SORTIE.mkdir(exist_ok=True, parents=True)
 
 # Cas limites reperes sur les fichiers complets, avec la raison de leur presence.
 GRAINES = {
