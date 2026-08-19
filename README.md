@@ -36,6 +36,17 @@ Un front simple, statique pur (`front/liste.html`, `front/indicateur.html`), con
 produites sans build ni serveur autre que `python -m http.server`. Suivi du projet sur Linear,
 équipe **OOM**, projet **OOMS**.
 
+**Essayer le front sans rien installer** (aperçu figé sur l'échantillon FINESS versionné,
+millésime 202607 — pas des données de production) :
+
+- 🗂️ **[Tester le front — liste des établissements](https://claude.ai/code/artifact/ee0f46dc-70b0-4582-ba27-0cc1bcc76839)**
+  (OOM-20/28) : recherche, filtres département/catégorie/état, panneau d'activités au clic.
+- 📊 **[Front d'analyse — indicateur département × catégorie](https://claude.ai/code/artifact/fe8004fc-823d-4682-afdb-b34d57d345a2)**
+  (OOM-21) : tableau croisé triable, mêmes chiffres que l'export CSV d'OOM-14.
+
+Contre un extrait réel : `python src/export_front.py <base.sqlite> --sortie front/data` puis
+`python -m http.server` depuis `front/`.
+
 ## Sources de données
 
 Recensées et documentées dans [`docs/08_SOURCES_DONNEES.md`](docs/08_SOURCES_DONNEES.md) : rôle,
