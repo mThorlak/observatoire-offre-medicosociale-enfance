@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Observatoire — Établissements FINESS</title>
+<style>
+  :root {
+    color-scheme: light;
+    --bg: #f7f7f5;
+    --panel: #ffffff;
+    --texte: #1f2328;
+    --texte-att: #57606a;
+    --bordure: #d0d7de;
+    --accent: #0969da;
+    --actif: #1a7f37;
+    --inactif: #cf222e;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, "Segoe UI", Arial, sans-serif;
+    background: var(--bg);
+    color: var(--texte);
+  }
+  header {
+    padding: 1rem 1.5rem;
+    background: var(--panel);
+    border-bottom: 1px solid var(--bordure);
+  }
+  header h1 { margin: 0 0 .25rem; font-size: 1.25rem; }
+  header p { margin: 0; color: var(--texte-att); font-size: .85rem; }
+  main { padding: 1rem 1.5rem 2rem; max-width: 1200px; margin: 0 auto; }
+  .filtres {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .75rem;
+    background: var(--panel);
+    border: 1px solid var(--bordure);
+    border-radius: 8px;
+    padding: .9rem 1rem;
+    margin-bottom: 1rem;
+    align-items: end;
+  }
+  .filtres label {
+    display: flex;
+    flex-direction: column;
+    font-size: .78rem;
+    color: var(--texte-att);
+    gap: .3rem;
+  }
+  .filtres select, .filtres input {
+    font-size: .9rem;
+    padding: .4rem .5rem;
+    border: 1px solid var(--bordure);
+    border-radius: 6px;
+    min-width: 12rem;
+    background: white;
+  }
+  .filtres input[type="search"] { min-width: 16rem; }
+  .filtres button {
+    font-size: .85rem;
+    padding: .45rem .8rem;
+    border: 1px solid var(--bordure);
+    border-radius: 6px;
+    background: var(--panel);
+    cursor: pointer;
+  }
+  .filtres button:hover { background: var(--bg); }
+  .compteur { font-size: .85rem; color: var(--texte-att); margin: .25rem 0 .75rem; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--panel);
+    border: 1px solid var(--bordure);
+    border-radius: 8px;
+    overflow: hidden;
+    font-size: .88rem;
+  }
+  thead th {
+    text-align: left;
+    padding: .6rem .7rem;
+    background: #f0f2f4;
+    border-bottom: 1px solid var(--bordure);
+    white-space: nowrap;
+  }
+  tbody td {
+    padding: .5rem .7rem;
+    border-bottom: 1px solid #eef0f2;
+    vertical-align: top;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover { background: #f6f8fa; }
+  .etat { display: inline-block; padding: .1rem .5rem; border-radius: 999px; font-size: .78rem; }
+  .etat-actif { background: #dafbe1; color: var(--actif); }
+  .etat-inactif { background: #ffebe9; color: var(--inactif); }
+  .code-brut { color: var(--texte-att); font-size: .78rem; }
+  .vide { padding: 2rem; text-align: center; color: var(--texte-att); }
+  footer { max-width: 1200px; margin: 1rem auto 0; padding: 0 1.5rem; font-size: .78rem; color: var(--texte-att); }
+  .alerte {
+    background: #fff8c5;
+    border: 1px solid #d4a72c;
+    color: #4d3800;
+    padding: .6rem .9rem;
+    border-radius: 6px;
+    margin-bottom: 1rem;
+    font-size: .85rem;
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>Établissements FINESS — front de test (OOM-20)</h1>
+  <p>Observatoire national libre de l'offre médico-sociale enfance/adolescents — données du POC 1, consultation locale.</p>
+</header>
+<main>
+  <div id="alerte-chargement"></div>
+  <div class="filtres">
+    <label>Recherche (nom)
+      <input type="search" id="f-recherche" placeholder="ex. IME Un">
+    </label>
+    <label>Département
+      <select id="f-departement"><option value="">Tous</option></select>
+    </label>
+    <label>Catégorie
+      <select id="f-categorie"><option value="">Toutes</option></select>
+    </label>
+    <label>État
+      <select id="f-etat">
+        <option value="">Tous</option>
+        <option value="A">Actif</option>
+        <option value="I">Inactif</option>
+      </select>
+    </label>
+    <button id="f-reinitialiser" type="button">Réinitialiser</button>
+  </div>
+  <div class="compteur" id="compteur"></div>
+  <table id="table-etablissements">
+    <thead>
+      <tr>
+        <th>N° FINESS</th>
+        <th>Nom</th>
+        <th>Catégorie</th>
+        <th>Département</th>
+        <th>Code postal</th>
+        <th>État</th>
+      </tr>
+    </thead>
+    <tbody id="corps-table"></tbody>
+  </table>
+  <div class="vide" id="vide" hidden>Aucun établissement ne correspond aux filtres.</div>
+</main>
+<footer id="pied"></footer>
+
+<script>
+(function () {
+  "use strict";
+
+  const etatLabel = { A: "Actif", I: "Inactif" };
+  const etatClasse = { A: "etat-actif", I: "etat-inactif" };
+
+  const el = {
+    alerte: document.getElementById("alerte-chargement"),
+    recherche: document.getElementById("f-recherche"),
+    departement: document.getElementById("f-departement"),
+    categorie: document.getElementById("f-categorie"),
+    etat: document.getElementById("f-etat"),
+    reinitialiser: document.getElementById("f-reinitialiser"),
+    compteur: document.getElementById("compteur"),
+    corps: document.getElementById("corps-table"),
+    vide: document.getElementById("vide"),
+    table: document.getElementById("table-etablissements"),
+    pied: document.getElementById("pied"),
+  };
+
+  let etablissements = [];
+
+  function peupler(select, valeurs, libelleDefaut) {
+    for (const v of valeurs) {
+      const option = document.createElement("option");
+      option.value = v;
+      option.textContent = v;
+      select.appendChild(option);
+    }
+  }
+
+  function departementAffiche(e) {
+    return e.code_departement || (e.cog_commune ? "[non résolu]" : "[absent]");
+  }
+
+  function categorieAffichee(e) {
+    return e.libelle_categorie || (e.code_categorie ? `[code ${e.code_categorie} non résolu]` : "[absent]");
+  }
+
+  function rendre() {
+    const q = el.recherche.value.trim().toLowerCase();
+    const dep = el.departement.value;
+    const cat = el.categorie.value;
+    const etat = el.etat.value;
+
+    const filtres = etablissements.filter(function (e) {
+      if (q && !(e.nom || "").toLowerCase().includes(q)) return false;
+      if (dep && (e.code_departement || "") !== dep) return false;
+      if (cat && (e.libelle_categorie || "") !== cat) return false;
+      if (etat && e.etat_objet !== etat) return false;
+      return true;
+    });
+
+    el.corps.innerHTML = "";
+    for (const e of filtres) {
+      const tr = document.createElement("tr");
+      tr.innerHTML =
+        "<td>" + e.num_finess_et + "</td>" +
+        "<td>" + (e.nom || "") + "</td>" +
+        "<td>" + categorieAffichee(e) +
+          (e.libelle_categorie ? ` <span class="code-brut">(${e.code_categorie})</span>` : "") +
+          "</td>" +
+        "<td>" + departementAffiche(e) + "</td>" +
+        "<td>" + (e.code_postal || "") + "</td>" +
+        "<td><span class=\"etat " + (etatClasse[e.etat_objet] || "") + "\">" +
+          (e.etat_libelle || e.etat_objet || "") + "</span></td>";
+      el.corps.appendChild(tr);
+    }
+
+    el.compteur.textContent = filtres.length + " établissement(s) affiché(s) sur " + etablissements.length + ".";
+    el.vide.hidden = filtres.length !== 0;
+    el.table.hidden = filtres.length === 0;
+  }
+
+  function initFiltres() {
+    const departements = [...new Set(etablissements.map(function (e) { return e.code_departement; }).filter(Boolean))].sort();
+    const categories = [...new Set(etablissements.map(function (e) { return e.libelle_categorie; }).filter(Boolean))].sort();
+    peupler(el.departement, departements);
+    peupler(el.categorie, categories);
+
+    [el.recherche, el.departement, el.categorie, el.etat].forEach(function (champ) {
+      champ.addEventListener("input", rendre);
+    });
+    el.reinitialiser.addEventListener("click", function () {
+      el.recherche.value = "";
+      el.departement.value = "";
+      el.categorie.value = "";
+      el.etat.value = "";
+      rendre();
+    });
+  }
+
+  function afficherMeta(meta) {
+    const parties = [
+      "Généré le " + meta.genere_le,
+      meta.nombre_etablissements + " établissement(s)",
+      meta.sans_adresse_principale + " sans adresse principale",
+      meta.categorie_non_resolue + " catégorie(s) non résolue(s)",
+      meta.departement_non_resolu + " département(s) non résolu(s)",
+    ];
+    el.pied.textContent = parties.join(" · ");
+  }
+
+  Promise.all([
+    fetch("data/etablissements.json").then(function (r) {
+      if (!r.ok) throw new Error("etablissements.json : HTTP " + r.status);
+      return r.json();
+    }),
+    fetch("data/meta.json").then(function (r) {
+      if (!r.ok) throw new Error("meta.json : HTTP " + r.status);
+      return r.json();
+    }),
+  ]).then(function (resultats) {
+    etablissements = resultats[0];
+    initFiltres();
+    rendre();
+    afficherMeta(resultats[1]);
+  }).catch(function (erreur) {
+    el.alerte.innerHTML = "<div class=\"alerte\">Impossible de charger les données (" + erreur.message +
+      "). Cette page attend <code>data/etablissements.json</code> et <code>data/meta.json</code>, " +
+      "générés par <code>python src/export_front.py &lt;base.sqlite&gt; --sortie front/data</code>, " +
+      "servis via un serveur HTTP local (ex. <code>python -m http.server</code> depuis <code>front/</code>) — " +
+      "le chargement direct en <code>file://</code> est bloqué par le navigateur.</div>";
+  });
+})();
+</script>
+</body>
+</html>

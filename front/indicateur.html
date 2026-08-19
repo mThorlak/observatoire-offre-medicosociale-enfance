@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Observatoire — Indicateur département × catégorie</title>
+<style>
+  :root {
+    color-scheme: light;
+    --bg: #f7f7f5;
+    --panel: #ffffff;
+    --texte: #1f2328;
+    --texte-att: #57606a;
+    --bordure: #d0d7de;
+    --accent: #0969da;
+    --barre: #6cb6ff;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, "Segoe UI", Arial, sans-serif;
+    background: var(--bg);
+    color: var(--texte);
+  }
+  header {
+    padding: 1rem 1.5rem;
+    background: var(--panel);
+    border-bottom: 1px solid var(--bordure);
+  }
+  header h1 { margin: 0 0 .25rem; font-size: 1.25rem; }
+  header p { margin: 0; color: var(--texte-att); font-size: .85rem; }
+  main { padding: 1rem 1.5rem 2rem; max-width: 1100px; margin: 0 auto; }
+  .filtres {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .75rem;
+    background: var(--panel);
+    border: 1px solid var(--bordure);
+    border-radius: 8px;
+    padding: .9rem 1rem;
+    margin-bottom: 1rem;
+    align-items: end;
+  }
+  .filtres label {
+    display: flex;
+    flex-direction: column;
+    font-size: .78rem;
+    color: var(--texte-att);
+    gap: .3rem;
+  }
+  .filtres select {
+    font-size: .9rem;
+    padding: .4rem .5rem;
+    border: 1px solid var(--bordure);
+    border-radius: 6px;
+    min-width: 12rem;
+    background: white;
+  }
+  .filtres button {
+    font-size: .85rem;
+    padding: .45rem .8rem;
+    border: 1px solid var(--bordure);
+    border-radius: 6px;
+    background: var(--panel);
+    cursor: pointer;
+  }
+  .filtres button:hover { background: var(--bg); }
+  .compteur { font-size: .85rem; color: var(--texte-att); margin: .25rem 0 .75rem; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--panel);
+    border: 1px solid var(--bordure);
+    border-radius: 8px;
+    overflow: hidden;
+    font-size: .88rem;
+  }
+  thead th {
+    text-align: left;
+    padding: .6rem .7rem;
+    background: #f0f2f4;
+    border-bottom: 1px solid var(--bordure);
+    white-space: nowrap;
+    cursor: pointer;
+    user-select: none;
+  }
+  thead th:hover { background: #e6e9ec; }
+  thead th .fleche { color: var(--accent); font-size: .75rem; margin-left: .25rem; }
+  tbody td {
+    padding: .5rem .7rem;
+    border-bottom: 1px solid #eef0f2;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover { background: #f6f8fa; }
+  td.effectif { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .barre-cellule { display: flex; align-items: center; gap: .5rem; justify-content: flex-end; }
+  .barre-fond { width: 8rem; height: .55rem; background: #eef0f2; border-radius: 999px; overflow: hidden; }
+  .barre-remplie { height: 100%; background: var(--barre); }
+  .vide { padding: 2rem; text-align: center; color: var(--texte-att); }
+  tfoot td { padding: .6rem .7rem; font-weight: 600; border-top: 2px solid var(--bordure); }
+  footer { max-width: 1100px; margin: 1rem auto 0; padding: 0 1.5rem; font-size: .78rem; color: var(--texte-att); }
+  .alerte {
+    background: #fff8c5;
+    border: 1px solid #d4a72c;
+    color: #4d3800;
+    padding: .6rem .9rem;
+    border-radius: 6px;
+    margin-bottom: 1rem;
+    font-size: .85rem;
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>Indicateur département × catégorie — front d'analyse (OOM-21)</h1>
+  <p>Établissements actifs par département et catégorie (libellés résolus) — mêmes chiffres que l'export CSV d'OOM-14.</p>
+</header>
+<main>
+  <div id="alerte-chargement"></div>
+  <div class="filtres">
+    <label>Département
+      <select id="f-departement"><option value="">Tous</option></select>
+    </label>
+    <button id="f-reinitialiser" type="button">Réinitialiser</button>
+  </div>
+  <div class="compteur" id="compteur"></div>
+  <table id="table-indicateur">
+    <thead>
+      <tr>
+        <th data-cle="code_departement">Département<span class="fleche"></span></th>
+        <th data-cle="libelle_categorie">Catégorie<span class="fleche"></span></th>
+        <th data-cle="effectif">Actifs<span class="fleche"></span></th>
+      </tr>
+    </thead>
+    <tbody id="corps-table"></tbody>
+    <tfoot>
+      <tr><td colspan="2">Total (lignes affichées)</td><td class="effectif" id="total-affiche"></td></tr>
+    </tfoot>
+  </table>
+  <div class="vide" id="vide" hidden>Aucune ligne pour ce département.</div>
+</main>
+<footer id="pied"></footer>
+
+<script>
+(function () {
+  "use strict";
+
+  const el = {
+    alerte: document.getElementById("alerte-chargement"),
+    departement: document.getElementById("f-departement"),
+    reinitialiser: document.getElementById("f-reinitialiser"),
+    compteur: document.getElementById("compteur"),
+    corps: document.getElementById("corps-table"),
+    total: document.getElementById("total-affiche"),
+    vide: document.getElementById("vide"),
+    table: document.getElementById("table-indicateur"),
+    pied: document.getElementById("pied"),
+    entetes: document.querySelectorAll("#table-indicateur thead th"),
+  };
+
+  let lignes = [];
+  let tri = { cle: "effectif", sens: -1 };
+
+  function peupler(select, valeurs) {
+    for (const v of valeurs) {
+      const option = document.createElement("option");
+      option.value = v;
+      option.textContent = v;
+      select.appendChild(option);
+    }
+  }
+
+  function comparer(a, b, cle, sens) {
+    const va = a[cle], vb = b[cle];
+    if (typeof va === "number" && typeof vb === "number") return (va - vb) * sens;
+    return String(va).localeCompare(String(vb), "fr") * sens;
+  }
+
+  function rendre() {
+    const dep = el.departement.value;
+    const filtrees = lignes.filter(function (l) {
+      return !dep || l.code_departement === dep;
+    });
+    filtrees.sort(function (a, b) { return comparer(a, b, tri.cle, tri.sens); });
+
+    const max = filtrees.reduce(function (m, l) { return Math.max(m, l.effectif); }, 0) || 1;
+
+    el.corps.innerHTML = "";
+    let total = 0;
+    for (const l of filtrees) {
+      total += l.effectif;
+      const largeur = Math.round((l.effectif / max) * 100);
+      const tr = document.createElement("tr");
+      tr.innerHTML =
+        "<td>" + l.code_departement + "</td>" +
+        "<td>" + l.libelle_categorie + "</td>" +
+        "<td class=\"effectif\"><div class=\"barre-cellule\">" +
+          "<div class=\"barre-fond\"><div class=\"barre-remplie\" style=\"width:" + largeur + "%\"></div></div>" +
+          "<span>" + l.effectif + "</span>" +
+          "</div></td>";
+      el.corps.appendChild(tr);
+    }
+
+    el.compteur.textContent = filtrees.length + " ligne(s) affichée(s) sur " + lignes.length + ".";
+    el.total.textContent = total;
+    el.vide.hidden = filtrees.length !== 0;
+    el.table.hidden = filtrees.length === 0;
+
+    el.entetes.forEach(function (th) {
+      const fleche = th.querySelector(".fleche");
+      if (th.dataset.cle === tri.cle) {
+        fleche.textContent = tri.sens === 1 ? "▲" : "▼";
+      } else {
+        fleche.textContent = "";
+      }
+    });
+  }
+
+  function initEntetes() {
+    el.entetes.forEach(function (th) {
+      th.addEventListener("click", function () {
+        const cle = th.dataset.cle;
+        if (tri.cle === cle) {
+          tri.sens *= -1;
+        } else {
+          tri = { cle: cle, sens: cle === "effectif" ? -1 : 1 };
+        }
+        rendre();
+      });
+    });
+  }
+
+  function initFiltres() {
+    const departements = [...new Set(lignes.map(function (l) { return l.code_departement; }))].sort();
+    peupler(el.departement, departements);
+    el.departement.addEventListener("change", rendre);
+    el.reinitialiser.addEventListener("click", function () {
+      el.departement.value = "";
+      rendre();
+    });
+  }
+
+  function afficherMeta(meta) {
+    el.pied.textContent = "Généré le " + meta.genere_le + " · " + meta.indicateur_lignes + " ligne(s) au total.";
+  }
+
+  Promise.all([
+    fetch("data/indicateur.json").then(function (r) {
+      if (!r.ok) throw new Error("indicateur.json : HTTP " + r.status);
+      return r.json();
+    }),
+    fetch("data/meta.json").then(function (r) {
+      if (!r.ok) throw new Error("meta.json : HTTP " + r.status);
+      return r.json();
+    }),
+  ]).then(function (resultats) {
+    lignes = resultats[0];
+    initFiltres();
+    initEntetes();
+    rendre();
+    afficherMeta(resultats[1]);
+  }).catch(function (erreur) {
+    el.alerte.innerHTML = "<div class=\"alerte\">Impossible de charger les données (" + erreur.message +
+      "). Cette page attend <code>data/indicateur.json</code> et <code>data/meta.json</code>, " +
+      "générés par <code>python src/export_front.py &lt;base.sqlite&gt; --sortie front/data</code>, " +
+      "servis via un serveur HTTP local (ex. <code>python -m http.server</code> depuis <code>front/</code>) — " +
+      "le chargement direct en <code>file://</code> est bloqué par le navigateur.</div>";
+  });
+})();
+</script>
+</body>
+</html>
