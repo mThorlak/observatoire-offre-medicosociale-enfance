@@ -77,10 +77,13 @@ taxonomie) :
 État actuel (POC 1, epic OOM-6, **Done** — milestone 100%) : couches 0-3 posées et branchées sur le
 CLI, couche 4 pas encore nécessaire pour ce POC (comptage brut, pas de qualification de périmètre),
 couche 5 (`indicateurs.py`, OOM-13) et couche 6 (`export_tabulaire.py`/`restituer`, OOM-14) posées et
-vérifiées de bout en bout sur l'extrait réel. Extension "front simple" en cours (hors DoD initial de
-l'épopée) : `export_front.py`/OOM-19 existe mais n'expose encore que des codes bruts (pas de libellés
-résolus malgré `nomenclatures`/`territoires` désormais disponibles — réouvert le 18/08, voir Linear) ;
-OOM-20 (front de test) et OOM-21 (front d'analyse) encore en Backlog.
+vérifiées de bout en bout sur l'extrait réel. Extension "front simple" (epic OOM-22, hors DoD initial
+de l'épopée OOM-6) — **Done** : `export_front.py` (OOM-19) résout les libellés via `nomenclatures`/
+`territoires` et écrit `etablissements.json`/`indicateur.json`/`meta.json` dans `front/data/`
+(gitignored, régénéré à la demande) ; `front/liste.html` (OOM-20, liste filtrable — département,
+catégorie, état) et `front/indicateur.html` (OOM-21, tableau croisé département × catégorie triable)
+consomment ces fichiers en statique pur (pas de build, pas de serveur autre que
+`python -m http.server` local). Les deux ont été vérifiés de bout en bout sur l'échantillon versionné.
 
 **Principes non négociables** (violer l'un d'eux est un bug d'architecture, pas un détail
 d'implémentation) :

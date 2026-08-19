@@ -1,29 +1,36 @@
 """
 export_front.py — Export de l'entrepôt en JSON statique pour le front simple (OOM-19).
 
-Produit `etablissements.json` (et `meta.json`) à partir d'un entrepôt SQLite
-déjà chargé (`entrepot.py`/`chargement.py`, couche 2). Ces fichiers sont
-consommés tels quels par `front/liste.html` (OOM-20) — pas de serveur HTTP,
-pas d'API : cadrage tranché dans OOM-18 (18/08).
+Produit `etablissements.json`, `indicateur.json` et `meta.json` à partir d'un
+entrepôt SQLite déjà chargé (`entrepot.py`/`chargement.py`, couche 2). Ces
+fichiers sont consommés tels quels par `front/liste.html` (OOM-20) et
+`front/indicateur.html` (OOM-21) — pas de serveur HTTP, pas d'API : cadrage
+tranché dans OOM-18 (18/08).
 
-PORTÉE ACTUELLE — codes bruts, pas encore de libellés résolus
+`indicateur.json` reprend `indicateurs.indicateur_departement_categorie`
+(couche 5, OOM-13) telle quelle, triée dans le même ordre que
+`export_tabulaire.ecrire_csv` (OOM-14) : mêmes chiffres, même tri, pour que
+le front d'analyse (OOM-21) corresponde exactement au CSV déjà restitué.
+
+LIBELLÉS RÉSOLUS — département et catégorie
 -----------------------------------------------------------------
-Ce module ne résout ni le département (`cog_commune` -> code département,
-OOM-11) ni le libellé de catégorie (`code_categorie` -> libellé lisible,
-OOM-12) : ces deux modules sont écrits séparément, dans le même arbre de
-travail, au moment où ce fichier est écrit. Les exposer ici en parallèle
-créerait une collision directe sur les mêmes fichiers. `code_categorie` et
-`cog_commune` sont donc exposés verbatim pour l'instant.
+`cog_commune` est résolu en `code_departement` (`territoires.departement_depuis_cog`,
+OOM-11) et `code_categorie` en `libelle_categorie` (`nomenclatures.resoudre_categorie`,
+OOM-12). Même règle de non-résolution qu'`indicateurs.py` (D6) : un code
+absent, invalide ou une adresse manquante ne fait pas planter l'export ni
+n'invente de valeur — le champ résolu correspondant vaut `None` et la ligne
+reste exportée avec son code brut, que le front peut toujours afficher en
+repli. `meta.json` compte les lignes non résolues pour que ce ne soit jamais
+silencieux à l'échelle de l'export.
 
 `etat_objet` fait exception : c'est un champ à exactement deux valeurs
 ('A'/'I', cf. `docs/architecture/03_SCHEMA_PIVOT.md` — jamais 300 comme la
 catégorie), traduit ici en toutes lettres sans passer par une nomenclature
-externe. Aucun recouvrement avec OOM-12.
+externe.
 
-Le contrat JSON est conçu pour ne pas changer de forme une fois OOM-11/OOM-12
-branchés : `code_departement`/`libelle_categorie` viendront s'ajouter aux
-côtés des champs bruts, sans renommer ni retirer les clés existantes — le
-front qui les consomme n'aura pas à changer pour en profiter.
+Le contrat JSON conserve les champs bruts (`code_categorie`, `cog_commune`)
+aux côtés des champs résolus (`libelle_categorie`, `code_departement`) : ni
+renommage ni retrait des clés existantes depuis la portée initiale.
 
 Aucune dépendance tierce. Compatible Python 3.9+.
 """
@@ -36,8 +43,11 @@ from pathlib import Path
 from typing import Dict, List, Optional
 
 from entrepot import Entrepot
+from indicateurs import ErreurIndicateurs, indicateur_departement_categorie
+from nomenclatures import CodeCategorieInconnu, resoudre_categorie
+from territoires import ErreurTerritoires, departement_depuis_cog
 
-__all__ = ["etablissements_bruts", "exporter", "ErreurExportFront"]
+__all__ = ["etablissements_bruts", "indicateur_json", "exporter", "ErreurExportFront"]
 
 # '03' = adresse principale, cf. docs/architecture/03_SCHEMA_PIVOT.md ligne
 # consacrée à adresse.code_usage_adresse ('03' principale, '04'/'06' secondaires).
@@ -60,7 +70,9 @@ def _libelle_etat(code: Optional[str]) -> str:
     return ETAT_OBJET_LIBELLES.get(code, f"[code état non résolu : {code}]")
 
 
-def etablissements_bruts(entrepot: Entrepot) -> List[Dict[str, object]]:
+def etablissements_bruts(
+        entrepot: Entrepot,
+        categories: Optional[Dict[str, str]] = None) -> List[Dict[str, object]]:
     """Une ligne par établissement, avec l'adresse principale s'il en a une.
 
     Un établissement sans adresse d'usage '03' apparaît quand même, avec
@@ -68,6 +80,13 @@ def etablissements_bruts(entrepot: Entrepot) -> List[Dict[str, object]]:
     S'il existe plusieurs adresses '03' pour un même établissement (anomalie
     de données, non attendue mais non exclue par le schéma), seule celle du
     rang le plus faible est retenue, pour ne jamais dupliquer une ligne.
+
+    `categories` permet d'injecter un référentiel déjà chargé (tests, appel
+    en masse évitant de recharger le CSV à chaque ligne) ; à défaut, le
+    référentiel par défaut de `nomenclatures` est utilisé et mis en cache.
+    `code_departement`/`libelle_categorie` valent `None` quand la résolution
+    échoue (cog_commune/code_categorie absent ou non reconnu) — voir la note
+    de module sur la résolution des libellés.
     """
     if entrepot.connexion is None:
         raise ErreurExportFront("entrepôt non ouvert")
@@ -94,20 +113,55 @@ def etablissements_bruts(entrepot: Entrepot) -> List[Dict[str, object]]:
     resultat = []
     for num_finess_et, nom_court, nom_long, code_categorie, etat_objet, \
             cog_commune, code_postal in lignes:
+        code_departement = None
+        if cog_commune is not None:
+            try:
+                code_departement = departement_depuis_cog(cog_commune)
+            except ErreurTerritoires:
+                code_departement = None
+
+        libelle_categorie = None
+        if code_categorie is not None:
+            try:
+                libelle_categorie = resoudre_categorie(code_categorie, categories=categories)
+            except CodeCategorieInconnu:
+                libelle_categorie = None
+
         resultat.append({
             "num_finess_et": num_finess_et,
             "nom": nom_court or nom_long,
             "code_categorie": code_categorie,
+            "libelle_categorie": libelle_categorie,
             "etat_objet": etat_objet,
             "etat_libelle": _libelle_etat(etat_objet),
             "cog_commune": cog_commune,
             "code_postal": code_postal,
+            "code_departement": code_departement,
         })
     return resultat
 
 
+def indicateur_json(entrepot: Entrepot) -> List[Dict[str, object]]:
+    """Table département × catégorie (OOM-13), une ligne par case non vide.
+
+    Même calcul, même tri (`Resultat.lignes_triees`) que le CSV d'OOM-14
+    (`export_tabulaire.ecrire_csv`) : le front d'analyse (OOM-21) doit
+    retrouver exactement ces chiffres. Lève `ErreurExportFront` si
+    l'entrepôt n'est pas ouvert (même contrat que `etablissements_bruts`).
+    """
+    try:
+        resultat = indicateur_departement_categorie(entrepot)
+    except ErreurIndicateurs as erreur:
+        raise ErreurExportFront(str(erreur)) from erreur
+    return [
+        {"code_departement": departement, "libelle_categorie": categorie, "effectif": effectif}
+        for departement, categorie, effectif in resultat.lignes_triees()
+    ]
+
+
 def exporter(entrepot: Entrepot, dossier_sortie: Path) -> Dict[str, object]:
-    """Écrit `etablissements.json` et `meta.json` dans `dossier_sortie`.
+    """Écrit `etablissements.json`, `indicateur.json` et `meta.json` dans
+    `dossier_sortie`.
 
     Retourne le contenu de `meta.json`, pour affichage par l'appelant (CLI).
     """
@@ -117,18 +171,33 @@ def exporter(entrepot: Entrepot, dossier_sortie: Path) -> Dict[str, object]:
     etablissements = etablissements_bruts(entrepot)
     sans_adresse_principale = sum(
         1 for e in etablissements if e["cog_commune"] is None)
+    departement_non_resolu = sum(
+        1 for e in etablissements
+        if e["cog_commune"] is not None and e["code_departement"] is None)
+    categorie_non_resolue = sum(
+        1 for e in etablissements
+        if e["code_categorie"] is not None and e["libelle_categorie"] is None)
 
     (dossier_sortie / "etablissements.json").write_text(
         json.dumps(etablissements, ensure_ascii=False, indent=2), encoding="utf-8")
+
+    indicateur = indicateur_json(entrepot)
+    (dossier_sortie / "indicateur.json").write_text(
+        json.dumps(indicateur, ensure_ascii=False, indent=2), encoding="utf-8")
 
     meta = {
         "genere_le": time.strftime("%Y-%m-%dT%H:%M:%S"),
         "nombre_etablissements": len(etablissements),
         "sans_adresse_principale": sans_adresse_principale,
-        # Faux tant qu'OOM-11/OOM-12 ne sont pas branchés ici : le front doit
-        # pouvoir savoir s'il affiche des codes bruts ou des libellés résolus.
-        "departement_resolu": False,
-        "libelles_categorie_resolus": False,
+        "departement_resolu": True,
+        "libelles_categorie_resolus": True,
+        # Comptent les lignes où le champ résolu n'a pas pu être produit à
+        # partir d'un code brut présent — jamais silencieux à l'échelle de
+        # l'export (D6), même si `departement_resolu`/`libelles_categorie_resolus`
+        # signalent que la résolution est globalement active.
+        "departement_non_resolu": departement_non_resolu,
+        "categorie_non_resolue": categorie_non_resolue,
+        "indicateur_lignes": len(indicateur),
     }
     (dossier_sortie / "meta.json").write_text(
         json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8")
@@ -149,4 +218,5 @@ if __name__ == "__main__":
         meta = exporter(entrepot, arguments.sortie)
     print(f"Export écrit dans {arguments.sortie} : "
           f"{meta['nombre_etablissements']} établissement(s), "
-          f"{meta['sans_adresse_principale']} sans adresse principale.")
+          f"{meta['sans_adresse_principale']} sans adresse principale, "
+          f"{meta['indicateur_lignes']} ligne(s) d'indicateur département×catégorie.")
