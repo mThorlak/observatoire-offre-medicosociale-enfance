@@ -487,3 +487,44 @@ Aucun environnement d'exécution utilisé pour développer ce projet (sessions C
 - le **1er de chaque mois**, le fichier du jour est en plus publié comme snapshot permanent — une GitHub Release taguée `finess-structures-AAAA-MM`, qui n'expire jamais.
 
 Le fichier brut n'est **jamais committé dans git** (voir `.gitignore`, `/donnees/`) : seuls les artefacts CI et les releases mensuelles en portent une copie durable, hors de l'historique git.
+
+---
+
+# 15. Procédure d'acquisition automatisée — FINESS-Activités
+
+Constatée et testée le 19/08/2026, dans le cadre du premier POC.
+
+## API
+
+Le fichier journalier se découvre par l'API JSON de data.gouv.fr, jamais par une URL codée en dur (les URLs de téléchargement changent à chaque publication) :
+
+```
+GET https://www.data.gouv.fr/api/1/datasets/finess-activites-1/
+```
+
+La réponse porte une liste `resources`. Deux ressources y coexistent au même format (`json.gz`) : le flux journalier (`finess-activites-journalier-AAAAMMJJ.json.gz`) et un mensuel figé (`finess-activites-mensuel-AAAAMM.json.gz`). Contrairement à l'hypothèse initiale du ticket OOM-25 qui supposait une cadence mensuelle uniquement, l'API publie bien un journalier — le dispositif retenu mire donc Structures à l'identique (sélection du journalier, jamais du mensuel). Chaque ressource porte `id`, `title`, `url` (téléchargement direct, hébergé sur `static.data.gouv.fr`), `filesize` (octets), `checksum` (`{type: "sha1", value: ...}`) et `last_modified`.
+
+## Licence
+
+Le champ API `license` vaut `lov2` (Licence Ouverte v2.0), une seule valeur cohérente. Pas de divergence repérée entre la documentation publique et la réponse API cette fois (contrairement à Structures où une divergence Licence Ouverte / ODbL avait été observée et restait à trancher).
+
+## Script
+
+`scripts/telecharger_finess_activites.py` — interroge l'API, sélectionne la ressource journalière (jamais la mensuelle, distinguée par le préfixe du titre), télécharge en flux, puis vérifie systématiquement **taille et checksum** contre les valeurs publiées avant d'écrire un fichier de métadonnées à côté du `.json.gz` (provenance : id de ressource, URL, taille, checksum, date de publication source, date de téléchargement). Refuse explicitement si zéro ou plusieurs ressources journalières sont trouvées, ou si taille/checksum divergent — jamais de fichier silencieusement corrompu ou mal identifié. Aucune dépendance tierce.
+
+Testé hors réseau réel dans `tests/test_telecharger_finess_activites.py` (le double d'`urllib.request.urlopen` rejoue la forme de réponse constatée le 19/08/2026).
+
+Le connecteur de couche 1 existant (`src/finess_activites.py`) est déjà validé contre ce format d'extrait (585 746 activités du millésime 202607, cf. tests intégrés).
+
+## Automatisation
+
+Aucun environnement d'exécution utilisé pour développer ce projet (sessions Claude comprises) n'a d'accès réseau sortant vers data.gouv.fr — constaté par diagnostic complet. Le téléchargement quotidien est donc automatisé sur une infrastructure qui a un accès réseau normal : un workflow GitHub Actions planifié, `.github/workflows/finess-activites-quotidien.yml`, qui appelle le script ci-dessus tous les jours à 06:00 UTC.
+
+**Note** : Lors de la session du 19/08/2026, l'accès réseau a exceptionnellement fonctionné pour la constatation initiale de l'API, mais le principe reste que l'automatisation fiable et reproductible passe par un runner GitHub Actions, comme pour Structures — ne pas en déduire que l'accès réseau est garanti dans toutes les sessions futures.
+
+**Politique de rétention** (identique à Structures, à revoir si le besoin d'historique change) :
+
+- chaque fichier quotidien est archivé en artefact GitHub Actions, conservé **7 jours** puis supprimé automatiquement par GitHub (politique initiale identique à celle adoptée pour Structures avant vérification de la consommation réelle, à revoir après observation) ;
+- le **1er de chaque mois**, le fichier du jour est en plus publié comme snapshot permanent — une GitHub Release taguée `finess-activites-AAAA-MM`, qui n'expire jamais.
+
+Le fichier brut n'est **jamais committé dans git** (voir `.gitignore`, `/donnees/`) : seuls les artefacts CI et les releases mensuelles en portent une copie durable, hors de l'historique git.
