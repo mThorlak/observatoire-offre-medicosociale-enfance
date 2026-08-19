@@ -1,4 +1,4 @@
-"""test_export_front.py — Critère de sortie d'OOM-19 (portée codes bruts)."""
+"""test_export_front.py — Critère de sortie d'OOM-19 (libellés résolus + indicateur)."""
 from __future__ import annotations
 import json, sys
 from pathlib import Path
@@ -87,32 +87,63 @@ with Entrepot(chemin) as e:
     verifier("adresse principale retenue malgré l'ordre d'insertion",
              par_finess["010000020"]["cog_commune"] == "01053",
              par_finess["010000020"])
-    verifier("code_categorie exposé brut (183, pas de libellé)",
+    verifier("code_categorie exposé brut (183)",
              par_finess["010000020"]["code_categorie"] == "183")
+    verifier("libelle_categorie résolu (183 -> IME)",
+             par_finess["010000020"]["libelle_categorie"] == "Institut Médico-Educatif (I.M.E.)",
+             par_finess["010000020"])
+    verifier("code_departement résolu (01053 -> 01)",
+             par_finess["010000020"]["code_departement"] == "01",
+             par_finess["010000020"])
+    verifier("code_departement résolu outre-mer (97105 -> 971)",
+             par_finess["010000021"]["code_departement"] == "971",
+             par_finess["010000021"])
     verifier("etat_objet A -> libellé Actif",
              par_finess["010000020"]["etat_libelle"] == "Actif")
     verifier("etat_objet I -> libellé Inactif",
              par_finess["010000021"]["etat_libelle"] == "Inactif")
     verifier("établissement sans adresse principale : cog_commune=None, pas d'exception",
              par_finess["010000022"]["cog_commune"] is None)
+    verifier("sans adresse principale : code_departement=None, pas de valeur inventée",
+             par_finess["010000022"]["code_departement"] is None)
     verifier("code_categorie absent exposé tel quel (None), pas de valeur inventée",
              par_finess["010000022"]["code_categorie"] is None)
+    verifier("code_categorie absent -> libelle_categorie=None, pas de valeur inventée",
+             par_finess["010000022"]["libelle_categorie"] is None)
 
-    print("\n2. exporter — fichiers JSON écrits")
+    print("\n2. indicateur_json — mêmes chiffres que l'indicateur OOM-13")
+    indicateur = ef.indicateur_json(e)
+    verifier("1 seule case peuplée (G0 actif dept 01×IME ; G1 inactif exclu, "
+             "G2 actif mais sans département exclu)",
+             indicateur == [{"code_departement": "01",
+                             "libelle_categorie": "Institut Médico-Educatif (I.M.E.)",
+                             "effectif": 1}],
+             indicateur)
+
+    print("\n3. exporter — fichiers JSON écrits")
     dossier = BASE / "sortie"
     meta = ef.exporter(e, dossier)
 
     verifier("etablissements.json écrit", (dossier / "etablissements.json").exists())
+    verifier("indicateur.json écrit", (dossier / "indicateur.json").exists())
     verifier("meta.json écrit", (dossier / "meta.json").exists())
     contenu = json.loads((dossier / "etablissements.json").read_text(encoding="utf-8"))
     verifier("contenu JSON = 3 établissements", len(contenu) == 3, contenu)
+    contenu_indicateur = json.loads((dossier / "indicateur.json").read_text(encoding="utf-8"))
+    verifier("indicateur.json = même contenu que indicateur_json()",
+             contenu_indicateur == indicateur, contenu_indicateur)
     verifier("meta : nombre_etablissements = 3", meta["nombre_etablissements"] == 3, meta)
     verifier("meta : 1 sans adresse principale", meta["sans_adresse_principale"] == 1, meta)
-    verifier("meta signale explicitement l'absence de résolution département/libellé",
-             meta["departement_resolu"] is False and meta["libelles_categorie_resolus"] is False,
+    verifier("meta signale explicitement la résolution active département/libellé",
+             meta["departement_resolu"] is True and meta["libelles_categorie_resolus"] is True,
              meta)
+    verifier("meta : 0 département non résolu (aucun cog_commune invalide dans le jeu de test)",
+             meta["departement_non_resolu"] == 0, meta)
+    verifier("meta : 0 catégorie non résolue (aucun code hors référentiel dans le jeu de test)",
+             meta["categorie_non_resolue"] == 0, meta)
+    verifier("meta : indicateur_lignes = 1", meta["indicateur_lignes"] == 1, meta)
 
-print("\n3. entrepôt non ouvert -> échec explicite")
+print("\n4. entrepôt non ouvert -> échec explicite")
 try:
     ef.etablissements_bruts(Entrepot(neuve("jamais_ouvert.db")))
     verifier("refuse un entrepôt non ouvert", False)
