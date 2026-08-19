@@ -105,12 +105,72 @@
     margin-bottom: 1rem;
     font-size: .85rem;
   }
+  tbody tr[data-finess] { cursor: pointer; }
+  .lien-activites { color: var(--accent); font-size: .82rem; }
+  .lien-activites:hover { text-decoration: underline; }
+  .voile {
+    position: fixed;
+    inset: 0;
+    background: rgba(31, 35, 40, .45);
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 3rem 1rem;
+    overflow-y: auto;
+  }
+  .voile[hidden] { display: none; }
+  .panneau {
+    background: var(--panel);
+    border-radius: 8px;
+    max-width: 900px;
+    width: 100%;
+    padding: 1.25rem 1.5rem 1.5rem;
+    box-shadow: 0 10px 30px rgba(0,0,0,.25);
+  }
+  .panneau-entete {
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+    gap: 1rem;
+    border-bottom: 1px solid var(--bordure);
+    padding-bottom: .75rem;
+    margin-bottom: .9rem;
+  }
+  .panneau-entete h2 { margin: 0 0 .2rem; font-size: 1.05rem; }
+  .panneau-entete p { margin: 0; color: var(--texte-att); font-size: .82rem; }
+  .panneau-fermer {
+    font-size: .85rem;
+    padding: .35rem .7rem;
+    border: 1px solid var(--bordure);
+    border-radius: 6px;
+    background: var(--bg);
+    cursor: pointer;
+    flex: none;
+  }
+  .panneau-filtre {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    margin-bottom: .75rem;
+    font-size: .82rem;
+    color: var(--texte-att);
+  }
+  .panneau-filtre select {
+    font-size: .85rem;
+    padding: .3rem .5rem;
+    border: 1px solid var(--bordure);
+    border-radius: 6px;
+    background: white;
+  }
+  .code-non-resolu { color: var(--texte-att); font-style: italic; }
+  .capacites-liste { margin: 0; padding-left: 1.1rem; font-size: .85rem; }
+  .capacites-liste li { margin: .1rem 0; }
 </style>
 </head>
 <body>
 <header>
-  <h1>Établissements FINESS — front de test (OOM-20)</h1>
-  <p>Observatoire national libre de l'offre médico-sociale enfance/adolescents — données du POC 1, consultation locale.</p>
+  <h1>Établissements FINESS — front de test (OOM-20, OOM-28)</h1>
+  <p>Observatoire national libre de l'offre médico-sociale enfance/adolescents — données du POC 1, consultation locale. Cliquer une ligne pour voir les activités de l'établissement.</p>
 </header>
 <main>
   <div id="alerte-chargement"></div>
@@ -143,6 +203,7 @@
         <th>Département</th>
         <th>Code postal</th>
         <th>État</th>
+        <th>Activités</th>
       </tr>
     </thead>
     <tbody id="corps-table"></tbody>
@@ -150,6 +211,33 @@
   <div class="vide" id="vide" hidden>Aucun établissement ne correspond aux filtres.</div>
 </main>
 <footer id="pied"></footer>
+
+<div class="voile" id="voile-activites" hidden>
+  <div class="panneau">
+    <div class="panneau-entete">
+      <div>
+        <h2 id="panneau-titre"></h2>
+        <p id="panneau-sous-titre"></p>
+      </div>
+      <button class="panneau-fermer" id="panneau-fermer" type="button">Fermer</button>
+    </div>
+    <div class="panneau-filtre" id="panneau-filtre-conteneur" hidden>
+      <label for="f-nature">Filtrer par nature</label>
+      <select id="f-nature"><option value="">Toutes</option></select>
+    </div>
+    <table id="table-activites">
+      <thead>
+        <tr>
+          <th>Nature</th>
+          <th>État</th>
+          <th>Capacité(s)</th>
+        </tr>
+      </thead>
+      <tbody id="corps-activites"></tbody>
+    </table>
+    <div class="vide" id="activites-vide" hidden>Aucune activité chargée pour cet établissement.</div>
+  </div>
+</div>
 
 <script>
 (function () {
@@ -170,9 +258,20 @@
     vide: document.getElementById("vide"),
     table: document.getElementById("table-etablissements"),
     pied: document.getElementById("pied"),
+    voile: document.getElementById("voile-activites"),
+    panneauTitre: document.getElementById("panneau-titre"),
+    panneauSousTitre: document.getElementById("panneau-sous-titre"),
+    panneauFermer: document.getElementById("panneau-fermer"),
+    filtreConteneur: document.getElementById("panneau-filtre-conteneur"),
+    filtreNature: document.getElementById("f-nature"),
+    corpsActivites: document.getElementById("corps-activites"),
+    tableActivites: document.getElementById("table-activites"),
+    activitesVide: document.getElementById("activites-vide"),
   };
 
   let etablissements = [];
+  let activitesParEtablissement = {};
+  let activitesCourantes = [];
 
   function peupler(select, valeurs, libelleDefaut) {
     for (const v of valeurs) {
@@ -207,7 +306,9 @@
 
     el.corps.innerHTML = "";
     for (const e of filtres) {
+      const activites = activitesParEtablissement[e.num_finess_et] || [];
       const tr = document.createElement("tr");
+      tr.dataset.finess = e.num_finess_et;
       tr.innerHTML =
         "<td>" + e.num_finess_et + "</td>" +
         "<td>" + (e.nom || "") + "</td>" +
@@ -217,13 +318,76 @@
         "<td>" + departementAffiche(e) + "</td>" +
         "<td>" + (e.code_postal || "") + "</td>" +
         "<td><span class=\"etat " + (etatClasse[e.etat_objet] || "") + "\">" +
-          (e.etat_libelle || e.etat_objet || "") + "</span></td>";
+          (e.etat_libelle || e.etat_objet || "") + "</span></td>" +
+        "<td>" + (activites.length
+          ? "<span class=\"lien-activites\">" + activites.length + " activité(s)</span>"
+          : "<span class=\"code-brut\">aucune</span>") + "</td>";
+      tr.addEventListener("click", function () { ouvrirActivites(e); });
       el.corps.appendChild(tr);
     }
 
     el.compteur.textContent = filtres.length + " établissement(s) affiché(s) sur " + etablissements.length + ".";
     el.vide.hidden = filtres.length !== 0;
     el.table.hidden = filtres.length === 0;
+  }
+
+  function natureAffichee(a) {
+    return a.libelle_nature || (a.code_nature
+      ? "<span class=\"code-non-resolu\">[code " + a.code_nature + " non résolu]</span>"
+      : "[absent]");
+  }
+
+  function capacitesAffichees(a) {
+    if (!a.capacites || !a.capacites.length) return "<span class=\"code-brut\">—</span>";
+    return "<ul class=\"capacites-liste\">" + a.capacites.map(function (c) {
+      const nombre = c.nombre !== null && c.nombre !== undefined ? c.nombre : "?";
+      return "<li>" + nombre + " <span class=\"code-brut\">(unité " + (c.code_unite_mesure || "?") +
+        ", statut " + (c.code_statut_capacite || "?") + ")</span></li>";
+    }).join("") + "</ul>";
+  }
+
+  function rendreActivites() {
+    const nature = el.filtreNature.value;
+    const filtrees = nature
+      ? activitesCourantes.filter(function (a) { return a.code_nature === nature; })
+      : activitesCourantes;
+
+    el.corpsActivites.innerHTML = "";
+    for (const a of filtrees) {
+      const tr = document.createElement("tr");
+      tr.innerHTML =
+        "<td>" + natureAffichee(a) + " <span class=\"code-brut\">(" + (a.code_nature || "") + ")</span></td>" +
+        "<td><span class=\"etat " + (etatClasse[a.etat_objet] || "") + "\">" +
+          (a.etat_libelle || a.etat_objet || "") + "</span></td>" +
+        "<td>" + capacitesAffichees(a) + "</td>";
+      el.corpsActivites.appendChild(tr);
+    }
+    el.activitesVide.hidden = filtrees.length !== 0;
+    el.tableActivites.hidden = filtrees.length === 0;
+  }
+
+  function ouvrirActivites(etablissement) {
+    activitesCourantes = activitesParEtablissement[etablissement.num_finess_et] || [];
+    el.panneauTitre.textContent = etablissement.nom || etablissement.num_finess_et;
+    el.panneauSousTitre.textContent =
+      "N° FINESS " + etablissement.num_finess_et + " · " + activitesCourantes.length + " activité(s)";
+
+    const natures = [...new Set(activitesCourantes.map(function (a) { return a.code_nature; }))].filter(Boolean).sort();
+    el.filtreNature.innerHTML = "<option value=\"\">Toutes</option>";
+    for (const n of natures) {
+      const option = document.createElement("option");
+      option.value = n;
+      option.textContent = n;
+      el.filtreNature.appendChild(option);
+    }
+    el.filtreConteneur.hidden = natures.length < 2;
+
+    rendreActivites();
+    el.voile.hidden = false;
+  }
+
+  function fermerActivites() {
+    el.voile.hidden = true;
   }
 
   function initFiltres() {
@@ -244,6 +408,17 @@
     });
   }
 
+  function initPanneauActivites() {
+    el.panneauFermer.addEventListener("click", fermerActivites);
+    el.voile.addEventListener("click", function (evt) {
+      if (evt.target === el.voile) fermerActivites();
+    });
+    document.addEventListener("keydown", function (evt) {
+      if (evt.key === "Escape" && !el.voile.hidden) fermerActivites();
+    });
+    el.filtreNature.addEventListener("change", rendreActivites);
+  }
+
   function afficherMeta(meta) {
     const parties = [
       "Généré le " + meta.genere_le,
@@ -251,6 +426,7 @@
       meta.sans_adresse_principale + " sans adresse principale",
       meta.categorie_non_resolue + " catégorie(s) non résolue(s)",
       meta.departement_non_resolu + " département(s) non résolu(s)",
+      meta.activites_total + " activité(s) sur " + meta.etablissements_avec_activites + " établissement(s)",
     ];
     el.pied.textContent = parties.join(" · ");
   }
@@ -264,15 +440,22 @@
       if (!r.ok) throw new Error("meta.json : HTTP " + r.status);
       return r.json();
     }),
+    fetch("data/activites.json").then(function (r) {
+      if (!r.ok) throw new Error("activites.json : HTTP " + r.status);
+      return r.json();
+    }),
   ]).then(function (resultats) {
     etablissements = resultats[0];
+    activitesParEtablissement = resultats[2];
     initFiltres();
+    initPanneauActivites();
     rendre();
     afficherMeta(resultats[1]);
   }).catch(function (erreur) {
     el.alerte.innerHTML = "<div class=\"alerte\">Impossible de charger les données (" + erreur.message +
-      "). Cette page attend <code>data/etablissements.json</code> et <code>data/meta.json</code>, " +
-      "générés par <code>python src/export_front.py &lt;base.sqlite&gt; --sortie front/data</code>, " +
+      "). Cette page attend <code>data/etablissements.json</code>, <code>data/meta.json</code> et " +
+      "<code>data/activites.json</code>, générés par " +
+      "<code>python src/export_front.py &lt;base.sqlite&gt; --sortie front/data</code>, " +
       "servis via un serveur HTTP local (ex. <code>python -m http.server</code> depuis <code>front/</code>) — " +
       "le chargement direct en <code>file://</code> est bloqué par le navigateur.</div>";
   });

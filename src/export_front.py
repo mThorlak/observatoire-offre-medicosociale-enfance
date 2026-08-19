@@ -1,11 +1,30 @@
 """
 export_front.py — Export de l'entrepôt en JSON statique pour le front simple (OOM-19).
 
-Produit `etablissements.json`, `indicateur.json` et `meta.json` à partir d'un
-entrepôt SQLite déjà chargé (`entrepot.py`/`chargement.py`, couche 2). Ces
-fichiers sont consommés tels quels par `front/liste.html` (OOM-20) et
-`front/indicateur.html` (OOM-21) — pas de serveur HTTP, pas d'API : cadrage
-tranché dans OOM-18 (18/08).
+Produit `etablissements.json`, `indicateur.json`, `activites.json` et
+`meta.json` à partir d'un entrepôt SQLite déjà chargé (`entrepot.py`/
+`chargement.py`, couche 2). Ces fichiers sont consommés tels quels par
+`front/liste.html` (OOM-20, OOM-28) et `front/indicateur.html` (OOM-21) — pas
+de serveur HTTP, pas d'API : cadrage tranché dans OOM-18 (18/08).
+
+ACTIVITÉS PAR ÉTABLISSEMENT — activites.json (OOM-27)
+-----------------------------------------------------------------
+`activites.json` regroupe les activités FINESS-Activités de niveau `ET`
+(rattachées à un établissement, par opposition au niveau `EJ`, rattaché à
+l'entité juridique — hors périmètre de ce front centré établissement) sous
+la forme `{num_finess_et: [activité, ...]}`. Chaque activité porte son
+`code_nature` brut : aucune nomenclature versionnée ne couvre encore ce
+domaine (seul `categorie_etablissement` l'est, via `nomenclatures.py`), donc
+`libelle_nature` vaut toujours `None` — même politique de non-invention de
+libellé que pour une catégorie hors référentiel, jamais un code tu ou un
+plantage. Chaque activité porte aussi ses `capacites` (nombre, unité,
+statut, tous en codes bruts pour la même raison).
+
+Seuls les établissements ayant au moins une activité `ET` apparaissent comme
+clé du dictionnaire — absence de clé = aucune activité, pas un échec
+silencieux : le total d'établissements avec activités est compté
+explicitement dans `meta.json` (`etablissements_avec_activites`), donc jamais
+une omission qui se confond avec un oubli.
 
 `indicateur.json` reprend `indicateurs.indicateur_departement_categorie`
 (couche 5, OOM-13) telle quelle, triée dans le même ordre que
@@ -47,7 +66,8 @@ from indicateurs import ErreurIndicateurs, indicateur_departement_categorie
 from nomenclatures import CodeCategorieInconnu, resoudre_categorie
 from territoires import ErreurTerritoires, departement_depuis_cog
 
-__all__ = ["etablissements_bruts", "indicateur_json", "exporter", "ErreurExportFront"]
+__all__ = ["etablissements_bruts", "indicateur_json", "activites_par_etablissement",
+           "exporter", "ErreurExportFront"]
 
 # '03' = adresse principale, cf. docs/architecture/03_SCHEMA_PIVOT.md ligne
 # consacrée à adresse.code_usage_adresse ('03' principale, '04'/'06' secondaires).
@@ -159,6 +179,54 @@ def indicateur_json(entrepot: Entrepot) -> List[Dict[str, object]]:
     ]
 
 
+def activites_par_etablissement(entrepot: Entrepot) -> Dict[str, List[Dict[str, object]]]:
+    """Activités de niveau `ET`, groupées par `num_finess_et`, capacités incluses.
+
+    Voir la note de module sur `activites.json` pour le contrat exact (clés
+    absentes = aucune activité, `libelle_nature` toujours `None` en l'absence
+    de nomenclature). Lève `ErreurExportFront` si l'entrepôt n'est pas ouvert,
+    même contrat que `etablissements_bruts`.
+    """
+    if entrepot.connexion is None:
+        raise ErreurExportFront("entrepôt non ouvert")
+    connexion = entrepot.connexion
+
+    capacites_par_activite: Dict[str, List[Dict[str, object]]] = {}
+    requete_capacites = """
+        SELECT activite_ae_id, nombre, code_unite_mesure, code_statut_capacite
+        FROM capacite
+        ORDER BY activite_ae_id, rang
+    """
+    for activite_ae_id, nombre, code_unite_mesure, code_statut_capacite in \
+            connexion.execute(requete_capacites).fetchall():
+        capacites_par_activite.setdefault(activite_ae_id, []).append({
+            "nombre": nombre,
+            "code_unite_mesure": code_unite_mesure,
+            "code_statut_capacite": code_statut_capacite,
+        })
+
+    requete_activites = """
+        SELECT activite_ae_id, num_finess_et, code_nature,
+               code_type_activite_smsse, etat_objet
+        FROM activite
+        WHERE niveau = 'ET' AND num_finess_et IS NOT NULL
+        ORDER BY num_finess_et, activite_ae_id
+    """
+    resultat: Dict[str, List[Dict[str, object]]] = {}
+    for activite_ae_id, num_finess_et, code_nature, code_type_activite_smsse, etat_objet in \
+            connexion.execute(requete_activites).fetchall():
+        resultat.setdefault(num_finess_et, []).append({
+            "activite_ae_id": activite_ae_id,
+            "code_nature": code_nature,
+            "libelle_nature": None,
+            "code_type_activite_smsse": code_type_activite_smsse,
+            "etat_objet": etat_objet,
+            "etat_libelle": _libelle_etat(etat_objet),
+            "capacites": capacites_par_activite.get(activite_ae_id, []),
+        })
+    return resultat
+
+
 def exporter(entrepot: Entrepot, dossier_sortie: Path) -> Dict[str, object]:
     """Écrit `etablissements.json`, `indicateur.json` et `meta.json` dans
     `dossier_sortie`.
@@ -185,6 +253,11 @@ def exporter(entrepot: Entrepot, dossier_sortie: Path) -> Dict[str, object]:
     (dossier_sortie / "indicateur.json").write_text(
         json.dumps(indicateur, ensure_ascii=False, indent=2), encoding="utf-8")
 
+    activites = activites_par_etablissement(entrepot)
+    (dossier_sortie / "activites.json").write_text(
+        json.dumps(activites, ensure_ascii=False, indent=2), encoding="utf-8")
+    activites_total = sum(len(lignes) for lignes in activites.values())
+
     meta = {
         "genere_le": time.strftime("%Y-%m-%dT%H:%M:%S"),
         "nombre_etablissements": len(etablissements),
@@ -198,6 +271,11 @@ def exporter(entrepot: Entrepot, dossier_sortie: Path) -> Dict[str, object]:
         "departement_non_resolu": departement_non_resolu,
         "categorie_non_resolue": categorie_non_resolue,
         "indicateur_lignes": len(indicateur),
+        # OOM-27 : nature d'activité non couverte par une nomenclature à ce
+        # jour (voir note de module) — comptée explicitement, jamais silencieuse.
+        "etablissements_avec_activites": len(activites),
+        "activites_total": activites_total,
+        "libelles_nature_resolus": False,
     }
     (dossier_sortie / "meta.json").write_text(
         json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8")
@@ -219,4 +297,6 @@ if __name__ == "__main__":
     print(f"Export écrit dans {arguments.sortie} : "
           f"{meta['nombre_etablissements']} établissement(s), "
           f"{meta['sans_adresse_principale']} sans adresse principale, "
-          f"{meta['indicateur_lignes']} ligne(s) d'indicateur département×catégorie.")
+          f"{meta['indicateur_lignes']} ligne(s) d'indicateur département×catégorie, "
+          f"{meta['activites_total']} activité(s) sur "
+          f"{meta['etablissements_avec_activites']} établissement(s).")

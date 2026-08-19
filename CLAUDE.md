@@ -84,6 +84,12 @@ de l'épopée OOM-6) — **Done** : `export_front.py` (OOM-19) résout les libel
 catégorie, état) et `front/indicateur.html` (OOM-21, tableau croisé département × catégorie triable)
 consomment ces fichiers en statique pur (pas de build, pas de serveur autre que
 `python -m http.server` local). Les deux ont été vérifiés de bout en bout sur l'échantillon versionné.
+Extension "intégration FINESS-Activités" (epic OOM-26) — **Done** : `export_front.py` (OOM-27) écrit
+en plus `activites.json` (`{num_finess_et: [activité, ...]}`, niveau `ET` uniquement, capacités
+imbriquées ; `code_nature` exposé brut — aucune nomenclature versionnée ne couvre encore ce domaine,
+donc `libelle_nature` vaut toujours `None`, jamais une valeur inventée) ; `front/liste.html` (OOM-28)
+ouvre un panneau d'activités au clic sur une ligne d'établissement, avec filtre par nature côté
+client. Vérifié de bout en bout sur l'échantillon versionné (structures + activités).
 
 **Principes non négociables** (violer l'un d'eux est un bug d'architecture, pas un détail
 d'implémentation) :
