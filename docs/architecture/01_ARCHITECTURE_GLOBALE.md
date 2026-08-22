@@ -4,7 +4,9 @@ Voici l'architecture cible. Elle part de trois contraintes non négociables issu
 
 **D1 — Un entrepôt local SQLite entre l'ingestion et l'analyse.** C'est la décision pivot. Elle règle d'un coup la mémoire (écriture par lots, mémoire bornée), la relecture (on ne reparse jamais 1,4 Go pour répondre à une question), les jointures multi-sources et la reproductibilité. `sqlite3` est dans la bibliothèque standard, fonctionne sur Termux, encaisse plusieurs millions de lignes et sait indexer. Sans cette couche, chaque source ajoutée obligerait à recharger tout en mémoire simultanément.
 
-**D2 — Un modèle pivot indépendant des sources.** Le schéma ne décalque ni FINESS ni aucun autre producteur. Les sources s'adaptent au pivot, jamais l'inverse. C'est ce qui permet d'ajouter INSEE ou ROR sans toucher au cœur.
+**D2 — Un modèle pivot indépendant des sources.** Aucune couche au-dessus du pivot ne connaît de vocabulaire de source. C'est ce qui permet d'ajouter INSEE ou ROR sans toucher au cœur : une source coûte un connecteur, ses tables miroir et une règle de projection, rien d'autre.
+
+> **Précision (2026-08-22, OOM-46).** La lecture littérale de D2 — « le schéma d'entrepôt ne décalque aucune source » — a été abandonnée. La couche 2 **est** un miroir par source, assumé et confiné ; le pivot est posé au-dessus en tant que donnée calculée au sens de D3. Motifs mesurés, options écartées et contraintes de mise en œuvre : **`07_DECISION_PIVOT_HYBRIDE.md`**.
 
 **D3 — Séparation stricte entre le lu et le calculé.** Les tables issues des sources sont immuables une fois chargées. Les tables de classement, de périmètre et d'indicateurs sont recalculables intégralement sans réingestion. Changer la taxonomie ne doit jamais coûter une relecture de 2 Go.
 
