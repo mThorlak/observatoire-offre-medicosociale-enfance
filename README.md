@@ -45,20 +45,21 @@ référence normative, tenue à jour au fil de l'eau.
 ## État
 
 POC 1 (pipeline FINESS bout-en-bout) et l'acquisition automatisée FINESS-Activités sont **Done**.
-Un front simple, statique pur (`front/liste.html`, `front/indicateur.html`), consulte les données
-produites sans build ni serveur autre que `python -m http.server`. Suivi du projet sur Linear,
-équipe **OOM**, projet **OOMS**.
+Le site statique est une restitution de la couche 6 : `src/export_html.py` rend depuis l'entrepôt,
+par les gabarits de [`front/gabarits/`](front/gabarits/), une page d'accueil (avec la mention de
+périmètre : comptage brut, qualification enfance/adolescents pas encore appliquée), la liste des
+établissements et leurs activités, et le tableau département × catégorie. Tout le contenu est dans le
+HTML ; le JavaScript (`front/actifs/filtres.js`) n'ajoute que tri et filtres. Suivi du projet sur
+Linear, équipe **OOM**, projet **OOMS**.
 
-**Essayer le front sans rien installer** (aperçu figé sur l'échantillon FINESS versionné,
-millésime 202607 — pas des données de production) :
+```bash
+python src/cli.py charger base.sqlite structures.json.gz --activites activites.json.gz --creer
+python src/export_html.py base.sqlite --sortie site/
+python -m http.server -d site     # puis http://localhost:8000/
+```
 
-- 🗂️ **[Tester le front — liste des établissements](https://claude.ai/code/artifact/ee0f46dc-70b0-4582-ba27-0cc1bcc76839)**
-  (OOM-20/28) : recherche, filtres département/catégorie/état, panneau d'activités au clic.
-- 📊 **[Front d'analyse — indicateur département × catégorie](https://claude.ai/code/artifact/fe8004fc-823d-4682-afdb-b34d57d345a2)**
-  (OOM-21) : tableau croisé triable, mêmes chiffres que l'export CSV d'OOM-14.
-
-Contre un extrait réel : `python src/export_front.py <base.sqlite> --sortie front/data` puis
-`python -m http.server` depuis `front/`.
+`site/` n'est jamais versionné (D8) : il se régénère par cette commande. Pour essayer sans extrait
+complet, charger l'échantillon versionné de [`tests/echantillon/`](tests/echantillon/).
 
 ## Sources de données
 
