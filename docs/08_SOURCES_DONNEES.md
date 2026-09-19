@@ -528,3 +528,55 @@ Aucun environnement d'exécution utilisé pour développer ce projet (sessions C
 - le **1er de chaque mois**, le fichier du jour est en plus publié comme snapshot permanent — une GitHub Release taguée `finess-activites-AAAA-MM`, qui n'expire jamais.
 
 Le fichier brut n'est **jamais committé dans git** (voir `.gitignore`, `/donnees/`) : seuls les artefacts CI et les releases mensuelles en portent une copie durable, hors de l'historique git.
+
+---
+
+# 16. Hébergeur de publication — support des requêtes HTTP Range (OOM-99)
+
+Constaté le 19/09/2026 vers 07:00 UTC. Une archive PMTiles n'est lisible depuis le navigateur que si l'hébergeur honore les requêtes `Range` (lecture d'un intervalle d'octets, réponse `206 Partial Content`) ; sinon chaque tuile coûterait le téléchargement de l'archive entière. Vérification faite avant toute génération de tuiles, parce qu'un résultat négatif aurait invalidé le choix d'hébergeur.
+
+## Hébergeur testé
+
+GitHub Pages du dépôt public `mThorlak/observatoire-offre-medicosociale-enfance`, derrière le CDN Fastly de GitHub (`Server: GitHub.com`, `Via: 1.1 varnish`, nœud `cache-par-*`).
+
+## Dispositif de test
+
+- fichier `test.bin` : 1 048 576 octets aléatoires (`/dev/urandom`), SHA-256 `417be7bf3e829e979bb328a6fa989e8bebd8622610bf186628e44ab83e31949a` — seul fichier publié, avec un `.nojekyll` vide ;
+- publié par une branche orpheline jetable `gh-pages-test` (un seul commit, sans lien avec l'historique de `main`) et Pages activé en mode **legacy** sur cette branche (`gh api -X POST repos/.../pages -f build_type=legacy -f "source[branch]=gh-pages-test" -f "source[path]=/"`). Chemin retenu parce que le plus simple : un workflow `workflow_dispatch` doit exister sur la branche par défaut pour être déclenchable, et l'environnement `github-pages` n'accepte par défaut que la branche par défaut — aucun des deux n'était possible sans toucher `main`. Aucun workflow n'a été créé ;
+- URL : `https://mthorlak.github.io/observatoire-offre-medicosociale-enfance/test.bin`.
+
+## Résultat : Range honoré (206)
+
+`GET` avec `Range: bytes=0-99` :
+
+```
+$ curl -r 0-99 -s -D - -o p.bin <url>/test.bin
+HTTP/1.1 206 Partial Content
+Content-Length: 100
+ETag: "6aae3319-100000"
+Accept-Ranges: bytes
+Content-Range: bytes 0-99/1048576
+$ curl -r 0-99 -s <url>/test.bin | wc -c
+100
+```
+
+Contrôles complémentaires, tous concluants :
+
+- intervalle en milieu de fichier (`-r 524288-524387`) : `206`, `Content-Range: bytes 524288-524387/1048576`, et les 100 octets reçus ont le même SHA-256 que les octets 524 288 à 524 387 du fichier local — l'intervalle servi est exact, pas seulement de la bonne longueur ;
+- `If-Range` avec l'ETag fort : `206` ;
+- `Accept-Encoding: identity` : `206`, mêmes en-têtes ;
+- fichier complet sans `Range` : `200`, SHA-256 identique à l'original ;
+- `Content-Type: application/octet-stream`, `Access-Control-Allow-Origin: *` (lecture inter-origines possible), `Cache-Control: max-age=600`.
+
+## Deux réserves consignées
+
+1. **`HEAD` ignore `Range`.** La commande littérale `curl -r 0-99 -sI <url>/test.bin` (qui envoie un `HEAD`) renvoie `200 OK` avec `Content-Length: 1048576` et `Accept-Ranges: bytes`, pas un `206`. C'est le comportement prévu par HTTP (RFC 9110 §14.2 : `Range` ne s'applique qu'à `GET`) et sans conséquence : PMTiles ne lit que par `GET`. La preuve de support est le `GET` ci-dessus, pas le `HEAD`.
+2. **Compression à la volée si le client l'accepte.** Avec `Accept-Encoding: gzip, deflate, br, zstd`, le CDN gzippe la réponse et applique l'intervalle au flux **compressé** : `206`, `Content-Encoding: gzip`, `Content-Range: bytes 0-99/1048914`, ETag devenu faible (`W/"..."`). Les 100 octets reçus ne sont alors pas les octets 0-99 du fichier. Les navigateurs ne sont pas exposés : la spécification Fetch impose `Accept-Encoding: identity` dès qu'une requête porte un en-tête `Range`, ce que fait la bibliothèque `pmtiles`. En revanche, tout client hors navigateur (script de vérification, outil en ligne de commande) doit envoyer `Accept-Encoding: identity` explicitement. À revérifier sur la vraie archive `.pmtiles` (dont le type MIME servi pourrait différer) lors de la génération des tuiles.
+
+## Conséquence
+
+GitHub Pages convient pour servir l'archive de tuiles : le repli prévu (archive sur un stockage objet dédié, site inchangé) n'est **pas** nécessaire.
+
+## État laissé en place
+
+Pages est activé en mode legacy sur `gh-pages-test`. La chaîne de publication pérenne (OOM-54) devra basculer la source sur « GitHub Actions » (`gh api -X PUT repos/.../pages -f build_type=workflow`) puis supprimer la branche `gh-pages-test`.
