@@ -1,0 +1,106 @@
+<!--
+  Gabarit de la page « indicateur département × catégorie » (OOM-100), rendu
+  par src/export_html.py depuis indicateurs.indicateur_departement_categorie
+  (couche 5). Chaque bloc BLOC nom … FIN nom est un gabarit string.Template :
+  il substitue des valeurs déjà calculées (effectifs, largeur de barre,
+  total), il ne décide rien (D7). Le tableau complet est dans le HTML ; le
+  script n'ajoute que le tri par colonne et le filtre par département (D10).
+  Pas de « $ » littéral dans les blocs : l'écrire « $$ ».
+-->
+
+<!-- BLOC titre -->Indicateur département × catégorie<!-- FIN titre -->
+
+<!-- BLOC pied -->Généré le $genere_le · $indicateur_lignes ligne(s) · $total_actifs établissement(s) actif(s), dont $dans_tableau dans le tableau, $sans_departement sans département résolu, $categorie_inconnue avec catégorie non résolue — mêmes chiffres que l'export CSV (restituer).<!-- FIN pied -->
+
+<!-- BLOC style -->
+  #table-indicateur thead th { cursor: pointer; user-select: none; }
+  #table-indicateur thead th .fleche { color: var(--accent); font-size: .75rem; margin-left: .25rem; }
+  td.effectif { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .barre-cellule { display: flex; align-items: center; gap: .5rem; justify-content: flex-end; }
+  .barre-fond { width: 8rem; height: .55rem; background: #eef0f2; border-radius: 999px; overflow: hidden; }
+  .barre-remplie { height: 100%; background: var(--barre); }
+  tfoot td { padding: .6rem .7rem; font-weight: 600; border-top: 2px solid var(--bordure); }
+<!-- FIN style -->
+
+<!-- BLOC contenu -->
+<p>Établissements actifs par département et catégorie (libellés résolus).</p>
+<form class="filtres" id="filtres" hidden>
+  <label>Département <select id="f-departement"><option value="">Tous</option>$options_departement</select></label>
+  <button type="reset">Réinitialiser</button>
+</form>
+<p class="compteur" id="compteur">$indicateur_lignes ligne(s).</p>
+<table id="table-indicateur">
+<thead><tr><th data-cle="0">Département<span class="fleche"></span></th><th data-cle="1">Catégorie<span class="fleche"></span></th><th data-cle="2" data-numerique="1">Actifs<span class="fleche"></span></th></tr></thead>
+<tbody>
+$lignes
+</tbody>
+<tfoot><tr><td colspan="2">Total <span id="total-libelle">(toutes lignes)</span></td><td class="effectif" id="total">$total</td></tr></tfoot>
+</table>
+<p class="vide" id="vide" hidden>Aucune ligne pour ce département.</p>
+<!-- FIN contenu -->
+
+<!-- BLOC option --><option value="$valeur">$valeur</option><!-- FIN option -->
+
+<!-- BLOC ligne -->
+<tr data-dep="$code_departement"><td>$code_departement</td><td>$libelle_categorie</td><td class="effectif" data-valeur="$effectif"><div class="barre-cellule"><div class="barre-fond"><div class="barre-remplie" style="width:$largeur%"></div></div><span>$effectif</span></div></td></tr>
+<!-- FIN ligne -->
+
+<!-- BLOC script -->
+<script>
+(function () {
+  "use strict";
+  var filtres = document.getElementById("filtres");
+  var departement = document.getElementById("f-departement");
+  var compteur = document.getElementById("compteur");
+  var total = document.getElementById("total");
+  var totalLibelle = document.getElementById("total-libelle");
+  var vide = document.getElementById("vide");
+  var corps = document.querySelector("#table-indicateur tbody");
+  var entetes = document.querySelectorAll("#table-indicateur thead th");
+  var lignes = Array.prototype.slice.call(corps.children);
+  var tri = { cle: null, sens: 1 };
+
+  function valeur(tr, cle, numerique) {
+    var td = tr.children[cle];
+    return numerique ? Number(td.dataset.valeur) : td.textContent;
+  }
+
+  function trier(th) {
+    var cle = Number(th.dataset.cle);
+    var numerique = !!th.dataset.numerique;
+    tri.sens = tri.cle === cle ? -tri.sens : (numerique ? -1 : 1);
+    tri.cle = cle;
+    lignes.sort(function (a, b) {
+      var va = valeur(a, cle, numerique), vb = valeur(b, cle, numerique);
+      return (numerique ? va - vb : String(va).localeCompare(String(vb), "fr")) * tri.sens;
+    });
+    lignes.forEach(function (tr) { corps.appendChild(tr); });
+    entetes.forEach(function (autre) {
+      autre.querySelector(".fleche").textContent =
+        autre === th ? (tri.sens === 1 ? "▲" : "▼") : "";
+    });
+  }
+
+  function filtrer() {
+    var visibles = 0, somme = 0;
+    lignes.forEach(function (tr) {
+      var ok = !departement.value || tr.dataset.dep === departement.value;
+      tr.hidden = !ok;
+      if (ok) { visibles += 1; somme += valeur(tr, 2, true); }
+    });
+    compteur.textContent = visibles + " ligne(s) affichée(s) sur " + lignes.length + ".";
+    total.textContent = somme;
+    totalLibelle.textContent = departement.value ? "(lignes affichées)" : "(toutes lignes)";
+    vide.hidden = visibles !== 0;
+  }
+
+  entetes.forEach(function (th) {
+    th.addEventListener("click", function () { trier(th); });
+  });
+  filtres.addEventListener("input", filtrer);
+  filtres.addEventListener("reset", function () { setTimeout(filtrer, 0); });
+  filtres.hidden = false;
+  filtrer();
+})();
+</script>
+<!-- FIN script -->
