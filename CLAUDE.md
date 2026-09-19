@@ -56,15 +56,16 @@ mesure de performance/RSS utilisés pour justifier les décisions de `docs/archi
 ## Architecture
 
 Le détail normatif vit dans `docs/architecture/` (généré/tenu à jour à la main, ne pas dupliquer ici) :
-`01_ARCHITECTURE_GLOBALE.md` (vue en couches, décisions D1-D6), `03_SCHEMA_PIVOT.md` (schéma cible),
-`06_DECISIONS_SCHEMA.md` (**généré par `schema.py`** depuis les déclarations du code — ne jamais
-l'éditer à la main). Lire ces trois avant toute modification structurelle.
+`01_ARCHITECTURE_GLOBALE.md` (vue en couches, décisions D1-D6 — **D7 à D10 ne sont écrits que
+dans ce fichier-ci**), `03_SCHEMA_PIVOT.md` (schéma cible), `06_DECISIONS_SCHEMA.md` (**généré par
+`schema.py`** depuis les déclarations du code — ne jamais l'éditer à la main). Lire ces trois avant
+toute modification structurelle.
 
 **Vue en couches, dépendance strictement descendante** (une couche ne connaît que les couches
 inférieures — le domaine ignore FINESS, la restitution ignore le métier, l'acquisition ignore la
 taxonomie) :
 ```
-6  RESTITUTION      export_excel · export_tabulaire · export_geo · rapport
+6  RESTITUTION      export_excel · export_tabulaire · export_html · export_geo · rapport
 5  ANALYSE          vues · indicateurs · qualite
 4  DOMAINE          taxonomie · perimetre · dispositifs · capacites · identite
 3  RÉFÉRENTIELS     nomenclatures · territoires
@@ -74,6 +75,11 @@ taxonomie) :
     ─────────────────────────────────────────────────
     ORCHESTRATION   cli (pipeline à venir)
 ```
+La couche 6 couvre **toute** forme de restitution, publication web comprise : `export_html` rend les
+pages du site depuis l'entrepôt, `export_geo` produit les sorties géographiques (GeoJSON, tuiles).
+Une page publiée n'est pas une application cliente posée à côté du pipeline, c'est une sortie de la
+couche 6 au même titre qu'un CSV ou un classeur Excel (D7).
+
 État actuel (POC 1, epic OOM-6, **Done** — milestone 100%) : couches 0-3 posées et branchées sur le
 CLI, couche 4 pas encore nécessaire pour ce POC (comptage brut, pas de qualification de périmètre),
 couche 5 (`indicateurs.py`, OOM-13) et couche 6 (`export_tabulaire.py`/`restituer`, OOM-14) posées et
@@ -91,6 +97,11 @@ donc `libelle_nature` vaut toujours `None`, jamais une valeur inventée) ; `fron
 ouvre un panneau d'activités au clic sur une ligne d'établissement, avec filtre par nature côté
 client. Vérifié de bout en bout sur l'échantillon versionné (structures + activités).
 
+⚠️ Le `front/` actuel (`liste.html`, `indicateur.html`) **précède D7-D10** : HTML écrit à la main,
+contenu entièrement construit en JS depuis des JSON chargés au démarrage. Il viole D7 et D10 et ne
+doit **pas** servir de modèle — la refonte (épopée front, OOM-100 et suivantes) le remplace par des
+pages rendues par `export_html` depuis des gabarits.
+
 **Principes non négociables** (violer l'un d'eux est un bug d'architecture, pas un détail
 d'implémentation) :
 - **D1** Entrepôt SQLite local entre ingestion et analyse — jamais de chargement intégral en mémoire,
@@ -105,6 +116,16 @@ d'implémentation) :
 - **D6** Aucun échec silencieux — chaque étape produit des compteurs entrée/sortie et des invariants
   bloquants ; un export ne peut pas sortir d'un entrepôt en échec. Un code de nomenclature inconnu se
   **signale**, ne se tait jamais et ne plante pas non plus.
+- **D7** Le front est une restitution, pas une application — toute page publiée est produite par la
+  couche 6 depuis l'entrepôt ; aucun HTML écrit à la main hors `front/gabarits/`. Un gabarit ne
+  calcule rien : s'il lui faut une valeur, c'est à la couche 5 de la produire.
+- **D8** Aucune donnée générée n'est versionnée — `site/`, `front/data/` et les archives de tuiles
+  restent hors de git, régénérables par une commande. `tests/echantillon/` demeure l'exception
+  explicite qu'il est déjà (voir `.gitignore`).
+- **D9** Budget de charge utile par page — aucune page ne dépasse **500 Ko** de données au chargement
+  initial ; au-delà, on découpe ou on charge à la demande.
+- **D10** Le JavaScript est un îlot, jamais le socle — toute page rend son contenu utile sans JS ; le
+  JS ajoute du confort (tri, filtre, carte), il ne conditionne jamais l'accès à l'information.
 
 **Schéma** (`schema.py`, cf. `06_DECISIONS_SCHEMA.md`) : toutes les colonnes sont `TEXT` (la couche 1
 émet tout en texte verbatim — des numéros FINESS commencent par `2A`/`2B`) ; `etablissement` porte le
@@ -115,6 +136,22 @@ rend les séries temporelles possibles ; plusieurs rattachements sont polymorphe
 en clé étrangère SQL** — ils sont vérifiés en Python par `controles.VerificateurRelations`
 (`cli.py integrite`), pas par SQLite ; aucun index de performance n'est déclaré sans mesure préalable
 démontrant un besoin insatisfait.
+
+**Piège de nommage — coordonnées d'`adresse`.** Les quatre colonnes géographiques ne disent pas ce
+que leur nom suggère, et les deux `direction_*` sont en plus inversées entre elles :
+
+| Colonne | Contenu réel | Exemple |
+|---|---|---|
+| `coordonnee_x` | **longitude** WGS84, degrés décimaux | `6.139885` |
+| `coordonnee_y` | **latitude** WGS84, degrés décimaux | `46.362063` |
+| `direction_longitude` | **X / easting** Lambert 93 (EPSG:2154), mètres | `941342.52` |
+| `direction_latitude` | **Y / northing** Lambert 93 (EPSG:2154), mètres | `6589480.53` |
+
+Vérifié par reprojection sur l'échantillon versionné : les `direction_*` sont la projection Lambert 93
+exacte des `coordonnee_*`, concordance au centième. Pour toute sortie géographique (GeoJSON, carte) :
+longitude = `coordonnee_x`, latitude = `coordonnee_y` — **jamais** les `direction_*`, qui ne sont ni
+des degrés ni dans l'ordre que leur nom annonce. Les six colonnes issues de `coordonneesGeographique`
+sont nulles ou renseignées ensemble.
 
 **Charnière d'extensibilité** : `identifiant_externe` (entité pivot, système externe, valeur, méthode
 d'appariement, confiance) est le point d'accroche unique pour toute source future (INSEE, ROR, CNSA,

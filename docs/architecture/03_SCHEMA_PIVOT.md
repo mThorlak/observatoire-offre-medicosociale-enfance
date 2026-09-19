@@ -144,16 +144,38 @@ Sources : `pmej[].adresse[]` (98 168, cardinalité toujours 1) et
 | `cog_commune` | TEXTE | jamais | `cogCommune` | Code INSEE 5 caractères. **Seule source territoriale** : le département doit en être dérivé |
 | `ligne_acheminement` | TEXTE | 3 781 | `ligneAcheminement` | |
 | `ligne_une` … `ligne_six` | TEXTE | variable | `ligneUne` … `ligneSix` | Six colonnes. `ligneTrois` toujours nulle ; `ligneDeux` et `ligneCinq` quasi toujours nulles |
-| `coordonnee_x` | TEXTE | 91 682 | `coordonneesGeographique.coordonneeX` | |
-| `coordonnee_y` | TEXTE | 91 682 | `coordonneesGeographique.coordonneeY` | |
-| `direction_latitude` | TEXTE | 91 682 | `coordonneesGeographique.directionLatitude` | |
-| `direction_longitude` | TEXTE | 91 682 | `coordonneesGeographique.directionLongitude` | |
+| `coordonnee_x` | TEXTE | 91 682 | `coordonneesGeographique.coordonneeX` | **longitude** WGS84, degrés décimaux — voir le piège de nommage ci-dessous |
+| `coordonnee_y` | TEXTE | 91 682 | `coordonneesGeographique.coordonneeY` | **latitude** WGS84, degrés décimaux |
+| `direction_latitude` | TEXTE | 91 682 | `coordonneesGeographique.directionLatitude` | **Y / northing** Lambert 93, mètres — pas une latitude |
+| `direction_longitude` | TEXTE | 91 682 | `coordonneesGeographique.directionLongitude` | **X / easting** Lambert 93, mètres — pas une longitude |
 | `cle_interop_ban` | TEXTE | 91 682 | `coordonneesGeographique.cleInInteropBAN` | Point d'accroche IGN / BAN |
 | `score_ban` | TEXTE | 91 682 | `coordonneesGeographique.scoreBAN` | Qualité de l'appariement |
 | `id_lot` | TEXTE | jamais | — | |
 
 L'objet `coordonneesGeographique` est nul pour 91 682 adresses ; il est aplati
 en six colonnes, toutes nulles ensemble ou toutes renseignées ensemble.
+
+#### Piège de nommage des quatre colonnes de coordonnées
+
+Les noms FINESS sont trompeurs, et les deux `direction_*` sont en plus inversées
+entre elles par rapport à ce que leur nom annonce :
+
+| Colonne | Contenu réel | Système | Exemple |
+|---|---|---|---|
+| `coordonnee_x` | **longitude** | WGS84, degrés décimaux | `6.139885` |
+| `coordonnee_y` | **latitude** | WGS84, degrés décimaux | `46.362063` |
+| `direction_longitude` | **X / easting** | Lambert 93 (EPSG:2154), mètres | `941342.52` |
+| `direction_latitude` | **Y / northing** | Lambert 93 (EPSG:2154), mètres | `6589480.53` |
+
+Vérification : reprojection en Lambert 93 des couples `(coordonnee_x, coordonnee_y)`
+de l'échantillon versionné (`tests/echantillon/finess-structures-mensuel-202607-echantillon_json.gz`),
+concordance au centième avec `(direction_longitude, direction_latitude)` — le doublon
+est donc redondant, pas complémentaire.
+
+Règle pour la couche 6 (`export_geo`, cartes, GeoJSON) : **longitude = `coordonnee_x`,
+latitude = `coordonnee_y`**. Les `direction_*` ne sont ni des degrés ni dans l'ordre que
+leur nom suggère ; ne les utiliser que si une sortie en projection métrique est
+explicitement demandée.
 
 ### 3.4 `contact` — 222 505 lignes
 
