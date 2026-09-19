@@ -19,3 +19,7 @@ __pycache__/
 *.pyc
 *.egg-info/
 .venv/
+
+# Site statique rendu par export_html.py (OOM-100) depuis l'entrepôt et
+# front/gabarits/ — régénérable par une commande, jamais versionné (D8).
+/site/
