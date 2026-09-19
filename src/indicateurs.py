@@ -108,6 +108,23 @@ class Resultat:
             ((d, c, n) for (d, c), n in self.tableau.items()),
             key=lambda ligne: (ligne[0], ligne[1]))
 
+    def dans_tableau(self) -> int:
+        """Établissements actifs comptés dans une case du tableau."""
+        return sum(self.tableau.values())
+
+    def par_departement(self) -> List[Tuple[str, int]]:
+        """Marge du tableau par département : `(code, nombre)`, triées par code.
+
+        Somme des cases du département : les exclus n'y figurent jamais, donc
+        la somme des marges vaut `dans_tableau()` (OOM-103, page d'accueil).
+        """
+        return _marge(self.tableau, 0)
+
+    def par_categorie(self) -> List[Tuple[str, int]]:
+        """Marge du tableau par catégorie : `(libellé, nombre)`, triées par
+        nombre décroissant puis libellé — même garantie que `par_departement`."""
+        return sorted(_marge(self.tableau, 1), key=lambda ligne: (-ligne[1], ligne[0]))
+
     def rapport(self) -> str:
         lignes = [f"{'DÉPARTEMENT':<12}{'CATÉGORIE':<60}{'ACTIFS':>8}"]
         for departement, categorie, nombre in self.lignes_triees():
@@ -118,6 +135,13 @@ class Resultat:
         lignes.append(f"    sans département résolu   : {self.sans_departement}")
         lignes.append(f"    catégorie non résolue      : {self.categorie_inconnue}")
         return "\n".join(lignes)
+
+
+def _marge(tableau: Dict[Tuple[str, str], int], axe: int) -> List[Tuple[str, int]]:
+    marge: Dict[str, int] = {}
+    for cle, nombre in tableau.items():
+        marge[cle[axe]] = marge.get(cle[axe], 0) + nombre
+    return sorted(marge.items())
 
 
 def etat_objet_actif(etat_objet: Optional[str]) -> bool:

@@ -1,0 +1,108 @@
+<!--
+  Gabarit de la page d'accueil (OOM-103), publiée en index.html par
+  src/export_html.py. Chaque bloc BLOC nom … FIN nom est un gabarit
+  string.Template : il substitue des valeurs déjà calculées par la couche 5
+  (indicateurs.Resultat et ses marges par département et par catégorie) et
+  échappées par le module ; il ne compte, ne trie et ne décide rien (D7).
+  Tout le contenu est dans le HTML, la page n'a pas de script (D10).
+  La mention de périmètre est la contrepartie de la stratégie « publier tôt » :
+  elle reste en tête de contenu, avant tout chiffre. Pas de « $ » littéral
+  dans les blocs : l'écrire « $$ ».
+-->
+
+<!-- BLOC titre -->Accueil<!-- FIN titre -->
+
+<!-- BLOC pied -->Généré le $genere_le · millésime FINESS $millesime · $total_actifs établissement(s) actif(s), dont $dans_tableau répartis par département et catégorie, $sans_departement sans département résolu, $categorie_inconnue avec catégorie non résolue — mêmes chiffres que le tableau département × catégorie et l'export CSV (restituer).<!-- FIN pied -->
+
+<!-- BLOC style -->
+  .perimetre {
+    background: #fff8c5;
+    border: 1px solid #d4a72c;
+    border-radius: 8px;
+    padding: .9rem 1rem;
+    margin-bottom: 1.25rem;
+  }
+  .perimetre h2 { margin: 0 0 .4rem; font-size: 1rem; }
+  .perimetre p { margin: .3rem 0; }
+  .chiffres { display: flex; flex-wrap: wrap; gap: .75rem; margin: 0 0 1.25rem; padding: 0; list-style: none; }
+  .chiffres li {
+    background: var(--panel);
+    border: 1px solid var(--bordure);
+    border-radius: 8px;
+    padding: .7rem 1rem;
+    min-width: 11rem;
+  }
+  .chiffres strong { display: block; font-size: 1.4rem; font-variant-numeric: tabular-nums; }
+  .chiffres span { font-size: .8rem; color: var(--texte-att); }
+  .entrees { display: flex; flex-wrap: wrap; gap: 1.25rem; align-items: flex-start; }
+  .entrees section { flex: 1 1 22rem; }
+  .entrees h2, .source h2 { font-size: 1rem; margin: 0 0 .5rem; }
+  td.effectif { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .source { margin-top: 1.5rem; font-size: .88rem; }
+  .source code { font-size: .78rem; overflow-wrap: anywhere; }
+<!-- FIN style -->
+
+<!-- BLOC contenu -->
+<section class="perimetre" id="perimetre">
+  <h2>Périmètre — à lire avant tout chiffre</h2>
+  <p><strong>Les chiffres de ce site sont un comptage brut : ils portent sur tous les établissements actifs du répertoire FINESS, toutes catégories confondues. La qualification enfance/adolescents n'est pas encore appliquée.</strong></p>
+  <p>Ils ne décrivent donc pas l'offre médico-sociale destinée aux enfants et adolescents, et ne doivent pas être cités comme tels. Le répertoire FINESS couvre les établissements sanitaires, sociaux et médico-sociaux ; la sélection de ceux qui relèvent de l'enfance et de l'adolescence est une étape ultérieure de l'observatoire.</p>
+  <p>« Actif » signifie ici un établissement dont l'état FINESS est « A » ; les établissements fermés sont conservés dans l'entrepôt mais exclus des comptages.</p>
+</section>
+
+<h2>Chiffres clés du millésime $millesime</h2>
+<ul class="chiffres">
+  <li><strong>$total_actifs</strong><span>établissements actifs</span></li>
+  <li><strong>$dans_tableau</strong><span>répartis par département et catégorie</span></li>
+  <li><strong>$nombre_departements</strong><span>départements représentés</span></li>
+  <li><strong>$nombre_categories</strong><span>catégories FINESS représentées</span></li>
+  <li><strong>$exclus</strong><span>actifs non répartis ($sans_departement sans département résolu, $categorie_inconnue catégorie non résolue)</span></li>
+</ul>
+
+<p>Pour le détail : <a href="indicateur.html">tableau département × catégorie</a> · <a href="liste.html">liste des établissements</a>.</p>
+
+<div class="entrees">
+<section id="par-departement">
+  <h2>Par département ($nombre_departements)</h2>
+  <table>
+  <thead><tr><th>Département</th><th>Établissements actifs</th></tr></thead>
+  <tbody>
+$departements
+  </tbody>
+  </table>
+</section>
+<section id="par-categorie">
+  <h2>Par catégorie ($nombre_categories)</h2>
+  <table>
+  <thead><tr><th>Catégorie FINESS</th><th>Établissements actifs</th></tr></thead>
+  <tbody>
+$categories
+  </tbody>
+  </table>
+</section>
+</div>
+
+<section class="source" id="source">
+  <h2>Source et licence</h2>
+  <p>Données : FINESS — Fichier national des établissements sanitaires et sociaux, produit par le ministère chargé de la Santé et publié sur data.gouv.fr (jeux <a href="https://www.data.gouv.fr/fr/datasets/finess-structures-1/">FINESS-Structures</a> et <a href="https://www.data.gouv.fr/fr/datasets/finess-activites-1/">FINESS-Activités</a>).</p>
+  <p>Licence : FINESS-Activités est publié sous Licence Ouverte / Open Licence v2.0 (Etalab). Pour FINESS-Structures, la page du jeu de données annonce la Licence Ouverte v2.0 tandis que l'API de data.gouv.fr indique l'ODbL : cette divergence n'est pas encore tranchée par l'observatoire.</p>
+  <p>Lots chargés dans l'entrepôt ayant produit cette page :</p>
+  <ul>
+$lots
+  </ul>
+</section>
+<!-- FIN contenu -->
+
+<!-- BLOC departement -->
+  <tr><td>$code_departement</td><td class="effectif">$effectif</td></tr>
+<!-- FIN departement -->
+
+<!-- BLOC categorie -->
+  <tr><td>$libelle_categorie</td><td class="effectif">$effectif</td></tr>
+<!-- FIN categorie -->
+
+<!-- BLOC lot -->
+  <li>$source, millésime $millesime — fichier <code>$fichier</code>, empreinte <code>$empreinte</code></li>
+<!-- FIN lot -->
+
+<!-- BLOC script --><!-- FIN script -->

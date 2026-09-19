@@ -127,6 +127,18 @@ with Entrepot(chemin) as e:
              lignes == [("01", IME, 2), ("971", ITEP, 1)], lignes)
     verifier("rapport() produit un texte non vide", len(resultat.rapport()) > 0)
 
+    print("\n2b. marges (page d'accueil, OOM-103)")
+    verifier("dans_tableau = 3 (G0 + G1 + G2)", resultat.dans_tableau() == 3,
+             resultat.dans_tableau())
+    verifier("par_departement : 01 = 2, 971 = 1, triées par code",
+             resultat.par_departement() == [("01", 2), ("971", 1)],
+             resultat.par_departement())
+    verifier("par_categorie : IME = 2 puis ITEP = 1 (nombre décroissant)",
+             resultat.par_categorie() == [(IME, 2), (ITEP, 1)], resultat.par_categorie())
+    verifier("somme des marges = dans_tableau (exclus jamais réintroduits)",
+             sum(n for _, n in resultat.par_departement()) == resultat.dans_tableau()
+             == sum(n for _, n in resultat.par_categorie()))
+
 print("\n3. etat_objet_actif — définition d'« actif »")
 verifier("'A' est actif", ind.etat_objet_actif("A") is True)
 verifier("'I' n'est pas actif", ind.etat_objet_actif("I") is False)
