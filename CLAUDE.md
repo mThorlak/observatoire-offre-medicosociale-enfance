@@ -43,14 +43,26 @@ python src/cli.py charger <base.sqlite> <structures.json.gz> [--activites ...] [
 python src/cli.py restituer <base.sqlite> [--sortie restitution/]   # export CSV + rapport (OOM-14)
 ```
 
-**Tests** — pas encore de pytest (conversion prévue par OOM-101 ; `requirements-dev.txt` l'installe déjà), pas d'assert : chaque `tests/test_*.py` est un script autonome qui
+**Tests** — pas de pytest, pas d'assert : chaque `tests/test_*.py` est un script autonome qui
 s'exécute directement, incrémente un compteur local `ok`/`ko` via une fonction `verifier(...)`, et se
 termine par `sys.exit(1 si ko else 0)`. Lancer un seul fichier :
 ```bash
 python tests/test_entrepot.py
 ```
-Lancer toute la suite : exécuter chaque `tests/test_*.py` de la même façon (pas de script agrégateur
-existant — un agent qui veut un résumé global doit boucler dessus lui-même). `tests/echantillon/`
+Lancer toute la suite d'un coup (OOM-101) :
+```bash
+python tests/tout.py        # -v pour afficher aussi la sortie des fichiers qui passent
+```
+`tests/tout.py` découvre `tests/test_*.py` dynamiquement (aucune liste en dur), exécute chacun dans un
+sous-processus (même interpréteur, `PYTHONPATH=src` et `PYTHONIOENCODING=utf-8` posés pour l'enfant,
+cwd = racine), affiche la sortie des échecs puis un résumé (passés, échoués, noms des échecs) et sort
+en 1 si un fichier au moins a un code de retour non nul — plantage à l'import compris (D6).
+**Option retenue : agrégateur stdlib, plutôt que conversion à pytest.** Motif : il ne touche à aucun
+fichier de test (chacun reste exécutable seul, le contrat `verifier`/`sys.exit` est inchangé), il ne
+demande rien d'autre que la stdlib — donc tourne aussi là où `requirements-dev.txt` n'est pas
+installé (Termux) — et l'isolation par sous-processus empêche un fichier de polluer l'état global
+(modules importés, fichiers temporaires) d'un autre. Une conversion pytest reste possible plus tard
+sans remettre en cause cet agrégateur. `tests/echantillon/`
 contient l'échantillon FINESS réel versionné dont dépendent `test_chargement.py` et consorts ; il doit
 rester committé (voir `.gitignore`, exception explicite). `tests/generer.tests.py` fabrique des CSV de
 fixture synthétiques dans `tests/data/` pour les tests de la V1 historique (`categories`/`taxonomie`).
