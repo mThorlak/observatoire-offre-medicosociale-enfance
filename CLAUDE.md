@@ -42,6 +42,7 @@ python src/cli.py tout <structures.json.gz> <activites.json.gz>
 python src/cli.py charger <base.sqlite> <structures.json.gz> [--activites ...] [--creer] [--remplacer]
 python src/cli.py restituer <base.sqlite> [--sortie restitution/]   # export CSV + rapport (OOM-14)
 ```
+Rendu du site statique (couche 6, hors CLI) : `python src/export_html.py <base.sqlite> --sortie site/`.
 
 **Tests** — pas de pytest, pas d'assert : chaque `tests/test_*.py` est un script autonome qui
 s'exécute directement, incrémente un compteur local `ok`/`ko` via une fonction `verifier(...)`, et se
@@ -104,24 +105,30 @@ couche 6 au même titre qu'un CSV ou un classeur Excel (D7).
 État actuel (POC 1, epic OOM-6, **Done** — milestone 100%) : couches 0-3 posées et branchées sur le
 CLI, couche 4 pas encore nécessaire pour ce POC (comptage brut, pas de qualification de périmètre),
 couche 5 (`indicateurs.py`, OOM-13) et couche 6 (`export_tabulaire.py`/`restituer`, OOM-14) posées et
-vérifiées de bout en bout sur l'extrait réel. Extension "front simple" (epic OOM-22, hors DoD initial
-de l'épopée OOM-6) — **Done** : `export_front.py` (OOM-19) résout les libellés via `nomenclatures`/
-`territoires` et écrit `etablissements.json`/`indicateur.json`/`meta.json` dans `front/data/`
-(gitignored, régénéré à la demande) ; `front/liste.html` (OOM-20, liste filtrable — département,
-catégorie, état) et `front/indicateur.html` (OOM-21, tableau croisé département × catégorie triable)
-consomment ces fichiers en statique pur (pas de build, pas de serveur autre que
-`python -m http.server` local). Les deux ont été vérifiés de bout en bout sur l'échantillon versionné.
-Extension "intégration FINESS-Activités" (epic OOM-26) — **Done** : `export_front.py` (OOM-27) écrit
-en plus `activites.json` (`{num_finess_et: [activité, ...]}`, niveau `ET` uniquement, capacités
-imbriquées ; `code_nature` exposé brut — aucune nomenclature versionnée ne couvre encore ce domaine,
-donc `libelle_nature` vaut toujours `None`, jamais une valeur inventée) ; `front/liste.html` (OOM-28)
-ouvre un panneau d'activités au clic sur une ligne d'établissement, avec filtre par nature côté
-client. Vérifié de bout en bout sur l'échantillon versionné (structures + activités).
+vérifiées de bout en bout sur l'extrait réel. Extensions "front simple" (epic OOM-22) et
+"intégration FINESS-Activités" (epic OOM-26) — **Done** : `export_front.py` (OOM-19, OOM-27) résout
+les libellés via `nomenclatures`/`territoires` et expose `etablissements_bruts` et
+`activites_par_etablissement` (niveau `ET` uniquement, capacités imbriquées ; `code_nature` exposé
+brut — aucune nomenclature versionnée ne couvre encore ce domaine, donc `libelle_nature` vaut
+toujours `None`, jamais une valeur inventée). Son écriture JSON (`exporter` → `front/data/`,
+gitignored) ne sert plus aucune page depuis la suppression des anciens HTML écrits à la main (OOM-104) ;
+elle est conservée en l'état, hors périmètre de la refonte.
 
-⚠️ Le `front/` actuel (`liste.html`, `indicateur.html`) **précède D7-D10** : HTML écrit à la main,
-contenu entièrement construit en JS depuis des JSON chargés au démarrage. Il viole D7 et D10 et ne
-doit **pas** servir de modèle — la refonte (épopée front, OOM-100 et suivantes) le remplace par des
-pages rendues par `export_html` depuis des gabarits.
+**Couche 6 — site par gabarits (épopée « socle de restitution », OOM-100 à OOM-104)** :
+`export_html.py` (contrat A : `rendre(entrepot, dossier_gabarits, dossier_sortie) -> dict`) rend
+`index.html` (accueil avec mention de périmètre, OOM-103), `liste.html` (établissements et leurs
+activités) et `indicateur.html` (tableau département × catégorie de la couche 5) depuis
+`front/gabarits/` (`base.html` + un gabarit par page, blocs `<!-- BLOC nom -->…<!-- FIN nom -->`
+substitués par `string.Template`, aucune logique dans le gabarit), puis recopie `front/actifs/`
+(feuille de style commune `ooms.css`, îlot `filtres.js`, OOM-102) dans `site/actifs/`. Tout le contenu
+utile est dans le HTML ; le JS n'ajoute que tri et filtres (D10). Un gabarit ou un bloc manquant lève
+`ErreurExportHtml` avant toute écriture, chemin dans le message ; un code hors référentiel est
+rendu `[non résolu]` avec son code brut, jamais un libellé inventé. Couvert par
+`tests/test_export_html.py` (OOM-104). Rendu du site :
+```bash
+python src/export_html.py <base.sqlite> [--sortie site/] [--gabarits front/gabarits/]
+python -m http.server -d site   # consultation locale ; site/ est gitignored (D8)
+```
 
 **Principes non négociables** (violer l'un d'eux est un bug d'architecture, pas un détail
 d'implémentation) :
