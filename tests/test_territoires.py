@@ -11,7 +11,7 @@ def verifier(intitule, condition, detail=""):
     else: ko += 1; print(f"  ECHEC {intitule} — {detail}")
 
 print("1. Métropole")
-verifier("01001 -> 01", departement_depuis_cog("01001") == "99")  # CASSE VOLONTAIRE (OOM-105), annulée au commit suivant
+verifier("01001 -> 01", departement_depuis_cog("01001") == "01")
 verifier("75056 -> 75 (Paris)", departement_depuis_cog("75056") == "75")
 verifier("13055 -> 13 (Marseille)", departement_depuis_cog("13055") == "13")
 verifier("95580 -> 95 (Val-d'Oise, borne haute métropole)",
