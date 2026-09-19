@@ -10,6 +10,15 @@ réutilisable et reproductible, et des travaux scientifiques exploitant les donn
 Stdlib only + `openpyxl` (restitution Excel) — pas d'ORM, pas de framework, pas de service ni d'API :
 le contexte d'exécution cible reste un poste local et Termux (téléphone). Python 3.9+ compatible.
 
+**Deux contraintes distinctes, à ne pas confondre** :
+- **Contrainte d'exécution** (`requirements.txt`, `openpyxl` seul) : ce que `src/` a le droit
+  d'importer. Stdlib + `openpyxl`, rien d'autre — c'est ce qui garantit que le pipeline tourne sur un
+  poste local et sur Termux. `grep -rn "import pytest" src/` ne doit jamais rien renvoyer.
+- **Contrainte de développement** (`requirements-dev.txt` : `pytest`, `black`) : ce qu'il faut pour
+  écrire, formater et tester le code. Ces paquets ne sont **jamais** importés par `src/` ; ils
+  n'ont pas à être installés pour lancer le pipeline. Ajouter un outil de dev ici est libre, ajouter
+  une dépendance à `requirements.txt` est une décision d'architecture.
+
 Tracking: Linear team **OOM**, project **OOMS**, epic **OOM-6** "POC 1 — Pipeline FINESS
 bout-en-bout minimal".
 
@@ -34,7 +43,7 @@ python src/cli.py charger <base.sqlite> <structures.json.gz> [--activites ...] [
 python src/cli.py restituer <base.sqlite> [--sortie restitution/]   # export CSV + rapport (OOM-14)
 ```
 
-**Tests** — pas de pytest, pas d'assert : chaque `tests/test_*.py` est un script autonome qui
+**Tests** — pas encore de pytest (conversion prévue par OOM-101 ; `requirements-dev.txt` l'installe déjà), pas d'assert : chaque `tests/test_*.py` est un script autonome qui
 s'exécute directement, incrémente un compteur local `ok`/`ko` via une fonction `verifier(...)`, et se
 termine par `sys.exit(1 si ko else 0)`. Lancer un seul fichier :
 ```bash

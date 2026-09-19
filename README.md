@@ -14,9 +14,20 @@ Bibliothèque standard uniquement, plus `openpyxl` pour la restitution Excel —
 framework, pas de service ni d'API. Le contexte d'exécution cible reste un poste local et Termux
 (téléphone). Python 3.9+.
 
+Deux fichiers de dépendances, deux usages :
+
+- [`requirements.txt`](requirements.txt) — **exécution** : `openpyxl` seul. C'est tout ce qu'il
+  faut pour faire tourner le pipeline.
+- [`requirements-dev.txt`](requirements-dev.txt) — **développement** : `pytest`, `black`. Utile
+  pour écrire et tester le code, jamais importé par `src/`, inutile pour lancer le pipeline.
+
 ## Démarrer
 
+Lancer le pipeline n'exige **que** les dépendances d'exécution — pas besoin d'installer
+`requirements-dev.txt` :
+
 ```bash
+python -m pip install -r requirements.txt   # openpyxl seul (restitution Excel)
 export PYTHONPATH=src
 export PYTHONIOENCODING=utf-8   # sinon UnicodeEncodeError sur les → et accents (console Windows cp1252)
 
@@ -24,6 +35,8 @@ python src/cli.py tout structures.json.gz activites.json.gz
 python src/cli.py charger base.sqlite structures.json.gz --activites activites.json.gz --creer
 python src/cli.py restituer base.sqlite --sortie restitution/
 ```
+
+Pour développer (tests, formatage) : `python -m pip install -r requirements.txt -r requirements-dev.txt`.
 
 Le détail des cinq commandes CLI, de l'architecture en couches et des principes non négociables
 (D1-D6) vit dans [`CLAUDE.md`](CLAUDE.md) et [`docs/architecture/`](docs/architecture/) — c'est la
