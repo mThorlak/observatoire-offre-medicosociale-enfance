@@ -1,0 +1,53 @@
+name: Tests
+
+# Rend une régression visible dès qu'elle est poussée, sans attendre
+# l'intégration : plusieurs agents travaillent en parallèle sur des branches
+# séparées (OOM-105). La CI appelle l'agrégateur `tests/tout.py` (OOM-101),
+# qui sort en 1 dès qu'un fichier de test échoue ou plante à l'import (D6).
+#
+# Matrice 3.9 / 3.11 : la compatibilité Python 3.9+ est annoncée dans
+# CLAUDE.md, elle est donc vérifiée ici à chaque push.
+#
+# Les deux checks de la matrice ("tests (3.9)", "tests (3.11)") sont exigés
+# par la protection de branche de `main` : un test rouge bloque la fusion.
+
+"on":
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  tests:
+    name: tests (${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.9", "3.11"]
+    env:
+      PYTHONPATH: src
+      # Sans cela les « → » et accents font planter la sortie (UnicodeEncodeError).
+      PYTHONIOENCODING: utf-8
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      # Dépendances d'exécution seulement (openpyxl) : les tests sont des
+      # scripts stdlib, pytest n'est pas nécessaire.
+      - name: Installer les dépendances d'exécution
+        run: python -m pip install -r requirements.txt
+
+      - name: Lancer la suite de tests
+        run: python tests/tout.py
