@@ -1,0 +1,155 @@
+/*
+  ooms.css — feuille de style unique du site (OOM-102), copiée telle quelle
+  dans site/actifs/ par src/export_html.py. Toutes les pages la chargent via
+  front/gabarits/base.html ; aucun gabarit ne porte de balise style propre.
+  Une règle propre à une vue se range sous la section de cette vue, en la
+  préfixant par l'identifiant de sa table quand elle ne vaut que là.
+*/
+
+/* ---- commun ---------------------------------------------------------- */
+:root {
+  color-scheme: light;
+  --bg: #f7f7f5;
+  --panel: #ffffff;
+  --texte: #1f2328;
+  --texte-att: #57606a;
+  --bordure: #d0d7de;
+  --accent: #0969da;
+  --actif: #1a7f37;
+  --inactif: #cf222e;
+  --barre: #6cb6ff;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: -apple-system, "Segoe UI", Arial, sans-serif;
+  background: var(--bg);
+  color: var(--texte);
+}
+header {
+  padding: 1rem 1.5rem;
+  background: var(--panel);
+  border-bottom: 1px solid var(--bordure);
+}
+header h1 { margin: 0 0 .25rem; font-size: 1.25rem; }
+header p { margin: 0; color: var(--texte-att); font-size: .85rem; }
+nav { margin-top: .5rem; font-size: .85rem; }
+nav a { color: var(--accent); margin-right: 1rem; }
+main { padding: 1rem 1.5rem 2rem; max-width: 1200px; margin: 0 auto; }
+.filtres {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .75rem;
+  background: var(--panel);
+  border: 1px solid var(--bordure);
+  border-radius: 8px;
+  padding: .9rem 1rem;
+  margin-bottom: 1rem;
+  align-items: end;
+}
+.filtres[hidden] { display: none; }
+.filtres label {
+  display: flex;
+  flex-direction: column;
+  font-size: .78rem;
+  color: var(--texte-att);
+  gap: .3rem;
+}
+.filtres select, .filtres input {
+  font-size: .9rem;
+  padding: .4rem .5rem;
+  border: 1px solid var(--bordure);
+  border-radius: 6px;
+  min-width: 12rem;
+  background: white;
+}
+.filtres button {
+  font-size: .85rem;
+  padding: .45rem .8rem;
+  border: 1px solid var(--bordure);
+  border-radius: 6px;
+  background: var(--panel);
+  cursor: pointer;
+}
+.compteur { font-size: .85rem; color: var(--texte-att); margin: .25rem 0 .75rem; }
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--panel);
+  border: 1px solid var(--bordure);
+  font-size: .88rem;
+}
+thead th {
+  text-align: left;
+  padding: .6rem .7rem;
+  background: #f0f2f4;
+  border-bottom: 1px solid var(--bordure);
+  white-space: nowrap;
+}
+tbody td {
+  padding: .5rem .7rem;
+  border-bottom: 1px solid #eef0f2;
+  vertical-align: top;
+}
+tbody tr:hover { background: #f6f8fa; }
+.code-brut { color: var(--texte-att); font-size: .78rem; }
+.vide { padding: 2rem; text-align: center; color: var(--texte-att); }
+.alerte {
+  background: #fff8c5;
+  border: 1px solid #d4a72c;
+  color: #4d3800;
+  padding: .6rem .9rem;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+  font-size: .85rem;
+}
+footer { max-width: 1200px; margin: 1rem auto 2rem; padding: 0 1.5rem; font-size: .78rem; color: var(--texte-att); }
+
+/* Effectif numérique aligné à droite (accueil, indicateur). */
+td.effectif { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+/* Tri par colonne : en-têtes marqués data-cle (filtres.js). */
+th[data-cle] { cursor: pointer; user-select: none; }
+th[data-cle] .fleche { color: var(--accent); font-size: .75rem; margin-left: .25rem; }
+
+/* ---- accueil ---------------------------------------------------------- */
+.perimetre {
+  background: #fff8c5;
+  border: 1px solid #d4a72c;
+  border-radius: 8px;
+  padding: .9rem 1rem;
+  margin-bottom: 1.25rem;
+}
+.perimetre h2 { margin: 0 0 .4rem; font-size: 1rem; }
+.perimetre p { margin: .3rem 0; }
+.chiffres { display: flex; flex-wrap: wrap; gap: .75rem; margin: 0 0 1.25rem; padding: 0; list-style: none; }
+.chiffres li {
+  background: var(--panel);
+  border: 1px solid var(--bordure);
+  border-radius: 8px;
+  padding: .7rem 1rem;
+  min-width: 11rem;
+}
+.chiffres strong { display: block; font-size: 1.4rem; font-variant-numeric: tabular-nums; }
+.chiffres span { font-size: .8rem; color: var(--texte-att); }
+.entrees { display: flex; flex-wrap: wrap; gap: 1.25rem; align-items: flex-start; }
+.entrees section { flex: 1 1 22rem; }
+.entrees h2, .source h2 { font-size: 1rem; margin: 0 0 .5rem; }
+.source { margin-top: 1.5rem; font-size: .88rem; }
+.source code { font-size: .78rem; overflow-wrap: anywhere; }
+
+/* ---- liste des établissements ---------------------------------------- */
+.etat { display: inline-block; padding: .1rem .5rem; border-radius: 999px; font-size: .78rem; }
+.etat-actif { background: #dafbe1; color: var(--actif); }
+.etat-inactif { background: #ffebe9; color: var(--inactif); }
+.code-non-resolu { color: var(--texte-att); font-style: italic; }
+details summary { color: var(--accent); font-size: .82rem; cursor: pointer; white-space: nowrap; }
+details table { margin-top: .5rem; font-size: .82rem; }
+.capacites-liste { margin: 0; padding-left: 1.1rem; }
+.filtre-nature { display: block; margin-top: .4rem; font-size: .78rem; color: var(--texte-att); }
+
+/* ---- indicateur département × catégorie ------------------------------ */
+.barre-cellule { display: flex; align-items: center; gap: .5rem; justify-content: flex-end; }
+.barre-fond { width: 8rem; height: .55rem; background: #eef0f2; border-radius: 999px; overflow: hidden; }
+.barre-remplie { height: 100%; background: var(--barre); }
+tfoot td { padding: .6rem .7rem; font-weight: 600; border-top: 2px solid var(--bordure); }

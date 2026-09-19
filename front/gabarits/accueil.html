@@ -5,6 +5,8 @@
   (indicateurs.Resultat et ses marges par département et par catégorie) et
   échappées par le module ; il ne compte, ne trie et ne décide rien (D7).
   Tout le contenu est dans le HTML, la page n'a pas de script (D10).
+  Son style vit dans front/actifs/ooms.css (OOM-102), comme celui des autres
+  pages : aucun gabarit ne porte de balise style.
   La mention de périmètre est la contrepartie de la stratégie « publier tôt » :
   elle reste en tête de contenu, avant tout chiffre. Pas de « $ » littéral
   dans les blocs : l'écrire « $$ ».
@@ -14,33 +16,7 @@
 
 <!-- BLOC pied -->Généré le $genere_le · millésime FINESS $millesime · $total_actifs établissement(s) actif(s), dont $dans_tableau répartis par département et catégorie, $sans_departement sans département résolu, $categorie_inconnue avec catégorie non résolue — mêmes chiffres que le tableau département × catégorie et l'export CSV (restituer).<!-- FIN pied -->
 
-<!-- BLOC style -->
-  .perimetre {
-    background: #fff8c5;
-    border: 1px solid #d4a72c;
-    border-radius: 8px;
-    padding: .9rem 1rem;
-    margin-bottom: 1.25rem;
-  }
-  .perimetre h2 { margin: 0 0 .4rem; font-size: 1rem; }
-  .perimetre p { margin: .3rem 0; }
-  .chiffres { display: flex; flex-wrap: wrap; gap: .75rem; margin: 0 0 1.25rem; padding: 0; list-style: none; }
-  .chiffres li {
-    background: var(--panel);
-    border: 1px solid var(--bordure);
-    border-radius: 8px;
-    padding: .7rem 1rem;
-    min-width: 11rem;
-  }
-  .chiffres strong { display: block; font-size: 1.4rem; font-variant-numeric: tabular-nums; }
-  .chiffres span { font-size: .8rem; color: var(--texte-att); }
-  .entrees { display: flex; flex-wrap: wrap; gap: 1.25rem; align-items: flex-start; }
-  .entrees section { flex: 1 1 22rem; }
-  .entrees h2, .source h2 { font-size: 1rem; margin: 0 0 .5rem; }
-  td.effectif { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
-  .source { margin-top: 1.5rem; font-size: .88rem; }
-  .source code { font-size: .78rem; overflow-wrap: anywhere; }
-<!-- FIN style -->
+<!-- BLOC style --><!-- FIN style -->
 
 <!-- BLOC contenu -->
 <section class="perimetre" id="perimetre">
