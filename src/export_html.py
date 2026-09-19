@@ -47,6 +47,12 @@ dictionnaire retourné, sur le modèle d'`export_front.exporter` :
                            int        entrées par département / par catégorie
                                       de l'accueil (= lignes_rendues["index.html"]
                                       pour les départements)
+    actifs_copies          list[str]  fichiers de `actifs/` copiés (OOM-102)
+    octets_actifs          dict       {fichier: taille en octets}
+
+ACTIFS (OOM-102) — le dossier `actifs/` voisin de `dossier_gabarits` (feuille
+de style commune, îlots JS) est recopié tel quel dans `dossier_sortie/actifs/`
+après les pages ; son absence est une erreur levée avant toute écriture.
 
 Lève `ErreurExportHtml` — avant d'écrire quoi que ce soit — si un gabarit ou
 un bloc manque (le message porte le chemin attendu), si un gabarit réclame une
@@ -81,6 +87,7 @@ Aucune dépendance tierce. Compatible Python 3.9+.
 from __future__ import annotations
 
 import html
+import shutil
 import re
 import time
 from pathlib import Path
@@ -311,6 +318,29 @@ _CONSTRUCTEURS = {"index.html": _page_accueil, "liste.html": _page_liste,
 
 
 # ---------------------------------------------------------------------------
+# actifs (OOM-102)
+# ---------------------------------------------------------------------------
+
+def _actifs(dossier_gabarits: Path) -> List[Path]:
+    """Fichiers du dossier `actifs/` voisin des gabarits, triés par nom."""
+    dossier = dossier_gabarits.parent / "actifs"
+    if not dossier.is_dir():
+        raise ErreurExportHtml(f"dossier d'actifs manquant : {dossier}")
+    return sorted(chemin for chemin in dossier.iterdir() if chemin.is_file())
+
+
+def _copier_actifs(actifs: List[Path], dossier_sortie: Path, compteurs: Dict[str, object]) -> None:
+    cible = dossier_sortie / "actifs"
+    cible.mkdir(parents=True, exist_ok=True)
+    compteurs["actifs_copies"] = []
+    compteurs["octets_actifs"] = {}
+    for chemin in actifs:
+        shutil.copyfile(chemin, cible / chemin.name)
+        compteurs["actifs_copies"].append(chemin.name)
+        compteurs["octets_actifs"][chemin.name] = chemin.stat().st_size
+
+
+# ---------------------------------------------------------------------------
 # contrat A
 # ---------------------------------------------------------------------------
 
@@ -341,6 +371,7 @@ def rendre(entrepot: Entrepot, dossier_gabarits: Path, dossier_sortie: Path) -> 
                 for page in PAGES}
     for gabarit in gabarits.values():
         gabarit.exiger(BLOCS_PAGE)
+    actifs = _actifs(dossier_gabarits)
     base_modele = Template(base.chemin.read_text(encoding="utf-8"))
 
     compteurs: Dict[str, object] = {
@@ -367,6 +398,7 @@ def rendre(entrepot: Entrepot, dossier_gabarits: Path, dossier_sortie: Path) -> 
         (dossier_sortie / page).write_bytes(donnees)
         compteurs["pages_ecrites"].append(page)
         compteurs["octets"][page] = len(donnees)
+    _copier_actifs(actifs, dossier_sortie, compteurs)
     return compteurs
 
 
@@ -392,6 +424,8 @@ if __name__ == "__main__":
     for page in bilan["pages_ecrites"]:
         print(f"    {page:<18}{bilan['lignes_rendues'][page]:>7} ligne(s)"
               f"{bilan['octets'][page] / 1024:>10.1f} Ko")
+    for actif in bilan["actifs_copies"]:
+        print(f"    {'actifs/' + actif:<34}{bilan['octets_actifs'][actif] / 1024:>10.1f} Ko")
     print(f"    {bilan['nombre_etablissements']} établissement(s), "
           f"{bilan['sans_adresse_principale']} sans adresse principale, "
           f"{bilan['departement_non_resolu']} département(s) et "

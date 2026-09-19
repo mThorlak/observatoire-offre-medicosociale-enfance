@@ -4,7 +4,10 @@
   string.Template : il substitue des valeurs déjà calculées et échappées par
   le module, il ne décide rien (D7). Le texte hors blocs n'est pas publié.
   Le contenu utile (toutes les lignes, toutes les activités) est dans le HTML ;
-  le script n'ajoute que le filtrage (D10). Pas de « $ » littéral dans les
+  l'îlot front/actifs/filtres.js n'ajoute que le filtrage, branché par les
+  attributs data-* du formulaire et de la table (D10). Ni balise style ni script
+  inline : le style vit dans front/actifs/ooms.css (OOM-102), le bloc script
+  n'est que le point d'amorçage de l'îlot. Pas de « $ » littéral dans les
   blocs : l'écrire « $$ ».
 -->
 
@@ -12,27 +15,18 @@
 
 <!-- BLOC pied -->Généré le $genere_le · $nombre_etablissements établissement(s) · $sans_adresse_principale sans adresse principale · $categorie_non_resolue catégorie(s) non résolue(s) · $departement_non_resolu département(s) non résolu(s) · $activites_total activité(s) sur $etablissements_avec_activites établissement(s) · natures d'activité non résolues (aucune nomenclature versionnée)<!-- FIN pied -->
 
-<!-- BLOC style -->
-  .etat { display: inline-block; padding: .1rem .5rem; border-radius: 999px; font-size: .78rem; }
-  .etat-actif { background: #dafbe1; color: var(--actif); }
-  .etat-inactif { background: #ffebe9; color: var(--inactif); }
-  .code-non-resolu { color: var(--texte-att); font-style: italic; }
-  details summary { color: var(--accent); font-size: .82rem; cursor: pointer; white-space: nowrap; }
-  details table { margin-top: .5rem; font-size: .82rem; }
-  .capacites-liste { margin: 0; padding-left: 1.1rem; }
-  .filtre-nature { display: block; margin-top: .4rem; font-size: .78rem; color: var(--texte-att); }
-<!-- FIN style -->
+<!-- BLOC style --><!-- FIN style -->
 
 <!-- BLOC contenu -->
-<form class="filtres" id="filtres" hidden>
-  <label>Recherche (nom) <input type="search" id="f-recherche" placeholder="ex. IME"></label>
-  <label>Département <select id="f-departement"><option value="">Tous</option>$options_departement</select></label>
-  <label>Catégorie <select id="f-categorie"><option value="">Toutes</option>$options_categorie</select></label>
-  <label>État <select id="f-etat"><option value="">Tous</option><option value="A">Actif</option><option value="I">Inactif</option></select></label>
+<form class="filtres" id="filtres" hidden data-table="table-etablissements" data-compteur="compteur" data-unite="établissement(s) affiché(s)" data-vide="vide">
+  <label>Recherche (nom) <input type="search" id="f-recherche" placeholder="ex. IME" data-colonne="1"></label>
+  <label>Département <select id="f-departement" data-champ="dep"><option value="">Tous</option>$options_departement</select></label>
+  <label>Catégorie <select id="f-categorie" data-champ="cat"><option value="">Toutes</option>$options_categorie</select></label>
+  <label>État <select id="f-etat" data-champ="etat"><option value="">Tous</option><option value="A">Actif</option><option value="I">Inactif</option></select></label>
   <button type="reset" id="f-reinitialiser">Réinitialiser</button>
 </form>
 <p class="compteur" id="compteur">$nombre_etablissements établissement(s).</p>
-<table id="table-etablissements">
+<table id="table-etablissements" data-natures>
 <thead><tr><th>N° FINESS</th><th>Nom</th><th>Catégorie</th><th>Département</th><th>Code postal</th><th>État</th><th>Activités</th></tr></thead>
 <tbody>
 $lignes
@@ -59,68 +53,4 @@ $lignes
 
 <!-- BLOC capacite --><li>$nombre <span class="code-brut">(unité $unite, statut $statut)</span></li><!-- FIN capacite -->
 
-<!-- BLOC script -->
-<script>
-(function () {
-  "use strict";
-  var filtres = document.getElementById("filtres");
-  var recherche = document.getElementById("f-recherche");
-  var departement = document.getElementById("f-departement");
-  var categorie = document.getElementById("f-categorie");
-  var etat = document.getElementById("f-etat");
-  var compteur = document.getElementById("compteur");
-  var vide = document.getElementById("vide");
-  var lignes = Array.prototype.slice.call(
-    document.querySelectorAll("#table-etablissements > tbody > tr"));
-  lignes.forEach(function (tr) {
-    tr.nomMinuscule = tr.children[1].textContent.toLowerCase();
-  });
-
-  function filtrer() {
-    var q = recherche.value.trim().toLowerCase();
-    var visibles = 0;
-    lignes.forEach(function (tr) {
-      var ok = (!q || tr.nomMinuscule.indexOf(q) !== -1) &&
-        (!departement.value || tr.dataset.dep === departement.value) &&
-        (!categorie.value || tr.dataset.cat === categorie.value) &&
-        (!etat.value || tr.dataset.etat === etat.value);
-      tr.hidden = !ok;
-      if (ok) visibles += 1;
-    });
-    compteur.textContent = visibles + " établissement(s) affiché(s) sur " + lignes.length + ".";
-    vide.hidden = visibles !== 0;
-  }
-
-  filtres.addEventListener("input", filtrer);
-  filtres.addEventListener("reset", function () { setTimeout(filtrer, 0); });
-  filtres.hidden = false;
-  filtrer();
-
-  // Filtre par nature dans le détail d'un établissement, ajouté à la première
-  // ouverture quand il porte au moins deux natures distinctes.
-  document.querySelectorAll("#table-etablissements details").forEach(function (details) {
-    details.addEventListener("toggle", function () {
-      if (!details.open || details.dataset.pret) return;
-      details.dataset.pret = "1";
-      var activites = Array.prototype.slice.call(details.querySelectorAll("tbody tr"));
-      var natures = activites.map(function (tr) { return tr.dataset.nature; })
-        .filter(function (n, i, t) { return n && t.indexOf(n) === i; }).sort();
-      if (natures.length < 2) return;
-      var label = document.createElement("label");
-      label.className = "filtre-nature";
-      label.textContent = "Filtrer par nature ";
-      var select = document.createElement("select");
-      select.appendChild(new Option("Toutes", ""));
-      natures.forEach(function (n) { select.appendChild(new Option(n, n)); });
-      select.addEventListener("change", function () {
-        activites.forEach(function (tr) {
-          tr.hidden = !!select.value && tr.dataset.nature !== select.value;
-        });
-      });
-      label.appendChild(select);
-      details.querySelector("summary").after(label);
-    });
-  });
-})();
-</script>
-<!-- FIN script -->
+<!-- BLOC script --><script src="actifs/filtres.js"></script><!-- FIN script -->
