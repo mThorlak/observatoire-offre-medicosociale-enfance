@@ -42,7 +42,8 @@ python src/cli.py tout <structures.json.gz> <activites.json.gz>
 python src/cli.py charger <base.sqlite> <structures.json.gz> [--activites ...] [--creer] [--remplacer]
 python src/cli.py restituer <base.sqlite> [--sortie restitution/]   # export CSV + rapport (OOM-14)
 ```
-Rendu du site statique (couche 6, hors CLI) : `python src/export_html.py <base.sqlite> --sortie site/`.
+Rendu du site statique (couche 6, hors CLI) : `python src/export_html.py <base.sqlite> --sortie site/`
+(une page par département par défaut, `--decoupage national` pour une liste unique).
 
 **Tests** — pas de pytest, pas d'assert : chaque `tests/test_*.py` est un script autonome qui
 s'exécute directement, incrémente un compteur local `ok`/`ko` via une fonction `verifier(...)`, et se
@@ -114,21 +115,42 @@ toujours `None`, jamais une valeur inventée). Son écriture JSON (`exporter` �
 gitignored) ne sert plus aucune page depuis la suppression des anciens HTML écrits à la main (OOM-104) ;
 elle est conservée en l'état, hors périmètre de la refonte.
 
-**Couche 6 — site par gabarits (épopée « socle de restitution », OOM-100 à OOM-104)** :
-`export_html.py` (contrat A : `rendre(entrepot, dossier_gabarits, dossier_sortie) -> dict`) rend
-`index.html` (accueil avec mention de périmètre, OOM-103), `liste.html` (établissements et leurs
-activités) et `indicateur.html` (tableau département × catégorie de la couche 5) depuis
-`front/gabarits/` (`base.html` + un gabarit par page, blocs `<!-- BLOC nom -->…<!-- FIN nom -->`
-substitués par `string.Template`, aucune logique dans le gabarit), puis recopie `front/actifs/`
-(feuille de style commune `ooms.css`, îlot `filtres.js`, OOM-102) dans `site/actifs/`. Tout le contenu
-utile est dans le HTML ; le JS n'ajoute que tri et filtres (D10). Un gabarit ou un bloc manquant lève
-`ErreurExportHtml` avant toute écriture, chemin dans le message ; un code hors référentiel est
-rendu `[non résolu]` avec son code brut, jamais un libellé inventé. Couvert par
-`tests/test_export_html.py` (OOM-104). Rendu du site :
+**Couche 6 — site par gabarits (épopée « socle de restitution », OOM-100 à OOM-104, OOM-106)** :
+`export_html.py` (contrat A : `rendre(entrepot, dossier_gabarits, dossier_sortie,
+decoupage="departement") -> dict`) rend `index.html` (accueil avec mention de périmètre, OOM-103, et
+un lien vers chaque page départementale), `indicateur.html` (tableau département × catégorie de la
+couche 5) et, selon le découpage, une page d'établissements par département (`departement.html`,
+défaut, OOM-106) ou une liste nationale unique `liste.html` (`--decoupage national`, conservée pour
+la consultation locale : ~55 Mo à l'échelle réelle, elle viole D9). Gabarits dans `front/gabarits/`
+(`base.html` + un gabarit par page, blocs `<!-- BLOC nom -->…<!-- FIN nom -->` substitués par
+`string.Template`, aucune logique dans le gabarit), puis recopie de `front/actifs/` (feuille de style
+commune `ooms.css`, îlot `filtres.js`, OOM-102) dans `site/actifs/`. Tout le contenu utile est dans le
+HTML ; le JS n'ajoute que tri et filtres (D10). Un gabarit ou un bloc manquant lève `ErreurExportHtml`
+avant toute écriture, chemin dans le message ; un code hors référentiel est rendu `[non résolu]` avec
+son code brut, jamais un libellé inventé. La liste des départements est une donnée versionnée
+(`referentiels/departements.csv`, COG INSEE, lue par `territoires.charger_departements`), jamais une
+liste en dur. Couvert par `tests/test_export_html.py` (OOM-104, OOM-106). Rendu du site :
 ```bash
-python src/export_html.py <base.sqlite> [--sortie site/] [--gabarits front/gabarits/]
+python src/export_html.py <base.sqlite> [--sortie site/] [--gabarits front/gabarits/] [--decoupage departement|national]
 python -m http.server -d site   # consultation locale ; site/ est gitignored (D8)
 ```
+
+**Contrat B — chemins du site** (figé par OOM-106, consommé par OOM-107 ; ne bouge plus). Relatifs à
+`site/` :
+
+| Chemin | Contenu |
+|---|---|
+| `index.html`, `indicateur.html` | pages nationales (accueil, indicateur) |
+| `departement/<code>.html` | une page par département de `referentiels/departements.csv` (101), **même sans établissement** (page explicite, jamais une absence de fichier) ; `<code>` = code département INSEE **en texte** : `01`…`95`, `2A`, `2B`, `971`…`976` — jamais converti en nombre |
+| `departement/indetermine.html` | établissements dont le `cog_commune` est absent, non résolu, ou résolu en un code hors référentiel (`975`, `98x`…) — visibles, jamais écartés |
+| `donnees/activites/<code>.json`, `donnees/activites/indetermine.json` | fragments d'activités par département, même `<code>` que la page ; **produits et chargés à la demande par OOM-107**, pas encore écrits (les activités restent embarquées dans les pages départementales) |
+| `actifs/` | feuille de style et îlots JS |
+
+Tous les liens entre pages sont **relatifs** (site servi sous le sous-chemin GitHub Pages
+`/observatoire-offre-medicosociale-enfance/`) : une page de `departement/` rejoint la racine par `../`.
+Aucune page ne charge de JSON national. Chaque page départementale rappelle en une ligne la mention de
+périmètre de l'accueil. La somme des établissements des pages départementales est vérifiée égale au
+total avant écriture (`ErreurExportHtml` sinon, D6).
 
 **Principes non négociables** (violer l'un d'eux est un bug d'architecture, pas un détail
 d'implémentation) :

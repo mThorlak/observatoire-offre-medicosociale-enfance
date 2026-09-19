@@ -1,0 +1,72 @@
+<!--
+  Gabarit d'une page départementale (OOM-106), rendu par src/export_html.py
+  une fois par département du référentiel referentiels/departements.csv, plus
+  une fois pour « département indéterminé ». Publiée en
+  departement/<code>.html (contrat B) : tous les liens passent par $racine
+  (« ../ »), jamais par un chemin absolu, le site étant servi sous un
+  sous-chemin.
+  Chaque bloc BLOC nom … FIN nom est un gabarit string.Template : il
+  substitue des valeurs déjà calculées et échappées par le module, il ne
+  décide rien (D7) — le choix entre « explication » et
+  « explication_indeterminee », entre « tableau » et « aucun » est fait en
+  Python. La page n'embarque que ses établissements et leurs activités ;
+  tout est dans le HTML, l'îlot actifs/filtres.js n'ajoute que le filtrage
+  (D10). Le rappel de périmètre de l'accueil tient ici en une ligne, en tête
+  de contenu. Pas de « $ » littéral dans les blocs : l'écrire « $$ ».
+-->
+
+<!-- BLOC titre -->$libelle_departement ($code_departement)<!-- FIN titre -->
+
+<!-- BLOC pied -->Généré le $genere_le · millésime FINESS $millesime · $nombre_page établissement(s) sur cette page, dont $actifs_page actif(s) · $activites_page activité(s) sur $avec_activites_page établissement(s) · natures d'activité non résolues (aucune nomenclature versionnée) · $nombre_etablissements établissement(s) sur l'ensemble du site<!-- FIN pied -->
+
+<!-- BLOC style --><!-- FIN style -->
+
+<!-- BLOC contenu -->
+<p class="perimetre" id="perimetre"><strong>Comptage brut : tous les établissements du répertoire FINESS, toutes catégories confondues — la qualification enfance/adolescents n'est pas encore appliquée.</strong> <a href="${racine}index.html#perimetre">Lire la mention de périmètre</a>.</p>
+$explication
+$tableau
+<p><a href="${racine}index.html#par-departement">← Tous les départements</a></p>
+<!-- FIN contenu -->
+
+<!-- BLOC explication --><p>Établissements FINESS dont l'adresse principale est située dans le département $libelle_departement (code INSEE $code_departement), quel que soit leur état : $nombre_page fiche(s), dont $actifs_page actif(s).</p><!-- FIN explication -->
+
+<!-- BLOC explication_indeterminee --><p>Établissements FINESS dont le département n'a pas pu être déterminé : adresse principale absente (<em>[absent]</em>), code commune non résolu (<em>[non résolu]</em>), ou code résolu mais hors du référentiel des départements, comme une collectivité d'outre-mer (<em>[hors référentiel]</em>). Ils ne sont écartés d'aucune page : les voici, $nombre_page fiche(s), dont $actifs_page actif(s).</p><!-- FIN explication_indeterminee -->
+
+<!-- BLOC aucun --><p class="vide" id="aucun">Aucun établissement FINESS n'est rattaché à ce département dans le millésime $millesime chargé.</p><!-- FIN aucun -->
+
+<!-- BLOC tableau -->
+<form class="filtres" id="filtres" hidden data-table="table-etablissements" data-compteur="compteur" data-unite="établissement(s) affiché(s)" data-vide="vide">
+  <label>Recherche (nom) <input type="search" id="f-recherche" placeholder="ex. IME" data-colonne="1"></label>
+  <label>Catégorie <select id="f-categorie" data-champ="cat"><option value="">Toutes</option>$options_categorie</select></label>
+  <label>État <select id="f-etat" data-champ="etat"><option value="">Tous</option><option value="A">Actif</option><option value="I">Inactif</option></select></label>
+  <button type="reset" id="f-reinitialiser">Réinitialiser</button>
+</form>
+<p class="compteur" id="compteur">$nombre_page établissement(s).</p>
+<table id="table-etablissements" data-natures>
+<thead><tr><th>N° FINESS</th><th>Nom</th><th>Catégorie</th><th>Département</th><th>Code postal</th><th>État</th><th>Activités</th></tr></thead>
+<tbody>
+$lignes
+</tbody>
+</table>
+<p class="vide" id="vide" hidden>Aucun établissement ne correspond aux filtres.</p>
+<!-- FIN tableau -->
+
+<!-- BLOC option --><option value="$valeur">$valeur</option><!-- FIN option -->
+
+<!-- BLOC ligne -->
+<tr data-dep="$code_departement" data-cat="$libelle_categorie" data-etat="$code_etat"><td>$num_finess</td><td>$nom</td><td>$categorie <span class="code-brut">($code_categorie)</span></td><td>$departement</td><td>$code_postal</td><td><span class="etat $classe_etat">$etat</span></td><td>$activites</td></tr>
+<!-- FIN ligne -->
+
+<!-- BLOC activites_aucune --><span class="code-brut">aucune</span><!-- FIN activites_aucune -->
+
+<!-- BLOC activites --><details><summary>$nombre activité(s)</summary><table><thead><tr><th>Nature</th><th>État</th><th>Capacité(s)</th></tr></thead><tbody>$lignes</tbody></table></details><!-- FIN activites -->
+
+<!-- BLOC activite --><tr data-nature="$code_nature"><td><span class="$classe_nature">$nature</span> <span class="code-brut">($code_nature)</span></td><td><span class="etat $classe_etat">$etat</span></td><td>$capacites</td></tr><!-- FIN activite -->
+
+<!-- BLOC capacites_aucune --><span class="code-brut">—</span><!-- FIN capacites_aucune -->
+
+<!-- BLOC capacites --><ul class="capacites-liste">$lignes</ul><!-- FIN capacites -->
+
+<!-- BLOC capacite --><li>$nombre <span class="code-brut">(unité $unite, statut $statut)</span></li><!-- FIN capacite -->
+
+<!-- BLOC script --><script src="${racine}actifs/filtres.js"></script><!-- FIN script -->
