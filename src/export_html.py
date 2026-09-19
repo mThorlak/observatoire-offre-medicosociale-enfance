@@ -1,11 +1,16 @@
 """
 export_html.py — Couche 6 (restitution) : pages HTML du site, rendues depuis
-l'entrepôt par gabarits (OOM-100).
+l'entrepôt par gabarits (OOM-100), plus la page d'accueil (OOM-103).
 
 Remplace, à terme, les pages écrites à la main de `front/` (qui violent D7 et
-D10) par des pages produites ici depuis `front/gabarits/`. Deux pages pour
-l'instant, fonctionnellement équivalentes aux anciennes :
+D10) par des pages produites ici depuis `front/gabarits/`. Trois pages pour
+l'instant :
 
+- `index.html` (gabarit `accueil.html`, OOM-103) — porte d'entrée : mention de
+  périmètre (comptage brut, qualification enfance/adolescents non appliquée),
+  chiffres clés du millésime, effectifs par département et par catégorie (les
+  marges `Resultat.par_departement`/`par_categorie` de la couche 5), source
+  FINESS et licence ;
 - `liste.html` — tous les établissements (même lecture qu'`export_front.
   etablissements_bruts`), chacun avec ses activités de niveau `ET` dans un
   `<details>` (même lecture qu'`export_front.activites_par_etablissement`) ;
@@ -18,8 +23,9 @@ CONTRAT A — figé par OOM-100, consommé par OOM-102, OOM-103, OOM-104
     rendre(entrepot, dossier_gabarits, dossier_sortie) -> dict
 
 `entrepot` est un `Entrepot` ouvert ; `dossier_gabarits` contient `base.html`
-et un gabarit par page (`liste.html`, `indicateur.html`) ; `dossier_sortie` est
-créé au besoin et reçoit une page par gabarit, sous le même nom. Le
+et un gabarit par page (`accueil.html`, `liste.html`, `indicateur.html`) ;
+`dossier_sortie` est créé au besoin et reçoit une page par gabarit, sous le même
+nom — sauf l'accueil, publié en `index.html` (`GABARITS_PAGE`). Le
 dictionnaire retourné, sur le modèle d'`export_front.exporter` :
 
     millesime              str        millésime unique de l'entrepôt
@@ -37,6 +43,10 @@ dictionnaire retourné, sur le modèle d'`export_front.exporter` :
     indicateur_lignes      int        = lignes_rendues["indicateur.html"]
     indicateur_total_actifs, indicateur_exclus
                            int        Resultat.total_actifs / Resultat.exclus()
+    accueil_departements, accueil_categories
+                           int        entrées par département / par catégorie
+                                      de l'accueil (= lignes_rendues["index.html"]
+                                      pour les départements)
 
 Lève `ErreurExportHtml` — avant d'écrire quoi que ce soit — si un gabarit ou
 un bloc manque (le message porte le chemin attendu), si un gabarit réclame une
@@ -79,12 +89,15 @@ from typing import Dict, Iterable, List, Mapping, Optional
 
 from entrepot import Entrepot
 from export_front import activites_par_etablissement, etablissements_bruts
-from indicateurs import indicateur_departement_categorie
+from indicateurs import Resultat, indicateur_departement_categorie
 
 __all__ = ["rendre", "ErreurExportHtml", "GABARIT_BASE", "PAGES", "DOSSIER_GABARITS"]
 
 GABARIT_BASE = "base.html"
-PAGES = ("liste.html", "indicateur.html")
+PAGES = ("index.html", "liste.html", "indicateur.html")
+# Gabarit d'une page quand il ne porte pas son nom (l'accueil est publié en
+# `index.html`, porte d'entrée par défaut d'un site statique).
+GABARITS_PAGE = {"index.html": "accueil.html"}
 DOSSIER_GABARITS = Path(__file__).resolve().parent.parent / "front" / "gabarits"
 
 # Blocs que chaque gabarit de page doit fournir à `base.html`.
@@ -256,7 +269,45 @@ def _page_indicateur(gabarit: Gabarit, entrepot: Entrepot,
     return valeurs
 
 
-_CONSTRUCTEURS = {"liste.html": _page_liste, "indicateur.html": _page_indicateur}
+def _page_accueil(gabarit: Gabarit, entrepot: Entrepot,
+                  compteurs: Dict[str, object]) -> Dict[str, str]:
+    """Accueil (OOM-103) : tous les chiffres viennent de la couche 5
+    (`Resultat` et ses marges) ou de `Entrepot.etat` — rien n'est recompté ici."""
+    resultat: Resultat = indicateur_departement_categorie(entrepot)
+    if not resultat.verifier_total():
+        raise ErreurExportHtml("indicateur incohérent : tableau + exclusions != total actifs")
+    departements = resultat.par_departement()
+    categories = resultat.par_categorie()
+    lots = entrepot.etat()["lots"]
+
+    compteurs.update({
+        "accueil_departements": len(departements),
+        "accueil_categories": len(categories),
+    })
+    valeurs = dict(compteurs)
+    valeurs.update({
+        "total_actifs": resultat.total_actifs,
+        "dans_tableau": resultat.dans_tableau(),
+        "exclus": resultat.exclus(),
+        "sans_departement": resultat.sans_departement,
+        "categorie_inconnue": resultat.categorie_inconnue,
+        "nombre_departements": len(departements),
+        "nombre_categories": len(categories),
+        "departements": gabarit.repeter("departement", (
+            {"code_departement": _e(d), "effectif": n} for d, n in departements), "\n"),
+        "categories": gabarit.repeter("categorie", (
+            {"libelle_categorie": _e(c), "effectif": n} for c, n in categories), "\n"),
+        "lots": gabarit.repeter("lot", (
+            {"source": _e(l["source"]), "millesime": _e(l["millesime"]),
+             "fichier": _e(l["fichier"]), "empreinte": _e(l["empreinte"])}
+            for l in lots), "\n"),
+    })
+    compteurs["lignes_rendues"]["index.html"] = len(departements)
+    return valeurs
+
+
+_CONSTRUCTEURS = {"index.html": _page_accueil, "liste.html": _page_liste,
+                  "indicateur.html": _page_indicateur}
 
 
 # ---------------------------------------------------------------------------
@@ -286,7 +337,8 @@ def rendre(entrepot: Entrepot, dossier_gabarits: Path, dossier_sortie: Path) -> 
     dossier_sortie = Path(dossier_sortie)
 
     base = Gabarit(dossier_gabarits / GABARIT_BASE)
-    gabarits = {page: Gabarit(dossier_gabarits / page) for page in PAGES}
+    gabarits = {page: Gabarit(dossier_gabarits / GABARITS_PAGE.get(page, page))
+                for page in PAGES}
     for gabarit in gabarits.values():
         gabarit.exiger(BLOCS_PAGE)
     base_modele = Template(base.chemin.read_text(encoding="utf-8"))
@@ -348,4 +400,6 @@ if __name__ == "__main__":
           f"{bilan['etablissements_avec_activites']} établissement(s) "
           f"({bilan['nature_non_resolue']} nature(s) non résolue(s)), "
           f"indicateur : {bilan['indicateur_total_actifs']} actif(s) dont "
-          f"{bilan['indicateur_exclus']} exclu(s).")
+          f"{bilan['indicateur_exclus']} exclu(s), accueil : "
+          f"{bilan['accueil_departements']} département(s) et "
+          f"{bilan['accueil_categories']} catégorie(s).")
