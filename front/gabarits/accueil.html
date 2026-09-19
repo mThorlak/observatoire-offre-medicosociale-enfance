@@ -5,6 +5,10 @@
   (indicateurs.Resultat et ses marges par département et par catégorie) et
   échappées par le module ; il ne compte, ne trie et ne décide rien (D7).
   Tout le contenu est dans le HTML, la page n'a pas de script (D10).
+  Deux variantes, choisies par le module selon le découpage (OOM-106) : la
+  section par département (departements_national, sans lien, ou
+  departements_decoupes, un lien par page départementale) et la ligne de
+  détail (detail_national / detail_departement).
   Son style vit dans front/actifs/ooms.css (OOM-102), comme celui des autres
   pages : aucun gabarit ne porte de balise style.
   La mention de périmètre est la contrepartie de la stratégie « publier tôt » :
@@ -35,18 +39,10 @@
   <li><strong>$exclus</strong><span>actifs non répartis ($sans_departement sans département résolu, $categorie_inconnue catégorie non résolue)</span></li>
 </ul>
 
-<p>Pour le détail : <a href="indicateur.html">tableau département × catégorie</a> · <a href="liste.html">liste des établissements</a>.</p>
+$detail
 
 <div class="entrees">
-<section id="par-departement">
-  <h2>Par département ($nombre_departements)</h2>
-  <table>
-  <thead><tr><th>Département</th><th>Établissements actifs</th></tr></thead>
-  <tbody>
-$departements
-  </tbody>
-  </table>
-</section>
+$section_departements
 <section id="par-categorie">
   <h2>Par catégorie ($nombre_categories)</h2>
   <table>
@@ -69,9 +65,46 @@ $lots
 </section>
 <!-- FIN contenu -->
 
+<!-- BLOC detail_departement --><p>Pour le détail : <a href="indicateur.html">tableau département × catégorie</a> · <a href="#par-departement">une page d'établissements par département</a>.</p><!-- FIN detail_departement -->
+
+<!-- BLOC detail_national --><p>Pour le détail : <a href="indicateur.html">tableau département × catégorie</a> · <a href="liste.html">liste des établissements</a>.</p><!-- FIN detail_national -->
+
+<!-- BLOC departements_national -->
+<section id="par-departement">
+  <h2>Par département ($nombre_departements)</h2>
+  <table>
+  <thead><tr><th>Département</th><th>Établissements actifs</th></tr></thead>
+  <tbody>
+$departements
+  </tbody>
+  </table>
+</section>
+<!-- FIN departements_national -->
+
 <!-- BLOC departement -->
   <tr><td>$code_departement</td><td class="effectif">$effectif</td></tr>
 <!-- FIN departement -->
+
+<!-- BLOC departements_decoupes -->
+<section id="par-departement">
+  <h2>Par département ($nombre_departements représentés, $nombre_pages pages)</h2>
+  <p>Chaque département a sa page d'établissements, même sans établissement ; ceux dont le département n'a pas pu être déterminé sont regroupés sur une page à part.</p>
+  <table>
+  <thead><tr><th>Département</th><th>Établissements actifs répartis</th><th>Fiches sur la page</th></tr></thead>
+  <tbody>
+$departements
+  </tbody>
+  </table>
+</section>
+<!-- FIN departements_decoupes -->
+
+<!-- BLOC departement_lien -->
+  <tr><td><a href="$lien">$code_departement — $libelle_departement</a></td><td class="effectif">$effectif</td><td class="fiches">$fiches</td></tr>
+<!-- FIN departement_lien -->
+
+<!-- BLOC departement_indetermine_lien -->
+  <tr><td><a href="$lien">Département indéterminé</a></td><td class="effectif">$effectif</td><td class="fiches">$fiches</td></tr>
+<!-- FIN departement_indetermine_lien -->
 
 <!-- BLOC categorie -->
   <tr><td>$libelle_categorie</td><td class="effectif">$effectif</td></tr>

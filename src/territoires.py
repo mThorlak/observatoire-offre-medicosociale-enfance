@@ -30,21 +30,20 @@ son préfixe :
 - Corse : les deux premiers caractères valent `2A` ou `2B` directement dans
   `cog_commune` (ex. `2A247`, `2B033`) ; ce sont eux le code département,
   pas une valeur numérique.
-- Outre-mer (DOM-TOM-COM) : un code commune commençant par `9` désigne, en
-  principe, un département ou une collectivité à préfixe de trois chiffres
-  (`971` à `978`, `986` à `988`...). C'est le chiffre `9` en tête qui signale
-  ce format à trois chiffres, quelle que soit la valeur exacte du préfixe :
+- Outre-mer (DOM-TOM-COM) : un code commune dont les deux premiers
+  chiffres dépassent la borne métropolitaine (`96` à `99`) désigne un
+  département ou une collectivité à préfixe de trois chiffres (`971` à
+  `978`, `986` à `988`...). Ce sont ces deux chiffres de tête qui signalent
+  le format à trois chiffres, quelle que soit la valeur exacte du troisième :
   cette fonction ne maintient délibérément aucune liste fermée des préfixes
   ultramarins valides, pour ne pas échouer sur un préfixe réel mais absent
   d'un échantillon de données donné.
-  **Exception unique et nécessaire : le Val-d'Oise (`95`).** C'est le seul
-  département métropolitain dont le préfixe à deux chiffres commence par
-  `9` (aucun autre département de 01 à 95 ne partage ce chiffre de tête).
-  Un code commune comme `95580` doit donc rester résolu en département
-  `95`, et non être happé par la règle « 9 en tête → 3 chiffres ». Cette
-  unique exception est structurelle (un seul département sur cent), non une
-  table de correspondance par commune : elle ne contredit pas l'absence de
-  lookup table exigée par ce module.
+  **Les départements métropolitains `90` à `95` commencent aussi par `9`**
+  (Territoire de Belfort, Essonne, Hauts-de-Seine, Seine-Saint-Denis,
+  Val-de-Marne, Val-d'Oise) : un code commune comme `91228` ou `95580` reste
+  résolu sur deux chiffres (`91`, `95`). Jusqu'à OOM-106, seule l'exception
+  `95` était traitée et `90` à `94` étaient dérivés à tort en `900`…`940` ;
+  la borne numérique ci-dessus corrige cette erreur sans table par commune.
 
 **Non-résolution : jamais de valeur devinée.** Conformément à D6 (« aucun
 échec silencieux ») et à l'idiome déjà en usage dans ce dépôt
@@ -56,12 +55,31 @@ Aucune valeur par défaut n'est retournée : un appelant qui veut tolérer les
 jamais en recevant silencieusement `None` ou une chaîne vide qui finirait
 par fuiter dans un export.
 
+**Liste des départements (OOM-106) — donnée versionnée (D4).** La dérivation
+ci-dessus ne dit pas quels départements *existent* : il en faut la liste
+fermée pour énumérer les pages départementales du site, y compris celles d'un
+département sans établissement. Elle vit dans `referentiels/departements.csv`
+(code, libellé ; source et millésime du COG INSEE en en-tête), chargée par
+`charger_departements` — jamais écrite dans le code. Les deux mécanismes
+restent distincts : un code dérivé absent de cette liste (collectivité
+d'outre-mer `975`, `98x`…) n'est pas une erreur de dérivation, c'est à
+l'appelant de le traiter comme « département non résolu au référentiel ».
+
 Aucune dépendance tierce. Compatible Python 3.9+.
 """
 
 from __future__ import annotations
 
-__all__ = ["ErreurTerritoires", "departement_depuis_cog"]
+import csv
+from pathlib import Path
+from typing import Dict, Optional
+
+__all__ = ["ErreurTerritoires", "departement_depuis_cog",
+           "CHEMIN_REFERENTIEL_DEPARTEMENTS", "charger_departements"]
+
+# Racine du dépôt : src/territoires.py -> src/ -> racine.
+CHEMIN_REFERENTIEL_DEPARTEMENTS = (
+    Path(__file__).resolve().parent.parent / "referentiels" / "departements.csv")
 
 # Bornes numériques des départements métropolitains. 20 est exclu : depuis la
 # partition de la Corse en 1976, aucune commune n'est plus rattachée au
@@ -111,13 +129,11 @@ def departement_depuis_cog(cog_commune: str) -> str:
             f"cog_commune de longueur inattendue ({len(valeur)}, "
             f"{_LONGUEUR_COG_COMMUNE} attendus) : {cog_commune!r}")
 
-    # Outre-mer : un code commençant par 9 est de la forme XYZ + 2 chiffres,
-    # le préfixe à trois chiffres portant le département ou la collectivité.
-    # Aucune liste fermée de préfixes valides n'est maintenue ici : le chiffre
-    # de tête suffit à identifier le format, conformément à la règle du COG —
-    # à la seule exception du Val-d'Oise (95), seul département métropolitain
-    # dont le préfixe à deux chiffres commence lui aussi par 9.
-    if valeur[0] == "9" and valeur[:2] != "95":
+    # Outre-mer : deux premiers chiffres au-delà de la borne métropolitaine
+    # (96 à 99) -> préfixe à trois chiffres portant le département ou la
+    # collectivité. Aucune liste fermée de préfixes valides n'est maintenue
+    # ici. Les départements 90 à 95, métropolitains, restent à deux chiffres.
+    if valeur[:2].isdigit() and int(valeur[:2]) > _DEPARTEMENT_METROPOLE_MAX:
         prefixe = valeur[:3]
         if not prefixe.isdigit():
             raise ErreurTerritoires(
@@ -139,3 +155,40 @@ def departement_depuis_cog(cog_commune: str) -> str:
         raise ErreurTerritoires(
             f"préfixe de département hors bornes valides : {cog_commune!r}")
     return prefixe
+
+
+def charger_departements(chemin: Optional[Path] = None) -> Dict[str, str]:
+    """Charge la liste versionnée des départements : code -> libellé.
+
+    L'ordre du dictionnaire est celui du fichier (ordre du COG : `01`…`29`,
+    `2A`, `2B`, `30`…`95`, `971`…`976`). Les lignes commençant par `#`
+    (en-tête de provenance) sont ignorées. Les codes restent du texte, tels
+    qu'écrits dans le fichier : aucun n'est converti en nombre.
+
+    Lève `ErreurTerritoires` si le fichier est absent, s'il n'a pas les
+    colonnes `code;libelle`, si une ligne a un code ou un libellé vide, ou si
+    un code y figure deux fois — un référentiel incomplet ne se tait pas (D6).
+    """
+    chemin = Path(chemin) if chemin is not None else CHEMIN_REFERENTIEL_DEPARTEMENTS
+    if not chemin.is_file():
+        raise ErreurTerritoires(f"référentiel des départements introuvable : {chemin}")
+
+    departements: Dict[str, str] = {}
+    with open(chemin, encoding="utf-8", newline="") as f:
+        lecteur = csv.DictReader((l for l in f if not l.startswith("#")), delimiter=";")
+        if lecteur.fieldnames is None or not {"code", "libelle"} <= set(lecteur.fieldnames):
+            raise ErreurTerritoires(
+                f"référentiel {chemin} : colonnes code;libelle attendues, "
+                f"reçu {lecteur.fieldnames!r}")
+        for numero, ligne in enumerate(lecteur, start=1):
+            code = (ligne["code"] or "").strip()
+            libelle = (ligne["libelle"] or "").strip()
+            if not code or not libelle:
+                raise ErreurTerritoires(
+                    f"référentiel {chemin} : ligne de données {numero} incomplète {ligne!r}")
+            if code in departements:
+                raise ErreurTerritoires(f"référentiel {chemin} : code {code!r} en double")
+            departements[code] = libelle
+    if not departements:
+        raise ErreurTerritoires(f"référentiel {chemin} : aucun département")
+    return departements
