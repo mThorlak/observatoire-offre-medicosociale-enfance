@@ -1,0 +1,247 @@
+name: Publication GitHub Pages
+
+# Workflow de publication UNIQUE du site (OOM-108, repris et ajusté par
+# OOM-54 : millésime mensuel figé, `schedule`, qualification). Ne jamais
+# créer un second workflow de publication à côté de celui-ci.
+#
+# GitHub Pages fait échouer tout déploiement de plus de dix minutes. Charger
+# l'extrait complet puis rendre ~102 pages dans un seul job frôle cette
+# limite : la chaîne est donc découpée en trois jobs, chacun borné à
+# `timeout-minutes: 10` :
+#
+#   charger   télécharge Structures + Activités (extraits courants de
+#             data.gouv.fr, mêmes scripts que les workflows quotidiens),
+#             `cli.py charger --creer`, `cli.py integrite`, puis publie
+#             `base.sqlite` en artefact à rétention courte ;
+#   rendre    récupère la base (de ce run, ou d'un run précédent via
+#             l'entrée `run_id_base` — rejoue le rendu sans recharger),
+#             `export_html.py` (découpage département), `upload-pages-artifact` ;
+#   deployer  `deploy-pages`, seulement depuis `main` et seulement une fois
+#             Pages activé (variable de dépôt `PAGES_ACTIVE`, posée par
+#             OOM-55) ; sinon sauté, jamais en échec.
+#
+# D6 : `charger` et `integrite` sortent en 1 sur échec ; `rendre` en dépend,
+# donc aucun site ne sort d'un entrepôt en échec. Un rejeu via `run_id_base`
+# ne récupère qu'un artefact produit par un job `charger` réussi (l'artefact
+# n'est publié qu'après `integrite`).
+# D8 : rien n'est commité — la base et le site ne transitent que par des
+# artefacts d'Actions.
+#
+# Chaque job écrit la durée de chacune de ses étapes et ses compteurs clés
+# dans le résumé du run ($GITHUB_STEP_SUMMARY).
+
+"on":
+  # TEMPORAIRE (OOM-108) : mesure des durées sur extrait complet depuis la
+  # branche de travail — workflow_dispatch n'est déclenchable que depuis la
+  # branche par défaut. À retirer avant la PR.
+  push:
+    branches: [thomasfoch/oom-108-tenir-la-limite-de-dix-minutes-du-run-de-publication]
+    paths: [.github/workflows/pages.yml]
+  workflow_dispatch:
+    inputs:
+      run_id_base:
+        description: "Identifiant d'un run précédent dont réutiliser base.sqlite (rejoue le rendu sans recharger) — vide : charger à neuf"
+        required: false
+        default: ""
+      retention_days:
+        description: "Rétention de l'artefact base.sqlite (jours)"
+        required: false
+        default: "3"
+
+permissions:
+  contents: read
+
+# Un déploiement à la fois ; on n'annule pas un déploiement en cours.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+env:
+  PYTHONPATH: src
+  PYTHONIOENCODING: utf-8
+
+jobs:
+  charger:
+    if: (inputs.run_id_base || '') == ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Démarrer le chronomètre
+        run: |
+          echo "DEBUT_JOB=$(date +%s)" >> "$GITHUB_ENV"
+          {
+            echo "### Job charger"
+            echo
+            echo "| Étape | Durée |"
+            echo "|---|---:|"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Télécharger FINESS-Structures
+        run: |
+          set -euo pipefail
+          t=$(date +%s)
+          mkdir -p donnees
+          python3 scripts/telecharger_finess_structures.py donnees/structures.json.gz
+          echo "| Télécharger Structures ($(stat -c%s donnees/structures.json.gz) o) | $(( $(date +%s) - t )) s |" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Télécharger FINESS-Activités
+        run: |
+          set -euo pipefail
+          t=$(date +%s)
+          python3 scripts/telecharger_finess_activites.py donnees/activites.json.gz
+          echo "| Télécharger Activités ($(stat -c%s donnees/activites.json.gz) o) | $(( $(date +%s) - t )) s |" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Charger l'entrepôt
+        run: |
+          set -euo pipefail
+          t=$(date +%s)
+          python3 src/cli.py charger base.sqlite donnees/structures.json.gz \
+            --activites donnees/activites.json.gz --creer
+          echo "| Charger l'entrepôt | $(( $(date +%s) - t )) s |" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Contrôler l'intégrité (bloquant, D6)
+        run: |
+          set -euo pipefail
+          t=$(date +%s)
+          python3 src/cli.py integrite donnees/structures.json.gz donnees/activites.json.gz
+          echo "| Contrôler l'intégrité | $(( $(date +%s) - t )) s |" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Publier la base en artefact
+        uses: actions/upload-artifact@v4
+        with:
+          name: base-sqlite
+          path: base.sqlite
+          retention-days: ${{ fromJSON(inputs.retention_days || '3') }}
+          if-no-files-found: error
+
+      - name: Résumé du job
+        if: always()
+        run: |
+          {
+            echo "| **Total du job** | **$(( $(date +%s) - DEBUT_JOB )) s** |"
+            echo
+            if [ -f base.sqlite ]; then
+              echo "Base : $(stat -c%s base.sqlite) octets — lignes chargées par table :"
+              echo
+              echo "| Table | Lignes |"
+              echo "|---|---:|"
+              python3 - <<'EOF'
+          import sqlite3
+          c = sqlite3.connect("base.sqlite")
+          for (t,) in c.execute("SELECT name FROM sqlite_master WHERE type='table' ORDER BY name"):
+              print(f"| {t} | {c.execute(f'SELECT COUNT(*) FROM \"{t}\"').fetchone()[0]} |")
+          EOF
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  rendre:
+    needs: charger
+    # Tourne après un `charger` réussi, ou seul quand on rejoue depuis la base
+    # d'un run précédent (`charger` sauté). Jamais après un `charger` en échec.
+    if: >-
+      always() && (needs.charger.result == 'success' ||
+      (needs.charger.result == 'skipped' && (inputs.run_id_base || '') != ''))
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      actions: read  # télécharger l'artefact d'un autre run
+    steps:
+      - name: Démarrer le chronomètre
+        run: |
+          echo "DEBUT_JOB=$(date +%s)" >> "$GITHUB_ENV"
+          {
+            echo "### Job rendre"
+            echo
+            echo "Base : run ${{ inputs.run_id_base || github.run_id }}"
+            echo
+            echo "| Étape | Durée |"
+            echo "|---|---:|"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Récupérer la base
+        uses: actions/download-artifact@v4
+        with:
+          name: base-sqlite
+          run-id: ${{ inputs.run_id_base || github.run_id }}
+          github-token: ${{ github.token }}
+
+      - name: Rendre le site
+        run: |
+          set -euo pipefail
+          t=$(date +%s)
+          python3 src/export_html.py base.sqlite --sortie site/ | tee rendu.txt
+          echo "| Rendre le site | $(( $(date +%s) - t )) s |" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Préparer l'artefact Pages
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site/
+
+      - name: Résumé du job
+        if: always()
+        run: |
+          {
+            echo "| **Total du job** | **$(( $(date +%s) - DEBUT_JOB )) s** |"
+            echo
+            if [ -d site ]; then
+              echo "- Pages écrites : $(find site -name '*.html' | wc -l)"
+              echo "- Poids total du site : $(du -sb site | cut -f1) octets"
+              echo "- Page la plus lourde : $(find site -name '*.html' -printf '%s %P\n' | sort -n | tail -1 | awk '{print $2 " (" $1 " octets)"}')"
+            fi
+            if [ -f rendu.txt ]; then
+              echo
+              echo '```'
+              cat rendu.txt
+              echo '```'
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  deployer:
+    needs: rendre
+    # Déploie seulement depuis `main` ET une fois Pages configuré pour ce
+    # workflow (OOM-55). Au 27/09/2026, Pages sert le dépôt en mode `legacy`
+    # depuis la branche `gh-pages-test` : `deploy-pages` exige la source
+    # « GitHub Actions » et échouerait, rendant `main` rouge. Tant que la
+    # variable de dépôt `PAGES_ACTIVE` ne vaut pas `true`, le job est donc
+    # sauté, pas en échec. OOM-55 bascule la source de Pages puis pose la
+    # variable (`gh variable set PAGES_ACTIVE --body true`), sans toucher
+    # ce fichier.
+    if: github.ref == 'refs/heads/main' && vars.PAGES_ACTIVE == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploiement.outputs.page_url }}
+    steps:
+      - name: Démarrer le chronomètre
+        run: echo "DEBUT_JOB=$(date +%s)" >> "$GITHUB_ENV"
+
+      - name: Déployer sur GitHub Pages
+        id: deploiement
+        uses: actions/deploy-pages@v4
+
+      - name: Résumé du job
+        if: always()
+        run: |
+          {
+            echo "### Job deployer"
+            echo
+            echo "- Durée : $(( $(date +%s) - DEBUT_JOB )) s"
+            echo "- URL : ${{ steps.deploiement.outputs.page_url }}"
+          } >> "$GITHUB_STEP_SUMMARY"
