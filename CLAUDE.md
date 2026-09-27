@@ -43,7 +43,8 @@ python src/cli.py charger <base.sqlite> <structures.json.gz> [--activites ...] [
 python src/cli.py restituer <base.sqlite> [--sortie restitution/]   # export CSV + rapport (OOM-14)
 ```
 Rendu du site statique (couche 6, hors CLI) : `python src/export_html.py <base.sqlite> --sortie site/`
-(une page par département par défaut, `--decoupage national` pour une liste unique).
+(une page par département par défaut, paginée en sous-pages bornées — OOM-115 —, `--decoupage
+national` pour une liste unique).
 
 **Tests** — pas de pytest, pas d'assert : chaque `tests/test_*.py` est un script autonome qui
 s'exécute directement, incrémente un compteur local `ok`/`ko` via une fonction `verifier(...)`, et se
@@ -115,48 +116,65 @@ toujours `None`, jamais une valeur inventée). Son écriture JSON (`exporter` �
 gitignored) ne sert plus aucune page depuis la suppression des anciens HTML écrits à la main (OOM-104) ;
 elle est conservée en l'état, hors périmètre de la refonte.
 
-**Couche 6 — site par gabarits (épopée « socle de restitution », OOM-100 à OOM-104, OOM-106)** :
+**Couche 6 — site par gabarits (épopée « socle de restitution », OOM-100 à OOM-104, OOM-106, OOM-115)** :
 `export_html.py` (contrat A : `rendre(entrepot, dossier_gabarits, dossier_sortie,
-decoupage="departement") -> dict`) rend `index.html` (accueil avec mention de périmètre, OOM-103, et
-un lien vers chaque page départementale), `indicateur.html` (tableau département × catégorie de la
-couche 5) et, selon le découpage, une page d'établissements par département (`departement.html`,
-défaut, OOM-106) ou une liste nationale unique `liste.html` (`--decoupage national`, conservée pour
-la consultation locale : ~55 Mo à l'échelle réelle, elle viole D9). Gabarits dans `front/gabarits/`
+decoupage="departement", lignes_par_sous_page=LIGNES_PAR_SOUS_PAGE) -> dict`) rend `index.html`
+(accueil avec mention de périmètre, OOM-103, et un lien vers chaque page départementale),
+`indicateur.html` (sommaire de l'indicateur département × catégorie de la couche 5 : une ligne par
+département, liée à `indicateur/<code>.html` qui porte ses cases, OOM-115) et, selon le découpage,
+une page par département paginée en sous-pages (`departement.html` + `departement_sous_page.html`,
+défaut, OOM-106, OOM-115) ou une liste nationale unique `liste.html` (`--decoupage national`,
+conservée pour la consultation locale : ~55 Mo à l'échelle réelle, elle viole D9 — seule page
+exemptée du contrôle de budget, `PAGES_NON_BORNEES`). Gabarits dans `front/gabarits/`
 (`base.html` + un gabarit par page, blocs `<!-- BLOC nom -->…<!-- FIN nom -->` substitués par
 `string.Template`, aucune logique dans le gabarit), puis recopie de `front/actifs/` (feuille de style
 commune `ooms.css`, îlots `filtres.js`, OOM-102, et `activites.js`, OOM-107) dans `site/actifs/`. Tout
 le contenu utile est dans le HTML ; le JS n'ajoute que tri et filtres (D10) — sauf le détail des
-activités des pages départementales (OOM-107) : la page n'en porte que le nombre par établissement,
-le détail est écrit dans `site/donnees/activites/<code>.json` et chargé par `activites.js` au premier
-clic sur un panneau, jamais au chargement (D9) ; sans JS, un `<noscript>` lie ce fragment. Un `fetch`
-en échec s'affiche dans le panneau (D6). Un gabarit ou un bloc manquant lève `ErreurExportHtml`
-avant toute écriture, chemin dans le message ; un code hors référentiel est rendu `[non résolu]` avec
-son code brut, jamais un libellé inventé. La liste des départements est une donnée versionnée
-(`referentiels/departements.csv`, COG INSEE, lue par `territoires.charger_departements`), jamais une
-liste en dur. Couvert par `tests/test_export_html.py` (OOM-104, OOM-106, OOM-107 — ce dernier sert
-le site par `http.server` et exécute `activites.js` sous Node s'il est présent, contre un DOM factice,
-`tests/js/harnais_activites.js`). Rendu du site :
+activités des sous-pages départementales (OOM-107) : la sous-page n'en porte que le nombre par
+établissement, le détail est écrit dans `site/donnees/activites/<code>/<n>.json` et chargé par
+`activites.js` au premier clic sur un panneau, jamais au chargement (D9) ; sans JS, un `<noscript>`
+lie ce fragment. Un `fetch` en échec s'affiche dans le panneau (D6). Un gabarit ou un bloc manquant
+lève `ErreurExportHtml` avant toute écriture, chemin dans le message ; un code hors référentiel est
+rendu `[non résolu]` avec son code brut, jamais un libellé inventé. La liste des départements est une
+donnée versionnée (`referentiels/departements.csv`, COG INSEE, lue par
+`territoires.charger_departements`), jamais une liste en dur. Couvert par `tests/test_export_html.py`
+(OOM-104, OOM-106, OOM-107, OOM-115 — OOM-107 sert le site par `http.server` et exécute
+`activites.js` sous Node s'il est présent, contre un DOM factice, `tests/js/harnais_activites.js`).
+Rendu du site, puis mesure du budget D9 (`mesures/poids_site.py`, code de retour 1 si une page
+dépasse 500 Ko ; rapport versionné `mesures/poids_site.md`) :
 ```bash
-python src/export_html.py <base.sqlite> [--sortie site/] [--gabarits front/gabarits/] [--decoupage departement|national]
+python src/export_html.py <base.sqlite> [--sortie site/] [--gabarits front/gabarits/] [--decoupage departement|national] [--lignes-par-sous-page 1000]
+python mesures/poids_site.py site/ [--rapport mesures/poids_site.md]
 python -m http.server -d site   # consultation locale ; site/ est gitignored (D8)
 ```
 
-**Contrat B — chemins du site** (figé par OOM-106, consommé par OOM-107 ; ne bouge plus). Relatifs à
-`site/` :
+**Pagination bornée (OOM-115, D9 par construction).** Les établissements d'un département, par
+numéro FINESS croissant, sont découpés en sous-pages d'au plus `LIGNES_PAR_SOUS_PAGE` = 1 000 lignes
+(constante mesurée sur l'extrait complet du 27/09/2026 : ligne de 364 o en médiane, 456 o au plus).
+Un département qui tient en une sous-page en a quand même une : pas de cas particulier. La recherche
+et les filtres JS ne portent que sur la sous-page affichée, ce que la sous-page écrit. Avant toute
+écriture, chaque page (sauf `liste.html`) est mesurée avec tous les actifs du site : au-delà de
+`BUDGET_PAGE` (500 Ko bruts, jamais gzip), `ErreurExportHtml` nomme les pages et rien n'est écrit.
+
+**Contrat B — chemins du site** (posé par OOM-106, consommé par OOM-107, révisé par OOM-115). Relatifs
+à `site/` :
 
 | Chemin | Contenu |
 |---|---|
-| `index.html`, `indicateur.html` | pages nationales (accueil, indicateur) |
-| `departement/<code>.html` | une page par département de `referentiels/departements.csv` (101), **même sans établissement** (page explicite, jamais une absence de fichier) ; `<code>` = code département INSEE **en texte** : `01`…`95`, `2A`, `2B`, `971`…`976` — jamais converti en nombre |
-| `departement/indetermine.html` | établissements dont le `cog_commune` est absent, non résolu, ou résolu en un code hors référentiel (`975`, `98x`…) — visibles, jamais écartés |
-| `donnees/activites/<code>.json`, `donnees/activites/indetermine.json` | fragments d'activités par département, même `<code>` que la page, un par page (même vide : `{}`) ; structure d'`activites.json` (`{num_finess_et: [activité]}`) restreinte à la page ; **chargés à la demande** par `actifs/activites.js` (OOM-107), jamais au chargement de la page |
+| `index.html`, `indicateur.html` | pages nationales (accueil, sommaire de l'indicateur) |
+| `indicateur/<code>.html` | cases département × catégorie d'un département présent dans le tableau de la couche 5 (y compris un code hors référentiel comme `975`) ; lignes bornées par le nombre de catégories |
+| `departement/<code>.html` | une page par département de `referentiels/departements.csv` (101), **même sans établissement** (page explicite, jamais une absence de fichier) : sommaire de ses sous-pages, liées en HTML avec effectif, actifs et plage de n° FINESS — aucune fiche ; `<code>` = code département INSEE **en texte** : `01`…`95`, `2A`, `2B`, `971`…`976` — jamais converti en nombre |
+| `departement/indetermine.html` | même sommaire pour les établissements dont le `cog_commune` est absent, non résolu, ou résolu en un code hors référentiel (`975`, `98x`…) — visibles, jamais écartés |
+| `departement/<code>/<n>.html` | sous-page `n` = 1, 2… : au plus `LIGNES_PAR_SOUS_PAGE` établissements ; au moins une par département, même vide |
+| `donnees/activites/<code>/<n>.json` | fragment d'activités de la sous-page de mêmes `<code>` et `<n>`, un par sous-page (même vide : `{}`) ; structure d'`activites.json` (`{num_finess_et: [activité]}`) restreinte à la sous-page ; **chargé à la demande** par `actifs/activites.js` (OOM-107), jamais au chargement de la page |
 | `actifs/` | feuille de style et îlots JS |
 
 Tous les liens entre pages sont **relatifs** (site servi sous le sous-chemin GitHub Pages
-`/observatoire-offre-medicosociale-enfance/`) : une page de `departement/` rejoint la racine par `../`.
-Aucune page ne charge de JSON national. Chaque page départementale rappelle en une ligne la mention de
-périmètre de l'accueil. La somme des établissements des pages départementales est vérifiée égale au
-total avant écriture (`ErreurExportHtml` sinon, D6).
+`/observatoire-offre-medicosociale-enfance/`) : une page de `departement/` ou d'`indicateur/` rejoint
+la racine par `../`, une sous-page par `../../`. Aucune page ne charge de JSON national. Chaque page
+et sous-page départementale rappelle en une ligne la mention de périmètre de l'accueil. La somme des
+établissements des sous-pages départementales est vérifiée égale au total, et celle des cases des
+pages d'indicateur au nombre de cases, avant écriture (`ErreurExportHtml` sinon, D6).
 
 **Principes non négociables** (violer l'un d'eux est un bug d'architecture, pas un détail
 d'implémentation) :

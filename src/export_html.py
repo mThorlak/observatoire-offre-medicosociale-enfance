@@ -1,7 +1,7 @@
 """
 export_html.py — Couche 6 (restitution) : pages HTML du site, rendues depuis
 l'entrepôt par gabarits (OOM-100), plus la page d'accueil (OOM-103) et une
-page par département (OOM-106).
+page par département (OOM-106), paginée en sous-pages bornées (OOM-115).
 
 Produit les pages du site depuis `front/gabarits/`, selon un découpage :
 
@@ -12,14 +12,21 @@ Produit les pages du site depuis `front/gabarits/`, selon un découpage :
   FINESS et licence. En découpage départemental, le tableau par département
   liste les 101 départements du référentiel plus « département indéterminé »,
   chacun avec un lien vers sa page ;
-- `indicateur.html` — le tableau département × catégorie de la couche 5
-  (`indicateurs.indicateur_departement_categorie`), dans l'ordre de
-  `Resultat.lignes_triees`, donc le même que le CSV de `restituer` ;
-- découpage `"departement"` (défaut, OOM-106) : une page par département
-  (gabarit `departement.html`), chacune ne portant que ses établissements ;
-  leurs activités de niveau `ET` ne sont pas embarquées mais écrites dans un
-  fragment JSON par département, chargé à la demande au premier clic sur un
-  `<details>` (OOM-107) — voir contrat B et FRAGMENTS D'ACTIVITÉS ;
+- `indicateur.html` — sommaire du tableau département × catégorie de la
+  couche 5 (`indicateurs.indicateur_departement_categorie`) : une ligne par
+  département présent, liée à `indicateur/<code>.html` (gabarit
+  `indicateur_departement.html`) qui porte ses cases, dans l'ordre de
+  `Resultat.lignes_triees`, donc le même que le CSV de `restituer` (OOM-115,
+  dans les deux découpages : le tableau national entier pèse 2,1 Mo) ;
+- découpage `"departement"` (défaut, OOM-106, OOM-115) : une page par
+  département (gabarit `departement.html`) qui ne porte aucune fiche mais
+  liste ses sous-pages ; chaque sous-page (gabarit
+  `departement_sous_page.html`) porte au plus `LIGNES_PAR_SOUS_PAGE`
+  établissements du département, par numéro FINESS croissant ; leurs
+  activités de niveau `ET` ne sont pas embarquées mais écrites dans un
+  fragment JSON par sous-page, chargé à la demande au premier clic sur un
+  `<details>` (OOM-107) — voir contrat B, PAGINATION et FRAGMENTS
+  D'ACTIVITÉS ;
 - découpage `"national"` : `liste.html` — tous les établissements sur une
   seule page (même lecture qu'`export_front.etablissements_bruts` et
   `activites_par_etablissement`). Conservé pour consultation locale : à
@@ -28,14 +35,17 @@ Produit les pages du site depuis `front/gabarits/`, selon un découpage :
 CONTRAT A — figé par OOM-100, consommé par OOM-102, OOM-103, OOM-104
 -----------------------------------------------------------------
     rendre(entrepot, dossier_gabarits, dossier_sortie,
-           decoupage="departement") -> dict
+           decoupage="departement",
+           lignes_par_sous_page=LIGNES_PAR_SOUS_PAGE) -> dict
 
 `entrepot` est un `Entrepot` ouvert ; `dossier_gabarits` contient `base.html`
 et un gabarit par page (`accueil.html`, `indicateur.html`, plus
 `departement.html` ou `liste.html` selon le découpage) ; `dossier_sortie` est
 créé au besoin et reçoit les pages — l'accueil publié en `index.html`
 (`GABARITS_PAGE`). `decoupage` (paramètre nommé ajouté par OOM-106) vaut
-`"departement"` ou `"national"` (`DECOUPAGES`). Le dictionnaire retourné, sur
+`"departement"` ou `"national"` (`DECOUPAGES`) ; `lignes_par_sous_page`
+(ajouté par OOM-115) borne la pagination départementale. Le dictionnaire
+retourné, sur
 le modèle d'`export_front.exporter` :
 
     millesime              str        millésime unique de l'entrepôt
@@ -48,7 +58,8 @@ le modèle d'`export_front.exporter` :
     nombre_etablissements  int        tous les établissements rendus
                                       (= lignes_rendues["liste.html"] en
                                       national, = somme des pages
-                                      départementales en départemental)
+                                      sous-pages départementales en
+                                      départemental)
     sans_adresse_principale, departement_non_resolu, categorie_non_resolue
                            int        mêmes définitions qu'export_front
     departement_hors_referentiel
@@ -59,7 +70,11 @@ le modèle d'`export_front.exporter` :
                            int        mêmes définitions qu'export_front
     nature_non_resolue     int        = activites_total tant qu'aucune
                                       nomenclature de nature n'est versionnée
-    indicateur_lignes      int        = lignes_rendues["indicateur.html"]
+    indicateur_lignes      int        cases département × catégorie, = somme
+                                      de pages_indicateur (vérifié)
+    indicateur_pages       int        pages `indicateur/<code>.html`,
+                                      = lignes_rendues["indicateur.html"]
+    pages_indicateur       dict       {code: cases de sa page d'indicateur}
     indicateur_total_actifs, indicateur_exclus
                            int        Resultat.total_actifs / Resultat.exclus()
     accueil_departements, accueil_categories
@@ -68,9 +83,16 @@ le modèle d'`export_front.exporter` :
     pages_departement      dict       {code ou "indetermine": établissements}
                                       (découpage départemental seulement ;
                                       vide en national)
+    sous_pages_departement dict       {code ou "indetermine": [établissements
+                                      de la sous-page 1, 2…]}, au moins une
+                                      entrée par code, chacune au plus
+                                      lignes_par_sous_page ; leur somme
+                                      totale = nombre_etablissements
+                                      (vérifié, D6) ; vide en national
+    lignes_par_sous_page   int        borne appliquée
     fragments_ecrits       list[str]  chemins relatifs des fragments
-                                      d'activités (OOM-107), un par page
-                                      départementale ; vide en national
+                                      d'activités (OOM-107), un par
+                                      sous-page ; vide en national
     octets_fragments       dict       {fragment: taille en octets}
     activites_fragments    int        activités écrites dans les fragments
     activites_orphelines   int        activités dont le `num_finess_et`
@@ -82,38 +104,64 @@ le modèle d'`export_front.exporter` :
     actifs_copies          list[str]  fichiers de `actifs/` copiés (OOM-102)
     octets_actifs          dict       {fichier: taille en octets}
 
-CONTRAT B — chemins du site, figé par OOM-106, consommé par OOM-107
+CONTRAT B — chemins du site, posé par OOM-106, révisé par OOM-115
 -----------------------------------------------------------------
-Relatifs à `dossier_sortie` (`site/` par défaut) ; ils ne bougeront plus :
+Relatifs à `dossier_sortie` (`site/` par défaut) :
 
-    index.html, indicateur.html     pages nationales
+    index.html, indicateur.html     pages nationales ; indicateur.html n'est
+                                    que le sommaire de l'indicateur
+    indicateur/<code>.html          cases de l'indicateur d'un département
+                                    présent dans le tableau (OOM-115)
     departement/<code>.html         une page par département du référentiel
                                     `referentiels/departements.csv` (101 au
-                                    COG 2025), y compris sans établissement ;
+                                    COG 2025), y compris sans établissement :
+                                    le sommaire de ses sous-pages, liées en
+                                    HTML avec leurs effectifs ;
                                     `<code>` = code département INSEE en texte,
                                     tel qu'au référentiel : `01`…`95`, `2A`,
                                     `2B`, `971`…`976` — jamais un nombre
-    departement/indetermine.html    établissements dont le `cog_commune` est
-                                    absent, non résolu, ou résolu en un code
-                                    hors référentiel — visibles, jamais écartés
-    donnees/activites/<code>.json   fragment d'activités d'un département,
-    donnees/activites/indetermine.json
-                                    même `<code>` que la page, un fragment par
-                                    page (OOM-107) — voir ci-dessous
+    departement/indetermine.html    même chose pour les établissements dont le
+                                    `cog_commune` est absent, non résolu, ou
+                                    résolu en un code hors référentiel —
+                                    visibles, jamais écartés
+    departement/<code>/<n>.html     sous-page `n` (1, 2…) : au plus
+                                    `LIGNES_PAR_SOUS_PAGE` établissements ;
+                                    au moins une par département, même vide
+                                    (OOM-115)
+    donnees/activites/<code>/<n>.json
+                                    fragment d'activités de la sous-page de
+                                    mêmes `<code>` et `<n>`, un par sous-page
+                                    (OOM-107, OOM-115) — voir ci-dessous
     actifs/                         feuille de style et îlots JS (OOM-102)
 
 Tous les liens entre pages sont relatifs (le site est servi sous un
-sous-chemin GitHub Pages) : une page de `departement/` atteint la racine par
-`../`. Aucune page ne charge de JSON national.
+sous-chemin GitHub Pages) : une page de `departement/` ou d'`indicateur/`
+atteint la racine par `../`, une sous-page par `../../`. Aucune page ne
+charge de JSON national.
+
+PAGINATION (OOM-115) — bornée par construction
+-----------------------------------------------------------------
+Les établissements d'un département, dans l'ordre d'`etablissements_bruts`
+(numéro FINESS croissant), sont découpés en tranches consécutives d'au plus
+`LIGNES_PAR_SOUS_PAGE` (constante mesurée) : pas de cas particulier pour un
+département qui tient en une tranche. La recherche et les filtres JS ne
+portent que sur la sous-page affichée, ce que la sous-page écrit en clair.
+Avant toute écriture, chaque page — sauf `PAGES_NON_BORNEES` (`liste.html`) —
+est mesurée en octets bruts, comptée avec tous les actifs du site : au-delà
+de `BUDGET_PAGE` (500 Ko, D9), `ErreurExportHtml` nomme les pages fautives et
+rien n'est écrit.
 
 FRAGMENTS D'ACTIVITÉS (OOM-107) — chargés à la demande, jamais en bloc
 -----------------------------------------------------------------
-Chaque page départementale a son fragment `donnees/activites/<code>.json`,
-de même structure qu'`activites.json` d'`export_front` (inchangée) restreinte
-aux établissements de la page : `{num_finess_et: [activité, ...]}`, clé
+Chaque sous-page départementale a son fragment
+`donnees/activites/<code>/<n>.json`, de même structure qu'`activites.json`
+d'`export_front` (inchangée) restreinte aux établissements de la sous-page : `{num_finess_et: [activité, ...]}`, clé
 absente = aucune activité, `code_nature` brut et `libelle_nature` à `None`
 (aucune nomenclature de nature versionnée, OOM-29). Écrit compact, même vide
-(`{}`), pour qu'à toute page corresponde un fragment.
+(`{}`), pour qu'à toute sous-page corresponde un fragment. Un par sous-page
+plutôt qu'un par département : le fragment du Nord pèse 3,1 Mo ; découpé
+comme la page, celui que télécharge un clic reste proportionnel à ce qui est
+affiché (710,7 Ko au plus sur l'extrait complet du 27/09/2026).
 
 La page n'embarque que le nombre d'activités de chaque établissement (dans le
 `<summary>` d'un `<details data-finess>`) et l'URL relative du fragment
@@ -131,8 +179,9 @@ après les pages ; son absence est une erreur levée avant toute écriture.
 Lève `ErreurExportHtml` — avant d'écrire quoi que ce soit — si un gabarit ou
 un bloc manque (le message porte le chemin attendu), si un gabarit réclame une
 valeur que le module ne fournit pas, si le référentiel des départements est
-illisible, si la somme des pages départementales diffère du total des
-établissements, ou si l'entrepôt est incohérent (plusieurs millésimes, source
+illisible, si la somme des sous-pages départementales diffère du total des
+établissements ou celle des pages d'indicateur du nombre de cases, si une
+page bornée dépasse `BUDGET_PAGE`, ou si l'entrepôt est incohérent (plusieurs millésimes, source
 chargée deux fois, aucun lot) : un export ne sort pas d'un entrepôt en échec
 (D6).
 
@@ -184,9 +233,11 @@ from indicateurs import Resultat, etat_objet_actif, indicateur_departement_categ
 from territoires import ErreurTerritoires, charger_departements
 
 __all__ = ["rendre", "ErreurExportHtml", "GABARIT_BASE", "PAGES", "DOSSIER_GABARITS",
-           "DECOUPAGES", "PAGES_NATIONALES", "GABARIT_DEPARTEMENT",
-           "DOSSIER_DEPARTEMENT", "PAGE_INDETERMINEE", "chemin_page_departement",
-           "DOSSIER_ACTIVITES", "chemin_fragment_activites"]
+           "DECOUPAGES", "PAGES_NATIONALES", "GABARIT_DEPARTEMENT", "GABARIT_SOUS_PAGE",
+           "GABARIT_INDICATEUR_DEPARTEMENT", "DOSSIER_DEPARTEMENT", "DOSSIER_INDICATEUR",
+           "PAGE_INDETERMINEE", "chemin_page_departement", "chemin_sous_page",
+           "chemin_indicateur_departement", "DOSSIER_ACTIVITES", "chemin_fragment_activites",
+           "LIGNES_PAR_SOUS_PAGE", "BUDGET_PAGE", "PAGES_NON_BORNEES", "decouper"]
 
 GABARIT_BASE = "base.html"
 # Pages du découpage national (historique OOM-100).
@@ -198,11 +249,32 @@ PAGES_NATIONALES = {"departement": ("index.html", "indicateur.html"), "national"
 # `index.html`, porte d'entrée par défaut d'un site statique).
 GABARITS_PAGE = {"index.html": "accueil.html"}
 GABARIT_DEPARTEMENT = "departement.html"
+GABARIT_SOUS_PAGE = "departement_sous_page.html"
+GABARIT_INDICATEUR_DEPARTEMENT = "indicateur_departement.html"
 DOSSIER_DEPARTEMENT = "departement"
-# Préfixe relatif d'une page de `departement/` vers la racine du site.
+DOSSIER_INDICATEUR = "indicateur"
+# Préfixes relatifs vers la racine du site : d'une page de `departement/` ou
+# d'`indicateur/`, et d'une sous-page `departement/<code>/`.
 RACINE_DEPARTEMENT = "../"
+RACINE_SOUS_PAGE = "../../"
 PAGE_INDETERMINEE = "indetermine"
 DOSSIER_ACTIVITES = "donnees/activites"
+
+# D9 (OOM-115) : aucune page au-delà de 500 Ko bruts au chargement initial.
+BUDGET_PAGE = 500 * 1024
+# Borne de pagination des pages départementales, mesurée sur l'extrait FINESS
+# complet du 27/09/2026 (mesures/poids_site.md) : après allègement du
+# balisage (OOM-115), une ligne d'établissement pèse 364 octets en médiane,
+# 456 au plus ; le reste d'une sous-page 17,0 Ko au plus, les actifs 18,5 Ko.
+# Mille fois la ligne la plus longue tient donc sous le budget (~480 Ko). La
+# borne en lignes ne suffit pas à le garantir (des noms plus longs le
+# feraient franchir) : `rendre` mesure aussi chaque page, voir BUDGET_PAGE.
+LIGNES_PAR_SOUS_PAGE = 1000
+# Pages non bornées par construction : la liste nationale (consultation
+# locale, ~55 Mo à l'échelle réelle, viole D9 en connaissance de cause).
+PAGES_NON_BORNEES = ("liste.html",)
+# Un code servant de nom de fichier : lettres et chiffres seulement.
+_CODE_FICHIER = re.compile(r"[0-9A-Za-z]+")
 DOSSIER_GABARITS = Path(__file__).resolve().parent.parent / "front" / "gabarits"
 
 # Blocs que chaque gabarit de page doit fournir à `base.html`.
@@ -218,15 +290,37 @@ class ErreurExportHtml(Exception):
 
 
 def chemin_page_departement(code: str) -> str:
-    """Chemin relatif (contrat B) de la page d'un département, ou de la page
-    indéterminée pour `PAGE_INDETERMINEE`. `code` est pris tel quel : du texte."""
+    """Chemin relatif (contrat B) de la page d'un département — le sommaire de
+    ses sous-pages —, ou de la page indéterminée pour `PAGE_INDETERMINEE`.
+    `code` est pris tel quel : du texte."""
     return f"{DOSSIER_DEPARTEMENT}/{code}.html"
 
 
-def chemin_fragment_activites(code: str) -> str:
-    """Chemin relatif (contrat B) du fragment d'activités de la page
-    `chemin_page_departement(code)` — même `code`, en texte."""
-    return f"{DOSSIER_ACTIVITES}/{code}.json"
+def chemin_sous_page(code: str, numero: int) -> str:
+    """Chemin relatif (contrat B) de la sous-page `numero` (1, 2…) d'un
+    département ou de la page indéterminée."""
+    return f"{DOSSIER_DEPARTEMENT}/{code}/{numero}.html"
+
+
+def chemin_fragment_activites(code: str, numero: int) -> str:
+    """Chemin relatif (contrat B) du fragment d'activités de la sous-page
+    `chemin_sous_page(code, numero)` — mêmes `code` et `numero`."""
+    return f"{DOSSIER_ACTIVITES}/{code}/{numero}.json"
+
+
+def chemin_indicateur_departement(code: str) -> str:
+    """Chemin relatif (contrat B) de la page de l'indicateur restreinte à un
+    département."""
+    return f"{DOSSIER_INDICATEUR}/{code}.html"
+
+
+def decouper(elements: List[Dict[str, object]], borne: int) -> List[List[Dict[str, object]]]:
+    """Tranches consécutives d'au plus `borne` éléments, dans l'ordre ; au
+    moins une, même vide — un département sans établissement a une sous-page,
+    comme les autres (pas de cas particulier)."""
+    if borne < 1:
+        raise ErreurExportHtml(f"borne de pagination invalide : {borne}")
+    return [elements[i:i + borne] for i in range(0, len(elements), borne)] or [[]]
 
 
 # ---------------------------------------------------------------------------
@@ -442,32 +536,70 @@ def _page_liste(gabarit: Gabarit, donnees: _Donnees,
     return valeurs
 
 
+def _indicateur_par_departement(donnees: _Donnees) -> List[Tuple[str, List[Tuple[str, int]]]]:
+    """Cases de l'indicateur groupées par département, dans l'ordre de
+    `Resultat.lignes_triees` : [(code, [(catégorie, effectif)])]. Le code sert
+    de nom de fichier : un code qui n'est pas fait de lettres et de chiffres
+    est une erreur, jamais un chemin fabriqué (D6)."""
+    groupes: Dict[str, List[Tuple[str, int]]] = {}
+    for departement, categorie, nombre in donnees.resultat().lignes_triees():
+        if not _CODE_FICHIER.fullmatch(str(departement)):
+            raise ErreurExportHtml(
+                f"code département {departement!r} impropre à un nom de page d'indicateur")
+        groupes.setdefault(departement, []).append((categorie, nombre))
+    return list(groupes.items())
+
+
 def _page_indicateur(gabarit: Gabarit, donnees: _Donnees,
                      compteurs: Dict[str, object]) -> Dict[str, str]:
+    """Sommaire de l'indicateur (OOM-115) : une ligne par département présent
+    dans le tableau, liée à sa page `indicateur/<code>.html`."""
     resultat = donnees.resultat()
-    lignes = resultat.lignes_triees()
-    maximum = max((n for _, _, n in lignes), default=0) or 1
-    dans_tableau = sum(n for _, _, n in lignes)
+    groupes = _indicateur_par_departement(donnees)
+    dans_tableau = resultat.dans_tableau()
 
     compteurs.update({
-        "indicateur_lignes": len(lignes),
+        "indicateur_lignes": sum(len(lignes) for _, lignes in groupes),
+        "indicateur_pages": len(groupes),
         "indicateur_total_actifs": resultat.total_actifs,
         "indicateur_exclus": resultat.exclus(),
     })
     valeurs = dict(compteurs)
     valeurs.update({
         "lignes": gabarit.repeter("ligne", (
-            {"code_departement": _e(d), "libelle_categorie": _e(c), "effectif": n,
-             "largeur": round(n / maximum * 100)}
-            for d, c, n in lignes), "\n"),
-        "options_departement": _options(gabarit, (d for d, _, _ in lignes)),
+            {"lien": _e(chemin_indicateur_departement(d)), "code_departement": _e(d),
+             "categories": len(lignes), "effectif": sum(n for _, n in lignes)}
+            for d, lignes in groupes), "\n"),
         "total": dans_tableau,
         "total_actifs": resultat.total_actifs,
         "dans_tableau": dans_tableau,
         "sans_departement": resultat.sans_departement,
         "categorie_inconnue": resultat.categorie_inconnue,
     })
-    compteurs["lignes_rendues"]["indicateur.html"] = len(lignes)
+    compteurs["lignes_rendues"]["indicateur.html"] = len(groupes)
+    return valeurs
+
+
+def _page_indicateur_departement(gabarit: Gabarit, donnees: _Donnees, code: str,
+                                 lignes: List[Tuple[str, int]],
+                                 compteurs: Dict[str, object]) -> Dict[str, str]:
+    """Cases de l'indicateur d'un département (OOM-115), la largeur de barre
+    étant relative au plus grand effectif du département."""
+    resultat = donnees.resultat()
+    maximum = max((n for _, n in lignes), default=0) or 1
+    valeurs = dict(compteurs)
+    valeurs.update({
+        "code_departement": _e(code),
+        "lignes": gabarit.repeter("ligne", (
+            {"libelle_categorie": _e(c), "effectif": n, "largeur": round(n / maximum * 100)}
+            for c, n in lignes), "\n"),
+        "lignes_page": len(lignes),
+        "total": sum(n for _, n in lignes),
+        "total_actifs": resultat.total_actifs,
+        "dans_tableau": resultat.dans_tableau(),
+    })
+    compteurs["lignes_rendues"][chemin_indicateur_departement(code)] = len(lignes)
+    compteurs["pages_indicateur"][code] = len(lignes)
     return valeurs
 
 
@@ -545,32 +677,80 @@ def _page_accueil(gabarit: Gabarit, donnees: _Donnees,
     return valeurs
 
 
-def _page_departement(gabarit: Gabarit, donnees: _Donnees, code: str,
-                      etablissements: List[Dict[str, object]],
-                      compteurs: Dict[str, object]) -> Dict[str, str]:
-    """Une page départementale (OOM-106) : seulement ses établissements, leurs
-    activités renvoyées au fragment chargé à la demande (OOM-107) ; page
-    explicite même sans établissement."""
-    activites = donnees.activites()
+def _actifs_parmi(etablissements: Iterable[Mapping[str, object]]) -> int:
+    return sum(1 for e in etablissements if etat_objet_actif(e["etat_objet"]))
+
+
+def _valeurs_departement(donnees: _Donnees, code: str, tranches: List[List[Dict[str, object]]],
+                         compteurs: Dict[str, object]) -> Dict[str, object]:
+    """Valeurs communes au sommaire d'un département et à ses sous-pages."""
     indeterminee = code == PAGE_INDETERMINEE
-    avec_activites = sum(1 for e in etablissements if e["num_finess_et"] in activites)
+    tous = [e for tranche in tranches for e in tranche]
     valeurs = dict(compteurs)
     valeurs.update({
         "code_departement": "—" if indeterminee else _e(code),
         "libelle_departement": ("Département indéterminé" if indeterminee
                                 else _e(donnees.departements[code])),
-        "nombre_page": len(etablissements),
-        "actifs_page": sum(1 for e in etablissements if etat_objet_actif(e["etat_objet"])),
-        "activites_page": sum(len(activites.get(e["num_finess_et"], [])) for e in etablissements),
-        "avec_activites_page": avec_activites,
+        "nombre_departement": len(tous),
+        "actifs_departement": _actifs_parmi(tous),
+        "nombre_sous_pages": len(tranches),
         "millesime": _e(compteurs["millesime"]),
     })
+    return valeurs
+
+
+def _page_departement(gabarit: Gabarit, donnees: _Donnees, code: str,
+                      tranches: List[List[Dict[str, object]]], borne: int,
+                      compteurs: Dict[str, object]) -> Dict[str, object]:
+    """Page d'un département (OOM-106, OOM-115) : sommaire de ses sous-pages,
+    liées en HTML avec leurs effectifs et leur plage de numéros FINESS ; ne
+    porte aucune fiche. Page explicite même sans établissement."""
+    valeurs = _valeurs_departement(donnees, code, tranches, compteurs)
+    valeurs["lignes_par_sous_page"] = borne
     valeurs["explication"] = gabarit.remplir(
-        "explication_indeterminee" if indeterminee else "explication", valeurs)
+        "explication_indeterminee" if code == PAGE_INDETERMINEE else "explication", valeurs)
+    valeurs["sous_pages"] = gabarit.repeter("sous_page", (
+        {"lien": _e(f"{code}/{numero}.html"), "numero": numero, "effectif": len(tranche),
+         "actifs": _actifs_parmi(tranche),
+         "premier": _e(tranche[0]["num_finess_et"]) if tranche else "—",
+         "dernier": _e(tranche[-1]["num_finess_et"]) if tranche else "—"}
+        for numero, tranche in enumerate(tranches, 1)), "\n")
+    compteurs["lignes_rendues"][chemin_page_departement(code)] = len(tranches)
+    return valeurs
+
+
+def _page_sous_page(gabarit: Gabarit, donnees: _Donnees, code: str,
+                    tranches: List[List[Dict[str, object]]], numero: int,
+                    compteurs: Dict[str, object]) -> Dict[str, object]:
+    """Sous-page `numero` d'un département (OOM-115) : ses seuls
+    établissements, leurs activités renvoyées au fragment de la sous-page,
+    chargé à la demande (OOM-107) ; le texte dit que les filtres ne portent
+    que sur elle."""
+    activites = donnees.activites()
+    etablissements = tranches[numero - 1]
+    premiere = sum(len(t) for t in tranches[:numero - 1]) + 1
+    valeurs = _valeurs_departement(donnees, code, tranches, compteurs)
+    valeurs.update({
+        "numero": numero,
+        "nombre_page": len(etablissements),
+        "actifs_page": _actifs_parmi(etablissements),
+        "activites_page": sum(len(activites.get(e["num_finess_et"], [])) for e in etablissements),
+        "avec_activites_page": sum(1 for e in etablissements if e["num_finess_et"] in activites),
+        "premiere": premiere,
+        "derniere": premiere + len(etablissements) - 1,
+        "sommaire": _e(f"../{code}.html"),
+    })
+    valeurs["explication"] = gabarit.remplir(
+        "explication_indeterminee" if code == PAGE_INDETERMINEE else "explication", valeurs)
+    valeurs["limite"] = gabarit.remplir("limite" if etablissements else "limite_vide", valeurs)
+    valeurs["precedente"] = (gabarit.remplir("precedente", {
+        "lien": f"{numero - 1}.html", "numero": numero - 1}) if numero > 1 else "")
+    valeurs["suivante"] = (gabarit.remplir("suivante", {
+        "lien": f"{numero + 1}.html", "numero": numero + 1}) if numero < len(tranches) else "")
     if etablissements:
         valeurs["tableau"] = gabarit.remplir("tableau", {
             "nombre_page": len(etablissements),
-            "fragment": _e(RACINE_DEPARTEMENT + chemin_fragment_activites(code)),
+            "fragment": _e(RACINE_SOUS_PAGE + chemin_fragment_activites(code, numero)),
             "lignes": _lignes_etablissements(gabarit, etablissements, activites,
                                              donnees.departements, differees=True),
             "options_categorie": _options(
@@ -578,7 +758,7 @@ def _page_departement(gabarit: Gabarit, donnees: _Donnees, code: str,
         })
     else:
         valeurs["tableau"] = gabarit.remplir("aucun", valeurs)
-    compteurs["lignes_rendues"][chemin_page_departement(code)] = len(etablissements)
+    compteurs["lignes_rendues"][chemin_sous_page(code, numero)] = len(etablissements)
     return valeurs
 
 
@@ -649,30 +829,50 @@ def _millesime(entrepot: Entrepot) -> str:
     return etat["millesimes"][0]
 
 
+def _verifier_budget(encodes: Mapping[str, bytes], octets_actifs: int) -> None:
+    """D9 par construction (OOM-115) : chaque page bornée, comptée avec tous
+    les actifs du site (majorant de ce qu'elle charge), tient dans
+    `BUDGET_PAGE` ; sinon rien n'est écrit."""
+    hors_budget = sorted(((len(contenu) + octets_actifs, page)
+                          for page, contenu in encodes.items() if page not in PAGES_NON_BORNEES),
+                         reverse=True)
+    hors_budget = [(n, page) for n, page in hors_budget if n > BUDGET_PAGE]
+    if hors_budget:
+        raise ErreurExportHtml(
+            f"budget D9 dépassé ({BUDGET_PAGE} octets par page, actifs compris) : "
+            + ", ".join(f"{page} ({n} octets)" for n, page in hors_budget[:5])
+            + (f" et {len(hors_budget) - 5} autre(s)" if len(hors_budget) > 5 else ""))
+
+
 def rendre(entrepot: Entrepot, dossier_gabarits: Path, dossier_sortie: Path,
-           decoupage: str = "departement") -> Dict[str, object]:
+           decoupage: str = "departement",
+           lignes_par_sous_page: int = LIGNES_PAR_SOUS_PAGE) -> Dict[str, object]:
     """Rend les pages du découpage choisi dans `dossier_sortie` — voir les
     contrats A et B en tête de module pour la forme exacte du dictionnaire
     retourné et les chemins écrits.
 
-    Tous les gabarits sont lus et toutes les pages rendues en mémoire avant
-    la première écriture : un gabarit manquant ou incomplet ne laisse jamais
-    un site à moitié régénéré.
+    Tous les gabarits sont lus et toutes les pages rendues en mémoire, et le
+    budget D9 vérifié, avant la première écriture : un gabarit manquant ou
+    incomplet, ou une page trop lourde, ne laisse jamais un site à moitié
+    régénéré.
     """
     if decoupage not in DECOUPAGES:
         raise ErreurExportHtml(
             f"découpage inconnu {decoupage!r} (attendu : {', '.join(DECOUPAGES)})")
     if entrepot.connexion is None:
         raise ErreurExportHtml("entrepôt non ouvert")
+    decouper([], lignes_par_sous_page)  # borne invalide : erreur avant toute lecture
     dossier_gabarits = Path(dossier_gabarits)
     dossier_sortie = Path(dossier_sortie)
 
     base = Gabarit(dossier_gabarits / GABARIT_BASE)
     gabarits = {page: Gabarit(dossier_gabarits / GABARITS_PAGE.get(page, page))
                 for page in PAGES_NATIONALES[decoupage]}
+    gabarits[GABARIT_INDICATEUR_DEPARTEMENT] = Gabarit(
+        dossier_gabarits / GABARIT_INDICATEUR_DEPARTEMENT)
     if decoupage == "departement":
-        gabarit_departement = Gabarit(dossier_gabarits / GABARIT_DEPARTEMENT)
-        gabarit_departement.exiger(BLOCS_PAGE)
+        gabarits[GABARIT_DEPARTEMENT] = Gabarit(dossier_gabarits / GABARIT_DEPARTEMENT)
+        gabarits[GABARIT_SOUS_PAGE] = Gabarit(dossier_gabarits / GABARIT_SOUS_PAGE)
     for gabarit in gabarits.values():
         gabarit.exiger(BLOCS_PAGE)
     actifs = _actifs(dossier_gabarits)
@@ -693,6 +893,9 @@ def rendre(entrepot: Entrepot, dossier_gabarits: Path, dossier_sortie: Path,
         "octets": {},
         "lignes_rendues": {},
         "pages_departement": {},
+        "sous_pages_departement": {},
+        "pages_indicateur": {},
+        "lignes_par_sous_page": lignes_par_sous_page,
         "fragments_ecrits": [],
         "octets_fragments": {},
         "activites_fragments": 0,
@@ -715,35 +918,58 @@ def rendre(entrepot: Entrepot, dossier_gabarits: Path, dossier_sortie: Path,
 
     rendus: Dict[str, str] = {}
     fragments: Dict[str, bytes] = {}
-    for page, gabarit in gabarits.items():
+    for page in PAGES_NATIONALES[decoupage]:
+        gabarit = gabarits[page]
         rendus[page] = habiller(page, gabarit, _CONSTRUCTEURS[page](gabarit, donnees, compteurs), "")
+
+    gabarit = gabarits[GABARIT_INDICATEUR_DEPARTEMENT]
+    for code, lignes in _indicateur_par_departement(donnees):
+        page = chemin_indicateur_departement(code)
+        rendus[page] = habiller(page, gabarit, _page_indicateur_departement(
+            gabarit, donnees, code, lignes, compteurs), RACINE_DEPARTEMENT)
+    if sum(compteurs["pages_indicateur"].values()) != compteurs["indicateur_lignes"]:
+        raise ErreurExportHtml(
+            f"indicateur incohérent : {sum(compteurs['pages_indicateur'].values())} case(s) "
+            f"réparties en pages pour {compteurs['indicateur_lignes']} au total")
 
     if decoupage == "departement":
         for code, etablissements in donnees.par_page().items():
+            tranches = decouper(etablissements, lignes_par_sous_page)
             page = chemin_page_departement(code)
-            valeurs = _page_departement(gabarit_departement, donnees, code, etablissements,
-                                        compteurs)
-            rendus[page] = habiller(page, gabarit_departement, valeurs, RACINE_DEPARTEMENT)
+            rendus[page] = habiller(page, gabarits[GABARIT_DEPARTEMENT], _page_departement(
+                gabarits[GABARIT_DEPARTEMENT], donnees, code, tranches, lignes_par_sous_page,
+                compteurs), RACINE_DEPARTEMENT)
+            for numero, tranche in enumerate(tranches, 1):
+                page = chemin_sous_page(code, numero)
+                rendus[page] = habiller(page, gabarits[GABARIT_SOUS_PAGE], _page_sous_page(
+                    gabarits[GABARIT_SOUS_PAGE], donnees, code, tranches, numero, compteurs),
+                    RACINE_SOUS_PAGE)
+                fragments[chemin_fragment_activites(code, numero)] = _fragment_activites(
+                    donnees, tranche)
             compteurs["pages_departement"][code] = len(etablissements)
-            fragments[chemin_fragment_activites(code)] = _fragment_activites(
-                donnees, etablissements)
-        reparti = sum(compteurs["pages_departement"].values())
+            compteurs["sous_pages_departement"][code] = [len(t) for t in tranches]
+        # D6 : la somme porte sur les sous-pages, là où les fiches sont rendues.
+        reparti = sum(sum(n) for n in compteurs["sous_pages_departement"].values())
         if reparti != compteurs["nombre_etablissements"]:
             raise ErreurExportHtml(
-                f"découpage incohérent : {reparti} établissement(s) répartis en pages "
+                f"découpage incohérent : {reparti} établissement(s) répartis en sous-pages "
                 f"départementales pour {compteurs['nombre_etablissements']} au total")
+        trop = [(code, n) for code, effectifs in compteurs["sous_pages_departement"].items()
+                for n in effectifs if n > lignes_par_sous_page]
+        if trop:
+            raise ErreurExportHtml(f"sous-page(s) au-delà de {lignes_par_sous_page} lignes : {trop}")
         _verifier_fragments(fragments, donnees, compteurs)
 
-    (dossier_sortie / DOSSIER_DEPARTEMENT if decoupage == "departement"
-     else dossier_sortie).mkdir(parents=True, exist_ok=True)
-    for page, contenu in rendus.items():
-        donnees_page = contenu.encode("utf-8")
+    encodes = {page: contenu.encode("utf-8") for page, contenu in rendus.items()}
+    _verifier_budget(encodes, sum(chemin.stat().st_size for chemin in actifs))
+
+    for page, donnees_page in encodes.items():
+        (dossier_sortie / page).parent.mkdir(parents=True, exist_ok=True)
         (dossier_sortie / page).write_bytes(donnees_page)
         compteurs["pages_ecrites"].append(page)
         compteurs["octets"][page] = len(donnees_page)
-    if fragments:
-        (dossier_sortie / DOSSIER_ACTIVITES).mkdir(parents=True, exist_ok=True)
     for fragment, contenu_fragment in fragments.items():
+        (dossier_sortie / fragment).parent.mkdir(parents=True, exist_ok=True)
         (dossier_sortie / fragment).write_bytes(contenu_fragment)
         compteurs["fragments_ecrits"].append(fragment)
         compteurs["octets_fragments"][fragment] = len(contenu_fragment)
@@ -762,6 +988,9 @@ if __name__ == "__main__":
     analyseur.add_argument("--gabarits", type=Path, default=DOSSIER_GABARITS)
     analyseur.add_argument("--decoupage", choices=DECOUPAGES, default="departement",
                            help="une page par département (défaut) ou une liste nationale")
+    analyseur.add_argument("--lignes-par-sous-page", type=int, default=LIGNES_PAR_SOUS_PAGE,
+                           help=f"borne de pagination départementale "
+                                f"(défaut {LIGNES_PAR_SOUS_PAGE}, mesurée)")
     arguments = analyseur.parse_args()
 
     if not arguments.base.is_file():
@@ -769,23 +998,34 @@ if __name__ == "__main__":
     try:
         with Entrepot(arguments.base) as entrepot:
             bilan = rendre(entrepot, arguments.gabarits, arguments.sortie,
-                           decoupage=arguments.decoupage)
+                           decoupage=arguments.decoupage,
+                           lignes_par_sous_page=arguments.lignes_par_sous_page)
     except ErreurExportHtml as erreur:
         sys.exit(f"export_html : {erreur}")
     print(f"Site écrit dans {arguments.sortie} — millésime {bilan['millesime']}, "
           f"découpage {bilan['decoupage']}")
+    dossiers = (DOSSIER_DEPARTEMENT + "/", DOSSIER_INDICATEUR + "/")
     for page in bilan["pages_ecrites"]:
-        if not page.startswith(DOSSIER_DEPARTEMENT + "/"):
+        if not page.startswith(dossiers):
             print(f"    {page:<18}{bilan['lignes_rendues'][page]:>7} ligne(s)"
                   f"{bilan['octets'][page] / 1024:>10.1f} Ko")
-    if bilan["pages_departement"]:
-        pages = [p for p in bilan["pages_ecrites"] if p.startswith(DOSSIER_DEPARTEMENT + "/")]
+    pages = [p for p in bilan["pages_ecrites"] if p.startswith(DOSSIER_INDICATEUR + "/")]
+    if pages:
         lourde = max(pages, key=lambda p: bilan["octets"][p])
+        print(f"    {DOSSIER_INDICATEUR}/ : {len(pages)} page(s), {bilan['indicateur_lignes']} "
+              f"case(s) ; la plus lourde {lourde} ({bilan['octets'][lourde] / 1024:.1f} Ko)")
+    if bilan["pages_departement"]:
+        sous_pages = [chemin_sous_page(code, numero)
+                      for code, effectifs in bilan["sous_pages_departement"].items()
+                      for numero in range(1, len(effectifs) + 1)]
+        lourde = max(sous_pages, key=lambda p: bilan["octets"][p])
         vides = sum(1 for n in bilan["pages_departement"].values() if n == 0)
-        print(f"    {DOSSIER_DEPARTEMENT}/ : {len(pages)} page(s), dont {vides} sans "
-              f"établissement ; {bilan['pages_departement'][PAGE_INDETERMINEE]} en page "
-              f"indéterminée ; la plus lourde {lourde} "
-              f"({bilan['octets'][lourde] / 1024:.1f} Ko)")
+        decoupes = sum(1 for n in bilan["sous_pages_departement"].values() if len(n) > 1)
+        print(f"    {DOSSIER_DEPARTEMENT}/ : {len(bilan['pages_departement'])} page(s) de "
+              f"département, dont {vides} sans établissement ; {len(sous_pages)} sous-page(s) "
+              f"d'au plus {bilan['lignes_par_sous_page']} ligne(s), {decoupes} département(s) "
+              f"en plusieurs ; {bilan['pages_departement'][PAGE_INDETERMINEE]} en page "
+              f"indéterminée ; la plus lourde {lourde} ({bilan['octets'][lourde] / 1024:.1f} Ko)")
     if bilan["fragments_ecrits"]:
         lourd = max(bilan["fragments_ecrits"], key=lambda f: bilan["octets_fragments"][f])
         print(f"    {DOSSIER_ACTIVITES}/ : {len(bilan['fragments_ecrits'])} fragment(s), "

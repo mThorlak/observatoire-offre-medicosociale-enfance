@@ -1,43 +1,37 @@
 <!--
-  Gabarit de la page « indicateur département × catégorie » (OOM-100), rendu
-  par src/export_html.py depuis indicateurs.indicateur_departement_categorie
-  (couche 5). Chaque bloc BLOC nom … FIN nom est un gabarit string.Template :
-  il substitue des valeurs déjà calculées (effectifs, largeur de barre,
-  total), il ne décide rien (D7). Le tableau complet est dans le HTML ;
-  l'îlot front/actifs/filtres.js n'ajoute que le tri par colonne et le filtre
-  par département, branchés par attributs data-* (D10). Ni balise style ni script
-  inline : le style vit dans front/actifs/ooms.css (OOM-102), le bloc script
-  n'est que le point d'amorçage de l'îlot. Pas de « $ » littéral dans les
-  blocs : l'écrire « $$ ».
+  Gabarit de la page « indicateur département × catégorie » (OOM-100,
+  découpée par département OOM-115), rendu par src/export_html.py depuis
+  indicateurs.indicateur_departement_categorie (couche 5). Publiée en
+  indicateur.html, elle ne porte qu'une ligne par département présent dans
+  le tableau : son effectif d'actifs, son nombre de catégories et un lien
+  HTML vers indicateur/<code>.html, qui porte les cases département ×
+  catégorie de ce département (contrat B). Toute case est ainsi atteignable
+  sans JS (D10), et aucune page ne porte le tableau national entier (D9).
+  Chaque bloc BLOC nom … FIN nom est un gabarit string.Template : il
+  substitue des valeurs déjà calculées (effectifs, total), il ne décide rien
+  (D7). L'îlot front/actifs/filtres.js n'ajoute que le tri par colonne. Pas
+  de « $ » littéral dans les blocs : l'écrire « $$ ».
 -->
 
 <!-- BLOC titre -->Indicateur département × catégorie<!-- FIN titre -->
 
-<!-- BLOC pied -->Généré le $genere_le · $indicateur_lignes ligne(s) · $total_actifs établissement(s) actif(s), dont $dans_tableau dans le tableau, $sans_departement sans département résolu, $categorie_inconnue avec catégorie non résolue — mêmes chiffres que l'export CSV (restituer).<!-- FIN pied -->
+<!-- BLOC pied -->Généré le $genere_le · $indicateur_lignes case(s) département × catégorie réparties en $indicateur_pages page(s) départementale(s) · $total_actifs établissement(s) actif(s), dont $dans_tableau dans le tableau, $sans_departement sans département résolu, $categorie_inconnue avec catégorie non résolue — mêmes chiffres que l'export CSV (restituer).<!-- FIN pied -->
 
 <!-- BLOC style --><!-- FIN style -->
 
 <!-- BLOC contenu -->
-<p>Établissements actifs par département et catégorie (libellés résolus).</p>
-<form class="filtres" id="filtres" hidden data-table="table-indicateur" data-compteur="compteur" data-unite="ligne(s) affichée(s)" data-vide="vide" data-total="total" data-total-libelle="total-libelle" data-colonne-total="2">
-  <label>Département <select id="f-departement" data-champ="dep"><option value="">Tous</option>$options_departement</select></label>
-  <button type="reset">Réinitialiser</button>
-</form>
-<p class="compteur" id="compteur">$indicateur_lignes ligne(s).</p>
+<p>Établissements actifs par département et catégorie (libellés résolus). Le tableau compte $indicateur_lignes cases : il est découpé en une page par département, liée ci-dessous avec l'effectif du département et le nombre de ses catégories.</p>
 <table id="table-indicateur">
-<thead><tr><th data-cle="0">Département<span class="fleche"></span></th><th data-cle="1">Catégorie<span class="fleche"></span></th><th data-cle="2" data-numerique="1">Actifs<span class="fleche"></span></th></tr></thead>
+<thead><tr><th data-cle="0">Département<span class="fleche"></span></th><th data-cle="1" data-numerique="1">Catégories<span class="fleche"></span></th><th data-cle="2" data-numerique="1">Actifs<span class="fleche"></span></th></tr></thead>
 <tbody>
 $lignes
 </tbody>
-<tfoot><tr><td colspan="2">Total <span id="total-libelle">(toutes lignes)</span></td><td class="effectif" id="total">$total</td></tr></tfoot>
+<tfoot><tr><td>Total</td><td class="effectif">$indicateur_lignes</td><td class="effectif" id="total">$total</td></tr></tfoot>
 </table>
-<p class="vide" id="vide" hidden>Aucune ligne pour ce département.</p>
 <!-- FIN contenu -->
 
-<!-- BLOC option --><option value="$valeur">$valeur</option><!-- FIN option -->
-
 <!-- BLOC ligne -->
-<tr data-dep="$code_departement"><td>$code_departement</td><td>$libelle_categorie</td><td class="effectif" data-valeur="$effectif"><div class="barre-cellule"><div class="barre-fond"><div class="barre-remplie" style="width:$largeur%"></div></div><span>$effectif</span></div></td></tr>
+<tr><td><a href="$lien">$code_departement</a></td><td class="effectif" data-valeur="$categories">$categories</td><td class="effectif" data-valeur="$effectif">$effectif</td></tr>
 <!-- FIN ligne -->
 
 <!-- BLOC script --><script src="actifs/filtres.js"></script><!-- FIN script -->

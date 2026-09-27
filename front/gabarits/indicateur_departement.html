@@ -1,0 +1,45 @@
+<!--
+  Gabarit d'une page de l'indicateur département × catégorie restreinte à un
+  département (OOM-115), rendu par src/export_html.py une fois par
+  département présent dans indicateurs.indicateur_departement_categorie
+  (couche 5), dans l'ordre de Resultat.lignes_triees. Publiée en
+  indicateur/<code>.html (contrat B), liée depuis indicateur.html ; ses
+  lignes sont bornées par le nombre de catégories du référentiel, jamais par
+  le nombre d'établissements. Tous les liens passent par $racine (« ../ »).
+  Chaque bloc BLOC nom … FIN nom est un gabarit string.Template : il
+  substitue des valeurs déjà calculées (effectifs, largeur de barre relative
+  au plus grand effectif du département, total), il ne décide rien (D7). Le
+  tableau complet du département est dans le HTML ; l'îlot
+  front/actifs/filtres.js n'ajoute que le tri par colonne et la recherche par
+  catégorie, branchés par attributs data-* (D10). Pas de « $ » littéral dans
+  les blocs : l'écrire « $$ ».
+-->
+
+<!-- BLOC titre -->Indicateur — département $code_departement<!-- FIN titre -->
+
+<!-- BLOC pied -->Généré le $genere_le · $lignes_page catégorie(s) · $total établissement(s) actif(s) dans le tableau pour ce département — sur l'ensemble : $total_actifs actif(s), dont $dans_tableau dans le tableau.<!-- FIN pied -->
+
+<!-- BLOC style --><!-- FIN style -->
+
+<!-- BLOC contenu -->
+<p>Établissements actifs du département $code_departement, par catégorie (libellés résolus). <a href="${racine}indicateur.html">← Tous les départements de l'indicateur</a></p>
+<form class="filtres" id="filtres" hidden data-table="table-indicateur" data-compteur="compteur" data-unite="ligne(s) affichée(s)" data-vide="vide" data-total="total" data-total-libelle="total-libelle" data-colonne-total="1">
+  <label>Recherche (catégorie) <input type="search" id="f-categorie" placeholder="ex. I.M.E." data-colonne="0"></label>
+  <button type="reset">Réinitialiser</button>
+</form>
+<p class="compteur" id="compteur">$lignes_page ligne(s).</p>
+<table id="table-indicateur">
+<thead><tr><th data-cle="0">Catégorie<span class="fleche"></span></th><th data-cle="1" data-numerique="1">Actifs<span class="fleche"></span></th></tr></thead>
+<tbody>
+$lignes
+</tbody>
+<tfoot><tr><td>Total <span id="total-libelle">(toutes lignes)</span></td><td class="effectif" id="total">$total</td></tr></tfoot>
+</table>
+<p class="vide" id="vide" hidden>Aucune catégorie ne correspond à la recherche.</p>
+<!-- FIN contenu -->
+
+<!-- BLOC ligne -->
+<tr><td>$libelle_categorie</td><td class="effectif" data-valeur="$effectif"><div class="barre-cellule"><div class="barre-fond"><div class="barre-remplie" style="width:$largeur%"></div></div><span>$effectif</span></div></td></tr>
+<!-- FIN ligne -->
+
+<!-- BLOC script --><script src="${racine}actifs/filtres.js"></script><!-- FIN script -->
