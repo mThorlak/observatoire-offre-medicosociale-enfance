@@ -529,6 +529,18 @@ Aucun environnement d'exécution utilisé pour développer ce projet (sessions C
 
 Le fichier brut n'est **jamais committé dans git** (voir `.gitignore`, `/donnees/`) : seuls les artefacts CI et les releases mensuelles en portent une copie durable, hors de l'historique git.
 
+## Dérives constatées
+
+### 27/09/2026 — code de nature `ASMR` → `AMSR` (OOM-114)
+
+**Constat.** L'extrait journalier `finess-activites-journalier-20260927.json.gz` (sha1 `27e58b8b…`) code la nature « activité sociale et médico-sociale régulée » en `AMSR` : 227 860 occurrences aux deux niveaux (113 924 `activitesAutorisees`, 113 936 `activitesExercees`), aucune `ASMR`. Le millésime 202607 (échantillon versionné : 2 058 `ASMR`) et l'extrait journalier du 19/08/2026 (113 549 `ASMR` par niveau) écrivent `ASMR`, aucune `AMSR`. Le connecteur ne déclarait que `ASMR` : 227 860 anomalies bloquantes `nature_non_declaree`, `cli.py charger` et `cli.py integrite` en échec.
+
+**Nature de la dérive.** `scripts/recensement.py` rejoué sur les deux extraits (19/08 et 27/09) donne 216 chemins JSON identiques, de mêmes types : le bloc typé s'appelait déjà `typeActiviteAMSR` et garde le même jeu de clés. Seul le code change ; c'est un renommage, pas un changement de contenu.
+
+**Traitement.** Équivalence **déclarée** dans `src/finess_activites.py` (`EQUIVALENCES_NATURE = {"AMSR": "ASMR"}`) : `AMSR` est soumis exactement au contrat de clés d'`ASMR`. Le `code_nature` stocké reste le code lu, verbatim — un extrait 202607 garde `ASMR`, un extrait de septembre `AMSR` ; aucune réécriture d'un code en l'autre (D2/D3). Toute requête aval qui vise cette nature doit donc interroger les deux codes, ou passer par la future nomenclature des natures (OOM-29). Tout autre code, y compris un voisin (`ASRM`, `amsr`, `AMS`), reste une anomalie bloquante `nature_non_declaree` (D6).
+
+**Autres écarts du même recensement, sans effet bloquant** (valeurs nouvelles dans des champs codifiés déjà déclarés, aucun chemin ni type nouveau) : `sousTypeEngagement` `DIS` (Activités) et `SAD` (Structures), `codeEvenement`/`etatObjet1` `033`, `typeObjet2` `AC`, codes AMM `QA014`, `DE024`, `MO031`. Ils relèvent des nomenclatures, pas du connecteur.
+
 ---
 
 # 16. Hébergeur de publication — support des requêtes HTTP Range (OOM-99)

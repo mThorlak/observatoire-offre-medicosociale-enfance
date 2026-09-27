@@ -260,6 +260,32 @@ verifier("nature inconnue → bloquant",
          "nature_non_declaree" in r.registre.par_code() and r.statut == "ECHEC",
          r.registre.par_code())
 
+print("4 bis. Dérive ASMR → AMSR (OOM-114)")
+verifier("équivalence déclarée, vers une nature déclarée",
+         fa.EQUIVALENCES_NATURE == {"AMSR": "ASMR"}
+         and fa.NATURES["AMSR"] is fa.NATURES["ASMR"])
+for natures in (("AMSR",), ("ASMR",), ("ASMR", "AMSR")):
+    nom = "-".join(natures)
+    lignes_d, r = executer(ecrire(f"derive-{nom}-202609.json", document(natures=natures)))
+    lues = sorted(l[pos("code_nature")] for t, l in lignes_d if t == "activite")
+    verifier(f"{nom} : ingéré sans anomalie",
+             r.statut == "SUCCES" and r.registre.total() == 0, r.registre.par_code())
+    verifier(f"{nom} : code_nature stocké verbatim, jamais réécrit",
+             lues == sorted(natures * 2), lues)
+for voisin in ("ASRM", "amsr", "AMSR ", "AMS"):
+    doc = document(natures=("AMSR",))
+    doc["pmej"][0]["activitesAutorisees"][0]["nature"]["codeNature"] = voisin
+    _, r = executer(ecrire("voisin-202609.json", doc))
+    verifier(f"code voisin {voisin!r} → nature_non_declaree bloquant",
+             r.registre.par_code().get("nature_non_declaree") == 1
+             and r.statut == "ECHEC", r.registre.par_code())
+doc = document(natures=("AMSR",))
+del doc["pmej"][0]["activitesAutorisees"][0]["nature"]["caracteristiquesSpecifiques"]["ageMinAutorise"]
+_, r = executer(ecrire("amsr-cles-202609.json", doc))
+verifier("AMSR soumis au même contrat de clés qu'ASMR",
+         "cle_json_absente" in r.registre.par_code() and r.statut == "ECHEC",
+         r.registre.par_code())
+
 doc = document()
 doc["pmej"][0]["activitesAutorisees"][0]["nature"]["caracteristiquesSpecifiques"]["typeActiviteAMSR"] = None
 _, r = executer(ecrire("bloc-nul-202607.json", doc))
