@@ -22,7 +22,10 @@
                           en-tête triable (numérique : tri sur data-valeur)
   <table data-natures>    chaque <details> de la table reçoit, à sa première
                           ouverture, un filtre par data-nature de ses lignes
-                          dès qu'il en porte au moins deux distinctes
+                          dès qu'il en porte au moins deux distinctes ; un
+                          <details data-finess> rempli à la demande par
+                          activites.js (OOM-107) le reçoit à l'événement
+                          « activites-chargees »
 */
 (function () {
   "use strict";
@@ -109,8 +112,9 @@
   }
 
   function brancherNatures(details) {
-    details.addEventListener("toggle", function () {
+    function preparer() {
       if (!details.open || details.dataset.pret) return;
+      if (details.dataset.finess && !details.dataset.chargees) return;
       details.dataset.pret = "1";
       var activites = tableau(details.querySelectorAll("tbody tr"));
       var natures = activites.map(function (tr) { return tr.dataset.nature; })
@@ -129,7 +133,9 @@
       });
       label.appendChild(select);
       details.querySelector("summary").after(label);
-    });
+    }
+    details.addEventListener("toggle", preparer);
+    details.addEventListener("activites-chargees", preparer);
   }
 
   tableau(document.querySelectorAll("form.filtres[data-table]")).forEach(brancherFiltres);

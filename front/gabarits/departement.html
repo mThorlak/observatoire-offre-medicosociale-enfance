@@ -9,9 +9,13 @@
   substitue des valeurs déjà calculées et échappées par le module, il ne
   décide rien (D7) — le choix entre « explication » et
   « explication_indeterminee », entre « tableau » et « aucun » est fait en
-  Python. La page n'embarque que ses établissements et leurs activités ;
-  tout est dans le HTML, l'îlot actifs/filtres.js n'ajoute que le filtrage
-  (D10). Le rappel de périmètre de l'accueil tient ici en une ligne, en tête
+  Python. La page n'embarque que ses établissements et, pour chacun, le
+  nombre de ses activités : leur détail est dans le fragment
+  donnees/activites/<code>.json (data-fragment de la table), que l'îlot
+  actifs/activites.js charge au premier clic sur un panneau — jamais au
+  chargement de la page (OOM-107, D9). Sans JS, les fiches restent toutes
+  lisibles et le fragment est lié en <noscript> (D10) ; l'îlot
+  actifs/filtres.js n'ajoute que le filtrage. Le rappel de périmètre de l'accueil tient ici en une ligne, en tête
   de contenu. Pas de « $ » littéral dans les blocs : l'écrire « $$ ».
 -->
 
@@ -42,7 +46,8 @@ $tableau
   <button type="reset" id="f-reinitialiser">Réinitialiser</button>
 </form>
 <p class="compteur" id="compteur">$nombre_page établissement(s).</p>
-<table id="table-etablissements" data-natures>
+<noscript><p class="alerte">Le détail des activités se charge à l'ouverture d'une ligne, ce qui demande JavaScript. Sans JavaScript, il reste consultable dans le <a href="$fragment">fichier de données des activités de cette page (JSON)</a>.</p></noscript>
+<table id="table-etablissements" data-natures data-fragment="$fragment">
 <thead><tr><th>N° FINESS</th><th>Nom</th><th>Catégorie</th><th>Département</th><th>Code postal</th><th>État</th><th>Activités</th></tr></thead>
 <tbody>
 $lignes
@@ -59,14 +64,7 @@ $lignes
 
 <!-- BLOC activites_aucune --><span class="code-brut">aucune</span><!-- FIN activites_aucune -->
 
-<!-- BLOC activites --><details><summary>$nombre activité(s)</summary><table><thead><tr><th>Nature</th><th>État</th><th>Capacité(s)</th></tr></thead><tbody>$lignes</tbody></table></details><!-- FIN activites -->
+<!-- BLOC activites_differees --><details data-finess="$num_finess"><summary>$nombre activité(s)</summary><p class="activites-etat">Détail chargé à l'ouverture (JavaScript requis).</p></details><!-- FIN activites_differees -->
 
-<!-- BLOC activite --><tr data-nature="$code_nature"><td><span class="$classe_nature">$nature</span> <span class="code-brut">($code_nature)</span></td><td><span class="etat $classe_etat">$etat</span></td><td>$capacites</td></tr><!-- FIN activite -->
-
-<!-- BLOC capacites_aucune --><span class="code-brut">—</span><!-- FIN capacites_aucune -->
-
-<!-- BLOC capacites --><ul class="capacites-liste">$lignes</ul><!-- FIN capacites -->
-
-<!-- BLOC capacite --><li>$nombre <span class="code-brut">(unité $unite, statut $statut)</span></li><!-- FIN capacite -->
-
-<!-- BLOC script --><script src="${racine}actifs/filtres.js"></script><!-- FIN script -->
+<!-- BLOC script --><script src="${racine}actifs/filtres.js"></script>
+<script src="${racine}actifs/activites.js"></script><!-- FIN script -->

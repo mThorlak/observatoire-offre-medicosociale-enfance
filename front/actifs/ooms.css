@@ -153,3 +153,7 @@ details table { margin-top: .5rem; font-size: .82rem; }
 .barre-fond { width: 8rem; height: .55rem; background: #eef0f2; border-radius: 999px; overflow: hidden; }
 .barre-remplie { height: 100%; background: var(--barre); }
 tfoot td { padding: .6rem .7rem; font-weight: 600; border-top: 2px solid var(--bordure); }
+
+/* ---- activités chargées à la demande (OOM-107, activites.js) ---------- */
+.activites-etat { margin: .4rem 0 0; font-size: .8rem; color: var(--texte-att); }
+details .alerte { margin: .4rem 0 0; white-space: normal; }
