@@ -23,3 +23,7 @@ __pycache__/
 # Site statique rendu par export_html.py (OOM-100) depuis l'entrepôt et
 # front/gabarits/ — régénérable par une commande, jamais versionné (D8).
 /site/
+
+# Graphe de connaissance graphify (outil de dev, hors pipeline) —
+# régénérable par /graphify, jamais versionné (D8).
+/graphify-out/
