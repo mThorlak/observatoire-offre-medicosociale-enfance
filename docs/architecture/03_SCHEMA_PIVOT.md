@@ -17,6 +17,14 @@ d'acquisition et la totalité de leurs champs. Il est le seul contrat que les
 couches supérieures ont le droit de connaître. Aucun module au-dessus de la
 couche 1 ne doit lire un chemin JSON.
 
+> **Avertissement sur le nom de ce fichier (2026-08-22, OOM-46).** Malgré son
+> nom, ce document ne décrit **pas** un modèle pivot : il décrit le contrat de la
+> source FINESS, dont la couche 2 est le miroir. Le pivot — minimal, projeté
+> depuis le miroir, indépendant du vocabulaire des sources — est décidé par
+> `07_DECISION_PIVOT_HYBRIDE.md` et reste à implémenter. Ce fichier sera renommé
+> lorsque le pivot réel existera, pour que deux documents ne portent pas le mot
+> « pivot » en désignant deux objets différents.
+
 ---
 
 ## 1. Conventions
