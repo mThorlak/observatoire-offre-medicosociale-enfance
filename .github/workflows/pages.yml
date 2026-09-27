@@ -102,17 +102,21 @@ jobs:
         run: |
           set -euo pipefail
           t=$(date +%s)
+          rc=0
           python3 src/cli.py charger base.sqlite donnees/structures.json.gz \
-            --activites donnees/activites.json.gz --creer
-          echo "| Charger l'entrepôt | $(( $(date +%s) - t )) s |" >> "$GITHUB_STEP_SUMMARY"
+            --activites donnees/activites.json.gz --creer || rc=$?
+          echo "| Charger l'entrepôt (code $rc) | $(( $(date +%s) - t )) s |" >> "$GITHUB_STEP_SUMMARY"
+          exit $rc
 
       - name: Contrôler l'intégrité (bloquant, D6)
         continue-on-error: ${{ github.event_name == 'push' }}  # TEMPORAIRE mesure OOM-108, à retirer
         run: |
           set -euo pipefail
           t=$(date +%s)
-          python3 src/cli.py integrite donnees/structures.json.gz donnees/activites.json.gz
-          echo "| Contrôler l'intégrité | $(( $(date +%s) - t )) s |" >> "$GITHUB_STEP_SUMMARY"
+          rc=0
+          python3 src/cli.py integrite donnees/structures.json.gz donnees/activites.json.gz || rc=$?
+          echo "| Contrôler l'intégrité (code $rc) | $(( $(date +%s) - t )) s |" >> "$GITHUB_STEP_SUMMARY"
+          exit $rc
 
       - name: Publier la base en artefact
         uses: actions/upload-artifact@v4
