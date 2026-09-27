@@ -31,12 +31,6 @@ name: Publication GitHub Pages
 # dans le résumé du run ($GITHUB_STEP_SUMMARY).
 
 "on":
-  # TEMPORAIRE (OOM-108) : mesure des durées sur extrait complet depuis la
-  # branche de travail — workflow_dispatch n'est déclenchable que depuis la
-  # branche par défaut. À retirer avant la PR.
-  push:
-    branches: [thomasfoch/oom-108-tenir-la-limite-de-dix-minutes-du-run-de-publication]
-    paths: [.github/workflows/pages.yml]
   workflow_dispatch:
     inputs:
       run_id_base:
@@ -62,7 +56,7 @@ env:
 
 jobs:
   charger:
-    if: (inputs.run_id_base || '36325164172') == ''
+    if: (inputs.run_id_base || '') == ''
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -98,7 +92,6 @@ jobs:
           echo "| Télécharger Activités ($(stat -c%s donnees/activites.json.gz) o) | $(( $(date +%s) - t )) s |" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Charger l'entrepôt
-        continue-on-error: ${{ github.event_name == 'push' }}  # TEMPORAIRE mesure OOM-108, à retirer
         run: |
           set -euo pipefail
           t=$(date +%s)
@@ -109,7 +102,6 @@ jobs:
           exit $rc
 
       - name: Contrôler l'intégrité (bloquant, D6)
-        continue-on-error: ${{ github.event_name == 'push' }}  # TEMPORAIRE mesure OOM-108, à retirer
         run: |
           set -euo pipefail
           t=$(date +%s)
@@ -153,7 +145,7 @@ jobs:
     # d'un run précédent (`charger` sauté). Jamais après un `charger` en échec.
     if: >-
       always() && (needs.charger.result == 'success' ||
-      (needs.charger.result == 'skipped' && (inputs.run_id_base || '36325164172') != ''))
+      (needs.charger.result == 'skipped' && (inputs.run_id_base || '') != ''))
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -166,7 +158,7 @@ jobs:
           {
             echo "### Job rendre"
             echo
-            echo "Base : run ${{ inputs.run_id_base || '36325164172' }}"
+            echo "Base : run ${{ inputs.run_id_base || github.run_id }}"
             echo
             echo "| Étape | Durée |"
             echo "|---|---:|"
@@ -182,7 +174,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: base-sqlite
-          run-id: ${{ inputs.run_id_base || '36325164172' }}
+          run-id: ${{ inputs.run_id_base || github.run_id }}
           github-token: ${{ github.token }}
 
       - name: Rendre le site
