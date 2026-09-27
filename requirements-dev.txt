@@ -1,0 +1,7 @@
+# Dépendances de DÉVELOPPEMENT uniquement (écrire et tester le code).
+# Rien ici ne sert à l'exécution : aucun module de src/ ne doit importer ces paquets.
+# Le runtime (poste local, Termux) n'a besoin que de requirements.txt.
+#
+#   python -m pip install -r requirements.txt -r requirements-dev.txt
+pytest>=8
+black>=24

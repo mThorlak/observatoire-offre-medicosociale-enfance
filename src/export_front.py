@@ -3,9 +3,11 @@ export_front.py — Export de l'entrepôt en JSON statique pour le front simple 
 
 Produit `etablissements.json`, `indicateur.json`, `activites.json` et
 `meta.json` à partir d'un entrepôt SQLite déjà chargé (`entrepot.py`/
-`chargement.py`, couche 2). Ces fichiers sont consommés tels quels par
-`front/liste.html` (OOM-20, OOM-28) et `front/indicateur.html` (OOM-21) — pas
-de serveur HTTP, pas d'API : cadrage tranché dans OOM-18 (18/08).
+`chargement.py`, couche 2). Ces fichiers étaient consommés par les pages
+écrites à la main du premier front (OOM-20, OOM-21, OOM-28), supprimées par
+OOM-104 au profit du site rendu par `export_html.py` : l'écriture JSON ne sert
+plus aucune page publiée et reste en l'état. `etablissements_bruts` et
+`activites_par_etablissement` restent, eux, la lecture qu'`export_html` réutilise.
 
 ACTIVITÉS PAR ÉTABLISSEMENT — activites.json (OOM-27)
 -----------------------------------------------------------------

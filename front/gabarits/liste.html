@@ -1,0 +1,56 @@
+<!--
+  Gabarit de la page « liste des établissements » (OOM-100), rendu par
+  src/export_html.py. Chaque bloc BLOC nom … FIN nom est un gabarit
+  string.Template : il substitue des valeurs déjà calculées et échappées par
+  le module, il ne décide rien (D7). Le texte hors blocs n'est pas publié.
+  Le contenu utile (toutes les lignes, toutes les activités) est dans le HTML ;
+  l'îlot front/actifs/filtres.js n'ajoute que le filtrage, branché par les
+  attributs data-* du formulaire et de la table (D10). Ni balise style ni script
+  inline : le style vit dans front/actifs/ooms.css (OOM-102), le bloc script
+  n'est que le point d'amorçage de l'îlot. Pas de « $ » littéral dans les
+  blocs : l'écrire « $$ ».
+-->
+
+<!-- BLOC titre -->Établissements FINESS<!-- FIN titre -->
+
+<!-- BLOC pied -->Généré le $genere_le · $nombre_etablissements établissement(s) · $sans_adresse_principale sans adresse principale · $categorie_non_resolue catégorie(s) non résolue(s) · $departement_non_resolu département(s) non résolu(s) · $activites_total activité(s) sur $etablissements_avec_activites établissement(s) · natures d'activité non résolues (aucune nomenclature versionnée)<!-- FIN pied -->
+
+<!-- BLOC style --><!-- FIN style -->
+
+<!-- BLOC contenu -->
+<form class="filtres" id="filtres" hidden data-table="table-etablissements" data-compteur="compteur" data-unite="établissement(s) affiché(s)" data-vide="vide">
+  <label>Recherche (nom) <input type="search" id="f-recherche" placeholder="ex. IME" data-colonne="1"></label>
+  <label>Département <select id="f-departement" data-champ="dep"><option value="">Tous</option>$options_departement</select></label>
+  <label>Catégorie <select id="f-categorie" data-champ="cat"><option value="">Toutes</option>$options_categorie</select></label>
+  <label>État <select id="f-etat" data-champ="etat"><option value="">Tous</option><option value="A">Actif</option><option value="I">Inactif</option></select></label>
+  <button type="reset" id="f-reinitialiser">Réinitialiser</button>
+</form>
+<p class="compteur" id="compteur">$nombre_etablissements établissement(s).</p>
+<table id="table-etablissements" data-natures>
+<thead><tr><th>N° FINESS</th><th>Nom</th><th>Catégorie</th><th>Département</th><th>Code postal</th><th>État</th><th>Activités</th></tr></thead>
+<tbody>
+$lignes
+</tbody>
+</table>
+<p class="vide" id="vide" hidden>Aucun établissement ne correspond aux filtres.</p>
+<!-- FIN contenu -->
+
+<!-- BLOC option --><option value="$valeur">$valeur</option><!-- FIN option -->
+
+<!-- BLOC ligne -->
+<tr data-dep="$code_departement" data-cat="$libelle_categorie" data-etat="$code_etat"><td>$num_finess</td><td>$nom</td><td>$categorie <span class="code-brut">($code_categorie)</span></td><td>$departement</td><td>$code_postal</td><td><span class="etat $classe_etat">$etat</span></td><td>$activites</td></tr>
+<!-- FIN ligne -->
+
+<!-- BLOC activites_aucune --><span class="code-brut">aucune</span><!-- FIN activites_aucune -->
+
+<!-- BLOC activites --><details><summary>$nombre activité(s)</summary><table><thead><tr><th>Nature</th><th>État</th><th>Capacité(s)</th></tr></thead><tbody>$lignes</tbody></table></details><!-- FIN activites -->
+
+<!-- BLOC activite --><tr data-nature="$code_nature"><td><span class="$classe_nature">$nature</span> <span class="code-brut">($code_nature)</span></td><td><span class="etat $classe_etat">$etat</span></td><td>$capacites</td></tr><!-- FIN activite -->
+
+<!-- BLOC capacites_aucune --><span class="code-brut">—</span><!-- FIN capacites_aucune -->
+
+<!-- BLOC capacites --><ul class="capacites-liste">$lignes</ul><!-- FIN capacites -->
+
+<!-- BLOC capacite --><li>$nombre <span class="code-brut">(unité $unite, statut $statut)</span></li><!-- FIN capacite -->
+
+<!-- BLOC script --><script src="actifs/filtres.js"></script><!-- FIN script -->

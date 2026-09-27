@@ -528,3 +528,67 @@ Aucun environnement d'exécution utilisé pour développer ce projet (sessions C
 - le **1er de chaque mois**, le fichier du jour est en plus publié comme snapshot permanent — une GitHub Release taguée `finess-activites-AAAA-MM`, qui n'expire jamais.
 
 Le fichier brut n'est **jamais committé dans git** (voir `.gitignore`, `/donnees/`) : seuls les artefacts CI et les releases mensuelles en portent une copie durable, hors de l'historique git.
+
+## Dérives constatées
+
+### 27/09/2026 — code de nature `ASMR` → `AMSR` (OOM-114)
+
+**Constat.** L'extrait journalier `finess-activites-journalier-20260927.json.gz` (sha1 `27e58b8b…`) code la nature « activité sociale et médico-sociale régulée » en `AMSR` : 227 860 occurrences aux deux niveaux (113 924 `activitesAutorisees`, 113 936 `activitesExercees`), aucune `ASMR`. Le millésime 202607 (échantillon versionné : 2 058 `ASMR`) et l'extrait journalier du 19/08/2026 (113 549 `ASMR` par niveau) écrivent `ASMR`, aucune `AMSR`. Le connecteur ne déclarait que `ASMR` : 227 860 anomalies bloquantes `nature_non_declaree`, `cli.py charger` et `cli.py integrite` en échec.
+
+**Nature de la dérive.** `scripts/recensement.py` rejoué sur les deux extraits (19/08 et 27/09) donne 216 chemins JSON identiques, de mêmes types : le bloc typé s'appelait déjà `typeActiviteAMSR` et garde le même jeu de clés. Seul le code change ; c'est un renommage, pas un changement de contenu.
+
+**Traitement.** Équivalence **déclarée** dans `src/finess_activites.py` (`EQUIVALENCES_NATURE = {"AMSR": "ASMR"}`) : `AMSR` est soumis exactement au contrat de clés d'`ASMR`. Le `code_nature` stocké reste le code lu, verbatim — un extrait 202607 garde `ASMR`, un extrait de septembre `AMSR` ; aucune réécriture d'un code en l'autre (D2/D3). Toute requête aval qui vise cette nature doit donc interroger les deux codes, ou passer par la future nomenclature des natures (OOM-29). Tout autre code, y compris un voisin (`ASRM`, `amsr`, `AMS`), reste une anomalie bloquante `nature_non_declaree` (D6).
+
+**Autres écarts du même recensement, sans effet bloquant** (valeurs nouvelles dans des champs codifiés déjà déclarés, aucun chemin ni type nouveau) : `sousTypeEngagement` `DIS` (Activités) et `SAD` (Structures), `codeEvenement`/`etatObjet1` `033`, `typeObjet2` `AC`, codes AMM `QA014`, `DE024`, `MO031`. Ils relèvent des nomenclatures, pas du connecteur.
+
+---
+
+# 16. Hébergeur de publication — support des requêtes HTTP Range (OOM-99)
+
+Constaté le 19/09/2026 vers 07:00 UTC. Une archive PMTiles n'est lisible depuis le navigateur que si l'hébergeur honore les requêtes `Range` (lecture d'un intervalle d'octets, réponse `206 Partial Content`) ; sinon chaque tuile coûterait le téléchargement de l'archive entière. Vérification faite avant toute génération de tuiles, parce qu'un résultat négatif aurait invalidé le choix d'hébergeur.
+
+## Hébergeur testé
+
+GitHub Pages du dépôt public `mThorlak/observatoire-offre-medicosociale-enfance`, derrière le CDN Fastly de GitHub (`Server: GitHub.com`, `Via: 1.1 varnish`, nœud `cache-par-*`).
+
+## Dispositif de test
+
+- fichier `test.bin` : 1 048 576 octets aléatoires (`/dev/urandom`), SHA-256 `417be7bf3e829e979bb328a6fa989e8bebd8622610bf186628e44ab83e31949a` — seul fichier publié, avec un `.nojekyll` vide ;
+- publié par une branche orpheline jetable `gh-pages-test` (un seul commit, sans lien avec l'historique de `main`) et Pages activé en mode **legacy** sur cette branche (`gh api -X POST repos/.../pages -f build_type=legacy -f "source[branch]=gh-pages-test" -f "source[path]=/"`). Chemin retenu parce que le plus simple : un workflow `workflow_dispatch` doit exister sur la branche par défaut pour être déclenchable, et l'environnement `github-pages` n'accepte par défaut que la branche par défaut — aucun des deux n'était possible sans toucher `main`. Aucun workflow n'a été créé ;
+- URL : `https://mthorlak.github.io/observatoire-offre-medicosociale-enfance/test.bin`.
+
+## Résultat : Range honoré (206)
+
+`GET` avec `Range: bytes=0-99` :
+
+```
+$ curl -r 0-99 -s -D - -o p.bin <url>/test.bin
+HTTP/1.1 206 Partial Content
+Content-Length: 100
+ETag: "6aae3319-100000"
+Accept-Ranges: bytes
+Content-Range: bytes 0-99/1048576
+$ curl -r 0-99 -s <url>/test.bin | wc -c
+100
+```
+
+Contrôles complémentaires, tous concluants :
+
+- intervalle en milieu de fichier (`-r 524288-524387`) : `206`, `Content-Range: bytes 524288-524387/1048576`, et les 100 octets reçus ont le même SHA-256 que les octets 524 288 à 524 387 du fichier local — l'intervalle servi est exact, pas seulement de la bonne longueur ;
+- `If-Range` avec l'ETag fort : `206` ;
+- `Accept-Encoding: identity` : `206`, mêmes en-têtes ;
+- fichier complet sans `Range` : `200`, SHA-256 identique à l'original ;
+- `Content-Type: application/octet-stream`, `Access-Control-Allow-Origin: *` (lecture inter-origines possible), `Cache-Control: max-age=600`.
+
+## Deux réserves consignées
+
+1. **`HEAD` ignore `Range`.** La commande littérale `curl -r 0-99 -sI <url>/test.bin` (qui envoie un `HEAD`) renvoie `200 OK` avec `Content-Length: 1048576` et `Accept-Ranges: bytes`, pas un `206`. C'est le comportement prévu par HTTP (RFC 9110 §14.2 : `Range` ne s'applique qu'à `GET`) et sans conséquence : PMTiles ne lit que par `GET`. La preuve de support est le `GET` ci-dessus, pas le `HEAD`.
+2. **Compression à la volée si le client l'accepte.** Avec `Accept-Encoding: gzip, deflate, br, zstd`, le CDN gzippe la réponse et applique l'intervalle au flux **compressé** : `206`, `Content-Encoding: gzip`, `Content-Range: bytes 0-99/1048914`, ETag devenu faible (`W/"..."`). Les 100 octets reçus ne sont alors pas les octets 0-99 du fichier. Les navigateurs ne sont pas exposés : la spécification Fetch impose `Accept-Encoding: identity` dès qu'une requête porte un en-tête `Range`, ce que fait la bibliothèque `pmtiles`. En revanche, tout client hors navigateur (script de vérification, outil en ligne de commande) doit envoyer `Accept-Encoding: identity` explicitement. À revérifier sur la vraie archive `.pmtiles` (dont le type MIME servi pourrait différer) lors de la génération des tuiles.
+
+## Conséquence
+
+GitHub Pages convient pour servir l'archive de tuiles : le repli prévu (archive sur un stockage objet dédié, site inchangé) n'est **pas** nécessaire.
+
+## État laissé en place
+
+Pages est activé en mode legacy sur `gh-pages-test`. La chaîne de publication pérenne (OOM-54) devra basculer la source sur « GitHub Actions » (`gh api -X PUT repos/.../pages -f build_type=workflow`) puis supprimer la branche `gh-pages-test`.

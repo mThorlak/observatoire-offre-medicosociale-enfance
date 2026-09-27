@@ -124,6 +124,21 @@ NATURES: Dict[str, Nature] = {
         "aaEmlId"),
 }
 
+# Équivalences de codes de nature, déclarées et non déduites (OOM-114). Dérive
+# constatée sur l'extrait journalier du 27/09/2026 : la nature « activité
+# sociale et médico-sociale régulée » y est codée `AMSR` (227 860 occurrences,
+# aucune `ASMR`), alors que 202607 et l'extrait du 19/08/2026 écrivent `ASMR`.
+# Le recensement des deux extraits montre des chemins JSON identiques : seul
+# le code change, et `AMSR` est l'acronyme que le bloc typé portait déjà
+# (`typeActiviteAMSR`). L'équivalence ne porte que sur le contrat de clés :
+# `code_nature` reste stocké tel que lu, jamais réécrit (D2/D3). Tout autre
+# code reste bloquant (D6). Cf. docs/08_SOURCES_DONNEES.md.
+EQUIVALENCES_NATURE: Dict[str, str] = {"AMSR": "ASMR"}
+
+for _code, _reference in EQUIVALENCES_NATURE.items():
+    NATURES[_code] = NATURES[_reference]
+del _code, _reference
+
 
 class SourceFinessActivites(Source):
     """Connecteur du fichier activités mensuel FINESS."""

@@ -10,6 +10,15 @@ réutilisable et reproductible, et des travaux scientifiques exploitant les donn
 Stdlib only + `openpyxl` (restitution Excel) — pas d'ORM, pas de framework, pas de service ni d'API :
 le contexte d'exécution cible reste un poste local et Termux (téléphone). Python 3.9+ compatible.
 
+**Deux contraintes distinctes, à ne pas confondre** :
+- **Contrainte d'exécution** (`requirements.txt`, `openpyxl` seul) : ce que `src/` a le droit
+  d'importer. Stdlib + `openpyxl`, rien d'autre — c'est ce qui garantit que le pipeline tourne sur un
+  poste local et sur Termux. `grep -rn "import pytest" src/` ne doit jamais rien renvoyer.
+- **Contrainte de développement** (`requirements-dev.txt` : `pytest`, `black`) : ce qu'il faut pour
+  écrire, formater et tester le code. Ces paquets ne sont **jamais** importés par `src/` ; ils
+  n'ont pas à être installés pour lancer le pipeline. Ajouter un outil de dev ici est libre, ajouter
+  une dépendance à `requirements.txt` est une décision d'architecture.
+
 Tracking: Linear team **OOM**, project **OOMS**, epic **OOM-6** "POC 1 — Pipeline FINESS
 bout-en-bout minimal".
 
@@ -33,6 +42,9 @@ python src/cli.py tout <structures.json.gz> <activites.json.gz>
 python src/cli.py charger <base.sqlite> <structures.json.gz> [--activites ...] [--creer] [--remplacer]
 python src/cli.py restituer <base.sqlite> [--sortie restitution/]   # export CSV + rapport (OOM-14)
 ```
+Rendu du site statique (couche 6, hors CLI) : `python src/export_html.py <base.sqlite> --sortie site/`
+(une page par département par défaut, paginée en sous-pages bornées — OOM-115 —, `--decoupage
+national` pour une liste unique).
 
 **Tests** — pas de pytest, pas d'assert : chaque `tests/test_*.py` est un script autonome qui
 s'exécute directement, incrémente un compteur local `ok`/`ko` via une fonction `verifier(...)`, et se
@@ -40,8 +52,20 @@ termine par `sys.exit(1 si ko else 0)`. Lancer un seul fichier :
 ```bash
 python tests/test_entrepot.py
 ```
-Lancer toute la suite : exécuter chaque `tests/test_*.py` de la même façon (pas de script agrégateur
-existant — un agent qui veut un résumé global doit boucler dessus lui-même). `tests/echantillon/`
+Lancer toute la suite d'un coup (OOM-101) :
+```bash
+python tests/tout.py        # -v pour afficher aussi la sortie des fichiers qui passent
+```
+`tests/tout.py` découvre `tests/test_*.py` dynamiquement (aucune liste en dur), exécute chacun dans un
+sous-processus (même interpréteur, `PYTHONPATH=src` et `PYTHONIOENCODING=utf-8` posés pour l'enfant,
+cwd = racine), affiche la sortie des échecs puis un résumé (passés, échoués, noms des échecs) et sort
+en 1 si un fichier au moins a un code de retour non nul — plantage à l'import compris (D6).
+**Option retenue : agrégateur stdlib, plutôt que conversion à pytest.** Motif : il ne touche à aucun
+fichier de test (chacun reste exécutable seul, le contrat `verifier`/`sys.exit` est inchangé), il ne
+demande rien d'autre que la stdlib — donc tourne aussi là où `requirements-dev.txt` n'est pas
+installé (Termux) — et l'isolation par sous-processus empêche un fichier de polluer l'état global
+(modules importés, fichiers temporaires) d'un autre. Une conversion pytest reste possible plus tard
+sans remettre en cause cet agrégateur. `tests/echantillon/`
 contient l'échantillon FINESS réel versionné dont dépendent `test_chargement.py` et consorts ; il doit
 rester committé (voir `.gitignore`, exception explicite). `tests/generer.tests.py` fabrique des CSV de
 fixture synthétiques dans `tests/data/` pour les tests de la V1 historique (`categories`/`taxonomie`).
@@ -56,15 +80,16 @@ mesure de performance/RSS utilisés pour justifier les décisions de `docs/archi
 ## Architecture
 
 Le détail normatif vit dans `docs/architecture/` (généré/tenu à jour à la main, ne pas dupliquer ici) :
-`01_ARCHITECTURE_GLOBALE.md` (vue en couches, décisions D1-D6), `03_SCHEMA_PIVOT.md` (schéma cible),
-`06_DECISIONS_SCHEMA.md` (**généré par `schema.py`** depuis les déclarations du code — ne jamais
-l'éditer à la main). Lire ces trois avant toute modification structurelle.
+`01_ARCHITECTURE_GLOBALE.md` (vue en couches, décisions D1-D6 — **D7 à D10 ne sont écrits que
+dans ce fichier-ci**), `03_SCHEMA_PIVOT.md` (schéma cible), `06_DECISIONS_SCHEMA.md` (**généré par
+`schema.py`** depuis les déclarations du code — ne jamais l'éditer à la main). Lire ces trois avant
+toute modification structurelle.
 
 **Vue en couches, dépendance strictement descendante** (une couche ne connaît que les couches
 inférieures — le domaine ignore FINESS, la restitution ignore le métier, l'acquisition ignore la
 taxonomie) :
 ```
-6  RESTITUTION      export_excel · export_tabulaire · export_geo · rapport
+6  RESTITUTION      export_excel · export_tabulaire · export_html · export_geo · rapport
 5  ANALYSE          vues · indicateurs · qualite
 4  DOMAINE          taxonomie · perimetre · dispositifs · capacites · identite
 3  RÉFÉRENTIELS     nomenclatures · territoires
@@ -74,22 +99,82 @@ taxonomie) :
     ─────────────────────────────────────────────────
     ORCHESTRATION   cli (pipeline à venir)
 ```
+La couche 6 couvre **toute** forme de restitution, publication web comprise : `export_html` rend les
+pages du site depuis l'entrepôt, `export_geo` produit les sorties géographiques (GeoJSON, tuiles).
+Une page publiée n'est pas une application cliente posée à côté du pipeline, c'est une sortie de la
+couche 6 au même titre qu'un CSV ou un classeur Excel (D7).
+
 État actuel (POC 1, epic OOM-6, **Done** — milestone 100%) : couches 0-3 posées et branchées sur le
 CLI, couche 4 pas encore nécessaire pour ce POC (comptage brut, pas de qualification de périmètre),
 couche 5 (`indicateurs.py`, OOM-13) et couche 6 (`export_tabulaire.py`/`restituer`, OOM-14) posées et
-vérifiées de bout en bout sur l'extrait réel. Extension "front simple" (epic OOM-22, hors DoD initial
-de l'épopée OOM-6) — **Done** : `export_front.py` (OOM-19) résout les libellés via `nomenclatures`/
-`territoires` et écrit `etablissements.json`/`indicateur.json`/`meta.json` dans `front/data/`
-(gitignored, régénéré à la demande) ; `front/liste.html` (OOM-20, liste filtrable — département,
-catégorie, état) et `front/indicateur.html` (OOM-21, tableau croisé département × catégorie triable)
-consomment ces fichiers en statique pur (pas de build, pas de serveur autre que
-`python -m http.server` local). Les deux ont été vérifiés de bout en bout sur l'échantillon versionné.
-Extension "intégration FINESS-Activités" (epic OOM-26) — **Done** : `export_front.py` (OOM-27) écrit
-en plus `activites.json` (`{num_finess_et: [activité, ...]}`, niveau `ET` uniquement, capacités
-imbriquées ; `code_nature` exposé brut — aucune nomenclature versionnée ne couvre encore ce domaine,
-donc `libelle_nature` vaut toujours `None`, jamais une valeur inventée) ; `front/liste.html` (OOM-28)
-ouvre un panneau d'activités au clic sur une ligne d'établissement, avec filtre par nature côté
-client. Vérifié de bout en bout sur l'échantillon versionné (structures + activités).
+vérifiées de bout en bout sur l'extrait réel. Extensions "front simple" (epic OOM-22) et
+"intégration FINESS-Activités" (epic OOM-26) — **Done** : `export_front.py` (OOM-19, OOM-27) résout
+les libellés via `nomenclatures`/`territoires` et expose `etablissements_bruts` et
+`activites_par_etablissement` (niveau `ET` uniquement, capacités imbriquées ; `code_nature` exposé
+brut — aucune nomenclature versionnée ne couvre encore ce domaine, donc `libelle_nature` vaut
+toujours `None`, jamais une valeur inventée). Son écriture JSON (`exporter` → `front/data/`,
+gitignored) ne sert plus aucune page depuis la suppression des anciens HTML écrits à la main (OOM-104) ;
+elle est conservée en l'état, hors périmètre de la refonte.
+
+**Couche 6 — site par gabarits (épopée « socle de restitution », OOM-100 à OOM-104, OOM-106, OOM-115)** :
+`export_html.py` (contrat A : `rendre(entrepot, dossier_gabarits, dossier_sortie,
+decoupage="departement", lignes_par_sous_page=LIGNES_PAR_SOUS_PAGE) -> dict`) rend `index.html`
+(accueil avec mention de périmètre, OOM-103, et un lien vers chaque page départementale),
+`indicateur.html` (sommaire de l'indicateur département × catégorie de la couche 5 : une ligne par
+département, liée à `indicateur/<code>.html` qui porte ses cases, OOM-115) et, selon le découpage,
+une page par département paginée en sous-pages (`departement.html` + `departement_sous_page.html`,
+défaut, OOM-106, OOM-115) ou une liste nationale unique `liste.html` (`--decoupage national`,
+conservée pour la consultation locale : ~55 Mo à l'échelle réelle, elle viole D9 — seule page
+exemptée du contrôle de budget, `PAGES_NON_BORNEES`). Gabarits dans `front/gabarits/`
+(`base.html` + un gabarit par page, blocs `<!-- BLOC nom -->…<!-- FIN nom -->` substitués par
+`string.Template`, aucune logique dans le gabarit), puis recopie de `front/actifs/` (feuille de style
+commune `ooms.css`, îlots `filtres.js`, OOM-102, et `activites.js`, OOM-107) dans `site/actifs/`. Tout
+le contenu utile est dans le HTML ; le JS n'ajoute que tri et filtres (D10) — sauf le détail des
+activités des sous-pages départementales (OOM-107) : la sous-page n'en porte que le nombre par
+établissement, le détail est écrit dans `site/donnees/activites/<code>/<n>.json` et chargé par
+`activites.js` au premier clic sur un panneau, jamais au chargement (D9) ; sans JS, un `<noscript>`
+lie ce fragment. Un `fetch` en échec s'affiche dans le panneau (D6). Un gabarit ou un bloc manquant
+lève `ErreurExportHtml` avant toute écriture, chemin dans le message ; un code hors référentiel est
+rendu `[non résolu]` avec son code brut, jamais un libellé inventé. La liste des départements est une
+donnée versionnée (`referentiels/departements.csv`, COG INSEE, lue par
+`territoires.charger_departements`), jamais une liste en dur. Couvert par `tests/test_export_html.py`
+(OOM-104, OOM-106, OOM-107, OOM-115 — OOM-107 sert le site par `http.server` et exécute
+`activites.js` sous Node s'il est présent, contre un DOM factice, `tests/js/harnais_activites.js`).
+Rendu du site, puis mesure du budget D9 (`mesures/poids_site.py`, code de retour 1 si une page
+dépasse 500 Ko ; rapport versionné `mesures/poids_site.md`) :
+```bash
+python src/export_html.py <base.sqlite> [--sortie site/] [--gabarits front/gabarits/] [--decoupage departement|national] [--lignes-par-sous-page 1000]
+python mesures/poids_site.py site/ [--rapport mesures/poids_site.md]
+python -m http.server -d site   # consultation locale ; site/ est gitignored (D8)
+```
+
+**Pagination bornée (OOM-115, D9 par construction).** Les établissements d'un département, par
+numéro FINESS croissant, sont découpés en sous-pages d'au plus `LIGNES_PAR_SOUS_PAGE` = 1 000 lignes
+(constante mesurée sur l'extrait complet du 27/09/2026 : ligne de 364 o en médiane, 456 o au plus).
+Un département qui tient en une sous-page en a quand même une : pas de cas particulier. La recherche
+et les filtres JS ne portent que sur la sous-page affichée, ce que la sous-page écrit. Avant toute
+écriture, chaque page (sauf `liste.html`) est mesurée avec tous les actifs du site : au-delà de
+`BUDGET_PAGE` (500 Ko bruts, jamais gzip), `ErreurExportHtml` nomme les pages et rien n'est écrit.
+
+**Contrat B — chemins du site** (posé par OOM-106, consommé par OOM-107, révisé par OOM-115). Relatifs
+à `site/` :
+
+| Chemin | Contenu |
+|---|---|
+| `index.html`, `indicateur.html` | pages nationales (accueil, sommaire de l'indicateur) |
+| `indicateur/<code>.html` | cases département × catégorie d'un département présent dans le tableau de la couche 5 (y compris un code hors référentiel comme `975`) ; lignes bornées par le nombre de catégories |
+| `departement/<code>.html` | une page par département de `referentiels/departements.csv` (101), **même sans établissement** (page explicite, jamais une absence de fichier) : sommaire de ses sous-pages, liées en HTML avec effectif, actifs et plage de n° FINESS — aucune fiche ; `<code>` = code département INSEE **en texte** : `01`…`95`, `2A`, `2B`, `971`…`976` — jamais converti en nombre |
+| `departement/indetermine.html` | même sommaire pour les établissements dont le `cog_commune` est absent, non résolu, ou résolu en un code hors référentiel (`975`, `98x`…) — visibles, jamais écartés |
+| `departement/<code>/<n>.html` | sous-page `n` = 1, 2… : au plus `LIGNES_PAR_SOUS_PAGE` établissements ; au moins une par département, même vide |
+| `donnees/activites/<code>/<n>.json` | fragment d'activités de la sous-page de mêmes `<code>` et `<n>`, un par sous-page (même vide : `{}`) ; structure d'`activites.json` (`{num_finess_et: [activité]}`) restreinte à la sous-page ; **chargé à la demande** par `actifs/activites.js` (OOM-107), jamais au chargement de la page |
+| `actifs/` | feuille de style et îlots JS |
+
+Tous les liens entre pages sont **relatifs** (site servi sous le sous-chemin GitHub Pages
+`/observatoire-offre-medicosociale-enfance/`) : une page de `departement/` ou d'`indicateur/` rejoint
+la racine par `../`, une sous-page par `../../`. Aucune page ne charge de JSON national. Chaque page
+et sous-page départementale rappelle en une ligne la mention de périmètre de l'accueil. La somme des
+établissements des sous-pages départementales est vérifiée égale au total, et celle des cases des
+pages d'indicateur au nombre de cases, avant écriture (`ErreurExportHtml` sinon, D6).
 
 **Principes non négociables** (violer l'un d'eux est un bug d'architecture, pas un détail
 d'implémentation) :
@@ -105,6 +190,16 @@ d'implémentation) :
 - **D6** Aucun échec silencieux — chaque étape produit des compteurs entrée/sortie et des invariants
   bloquants ; un export ne peut pas sortir d'un entrepôt en échec. Un code de nomenclature inconnu se
   **signale**, ne se tait jamais et ne plante pas non plus.
+- **D7** Le front est une restitution, pas une application — toute page publiée est produite par la
+  couche 6 depuis l'entrepôt ; aucun HTML écrit à la main hors `front/gabarits/`. Un gabarit ne
+  calcule rien : s'il lui faut une valeur, c'est à la couche 5 de la produire.
+- **D8** Aucune donnée générée n'est versionnée — `site/`, `front/data/` et les archives de tuiles
+  restent hors de git, régénérables par une commande. `tests/echantillon/` demeure l'exception
+  explicite qu'il est déjà (voir `.gitignore`).
+- **D9** Budget de charge utile par page — aucune page ne dépasse **500 Ko** de données au chargement
+  initial ; au-delà, on découpe ou on charge à la demande.
+- **D10** Le JavaScript est un îlot, jamais le socle — toute page rend son contenu utile sans JS ; le
+  JS ajoute du confort (tri, filtre, carte), il ne conditionne jamais l'accès à l'information.
 
 **Schéma** (`schema.py`, cf. `06_DECISIONS_SCHEMA.md`) : toutes les colonnes sont `TEXT` (la couche 1
 émet tout en texte verbatim — des numéros FINESS commencent par `2A`/`2B`) ; `etablissement` porte le
@@ -115,6 +210,22 @@ rend les séries temporelles possibles ; plusieurs rattachements sont polymorphe
 en clé étrangère SQL** — ils sont vérifiés en Python par `controles.VerificateurRelations`
 (`cli.py integrite`), pas par SQLite ; aucun index de performance n'est déclaré sans mesure préalable
 démontrant un besoin insatisfait.
+
+**Piège de nommage — coordonnées d'`adresse`.** Les quatre colonnes géographiques ne disent pas ce
+que leur nom suggère, et les deux `direction_*` sont en plus inversées entre elles :
+
+| Colonne | Contenu réel | Exemple |
+|---|---|---|
+| `coordonnee_x` | **longitude** WGS84, degrés décimaux | `6.139885` |
+| `coordonnee_y` | **latitude** WGS84, degrés décimaux | `46.362063` |
+| `direction_longitude` | **X / easting** Lambert 93 (EPSG:2154), mètres | `941342.52` |
+| `direction_latitude` | **Y / northing** Lambert 93 (EPSG:2154), mètres | `6589480.53` |
+
+Vérifié par reprojection sur l'échantillon versionné : les `direction_*` sont la projection Lambert 93
+exacte des `coordonnee_*`, concordance au centième. Pour toute sortie géographique (GeoJSON, carte) :
+longitude = `coordonnee_x`, latitude = `coordonnee_y` — **jamais** les `direction_*`, qui ne sont ni
+des degrés ni dans l'ordre que leur nom annonce. Les six colonnes issues de `coordonneesGeographique`
+sont nulles ou renseignées ensemble.
 
 **Charnière d'extensibilité** : `identifiant_externe` (entité pivot, système externe, valeur, méthode
 d'appariement, confiance) est le point d'accroche unique pour toute source future (INSEE, ROR, CNSA,
@@ -132,6 +243,29 @@ cours ailleurs (ex. OOM-14 restitution dépend de l'indicateur d'OOM-13), l'agen
 d'accord sur un contrat de fonction explicite (nom, signature, forme du retour) et développer contre
 un stub local respectant ce contrat, plutôt que de réimplémenter le module amont — puis intégrer pour
 de vrai (fetch/merge) une fois que le module amont a atterri sur la branche source.
+
+## Graphe de connaissance (graphify)
+
+Outil de développement, hors pipeline : `graphify-out/` (graphe du code et des docs) est gitignoré et
+régénérable, jamais versionné (D8). Il n'existe que dans le checkout où il a été construit
+(`graphify-out/.graphify_root` en donne la racine), pas dans les worktrees d'issue.
+
+- **Lecture** : pour une question transverse (« qu'est-ce qui touche X à travers les couches »,
+  « quel code applique la décision D… »), interroger d'abord le graphe (`graphify query`, `path`,
+  `explain`) avant de balayer les fichiers. Il ne remplace pas la lecture du code avant une modification,
+  et les arêtes inférées se vérifient dans le code.
+- **Mise à jour dès que nécessaire** : le graphe périme à chaque changement. Le checkout qui le porte
+  le met à jour avec `/graphify . --update` (ne ré-extrait que les fichiers modifiés) :
+  - après chaque fusion dans `main` touchant `src/`, `front/`, `scripts/`, `tests/` ou
+    `.github/workflows/` — en boucle d'orchestration, une fois par vague fusionnée, après avoir
+    ramené le checkout sur `main` ;
+  - après toute modification de `docs/` ou de `CLAUDE.md` (décisions d'architecture) — ré-extraction
+    sémantique, plus coûteuse que le seul code ;
+  - avant de s'appuyer sur le graphe pour répondre, si des fichiers ont changé depuis sa dernière
+    construction (`graphify-out/manifest.json`).
+- Un agent d'issue, dans son propre worktree, ne construit ni ne met à jour de graphe : c'est à
+  l'orchestrateur de le faire après fusion, pour qu'il n'existe qu'un graphe de référence, aligné
+  sur `main`.
 
 ---
 

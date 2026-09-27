@@ -168,6 +168,36 @@ def commande_integrite(arguments) -> int:
 # charger
 # ---------------------------------------------------------------------------
 
+def _texte_anomalies_ingestion(rapport_ingestion: Optional[RapportIngestion],
+                               exemples: int = 3) -> str:
+    """Détail des anomalies d'ingestion d'un chargement en échec (OOM-114).
+
+    Le rapport de chargement ne porte que ses propres contrôles : sans ce
+    détail, un échec d'ingestion n'affichait qu'« ECHEC » et obligeait à
+    relancer `inspecter`. Décompte par code, puis par code × type
+    d'enregistrement × champ, et quelques exemples par code.
+    """
+    if rapport_ingestion is None:
+        return "Anomalies d'ingestion : aucun rapport d'ingestion"
+    registre = rapport_ingestion.registre
+    lignes = [f"Anomalies d'ingestion : {registre.total()} dont "
+              f"{registre.bloquantes} bloquantes"]
+    if not rapport_ingestion.termine:
+        lignes.append("    ingestion interrompue avant la fin du fichier")
+    for code, n in registre.par_code().items():
+        lignes.append(f"    {code:<30}{n:>10}")
+    if registre.total():
+        lignes.append("Par type d'enregistrement :")
+        for code, gravite, type_enr, champ, n in registre.detail():
+            cible = f"{type_enr}.{champ}" if champ else type_enr
+            lignes.append(f"    [{gravite}] {code:<26} {cible:<40} {n:>8}")
+        lignes.append("Exemples :")
+        for code in registre.par_code():
+            for exemple in registre.exemples(code)[:exemples]:
+                lignes.append(f"    {exemple}")
+    return "\n".join(lignes)
+
+
 def commande_charger(arguments) -> int:
     """Charge structures (et activités si fournies) dans l'entrepôt SQLite.
 
@@ -201,6 +231,8 @@ def commande_charger(arguments) -> int:
                 retour = 1
                 continue
             print(rapport.texte())
+            if rapport.statut != "SUCCES":
+                print(_texte_anomalies_ingestion(rapport.rapport_ingestion))
             print()
             retour |= 0 if rapport.statut == "SUCCES" else 1
         print(entrepot.rapport())

@@ -69,7 +69,7 @@ def doc_structures(nb=2, ege_porteuse=None):
             "gco": [], "gcc": [], "pmej": pmej}
 
 
-def doc_activites(nb=2, ej_inconnue=False):
+def doc_activites(nb=2, ej_inconnue=False, code_nature="ASMR"):
     pmej = []
     for p in range(nb):
         def activite(ae, niveau, ege_id=None):
@@ -82,7 +82,7 @@ def doc_activites(nb=2, ej_inconnue=False):
                                                 activiteSocialeRegulee="841",
                                                 modeFonctionnement="21", public="200"))
             return objet(fa.CLES_ACTIVITE, caracteristiquesGeneriques=gen,
-                         nature=objet(fa.CLES_NATURE, codeNature="ASMR",
+                         nature=objet(fa.CLES_NATURE, codeNature=code_nature,
                                       caracteristiquesSpecifiques=spec),
                          capacite=[objet(fa.CLES_CAPACITE, idCapacite=f"C{ae}",
                                          activiteAeId=ae, nombre="24",
@@ -190,6 +190,34 @@ for suffixe in ("", "-wal", "-shm", "-journal"):
 retour, texte = lancer("charger", BASE_ENTREPOT_2, CS, "--activites", CA, "--creer")
 verifier("structures et activités chargées ensemble",
          retour == 0 and "activite" in texte, texte[-500:])
+verifier("chargement réussi : pas de détail d'anomalies d'ingestion",
+         "Anomalies d'ingestion" not in texte, texte[-500:])
+
+# OOM-114 : un chargement en échec détaille ses anomalies d'ingestion, au lieu
+# d'un seul « ECHEC » qui obligeait à relancer `inspecter`.
+for nom_cas, code in (("amsr", "AMSR"), ("inconnue", "XXXX")):
+    chemin_base = BASE / f"entrepot_charger_{nom_cas}.sqlite"
+    for suffixe in ("", "-wal", "-shm", "-journal"):
+        p = Path(str(chemin_base) + suffixe)
+        if p.exists():
+            p.unlink()
+    ca_cas = ecrire(f"finess-activites-mensuel-202607-{nom_cas}.json",
+                    doc_activites(code_nature=code))
+    retour, texte = lancer("charger", chemin_base, CS, "--activites", ca_cas, "--creer")
+    if code == "AMSR":
+        verifier("nature AMSR (dérive du 27/09/2026) chargée, code de retour nul",
+                 retour == 0 and "nature_non_declaree" not in texte, texte[-800:])
+    else:
+        verifier("nature inconnue → chargement en échec, code de retour 1",
+                 retour == 1, texte[-800:])
+        verifier("décompte des anomalies d'ingestion affiché",
+                 "Anomalies d'ingestion : 4 dont 4 bloquantes" in texte
+                 and "nature_non_declaree                    4" in texte, texte[-1200:])
+        verifier("décompte par type d'enregistrement affiché",
+                 "Par type d'enregistrement" in texte
+                 and "activite.EJ" in texte and "activite.ET" in texte,
+                 texte[-1200:])
+        verifier("exemple portant le code fautif affiché", "XXXX" in texte, texte[-1200:])
 
 print(f"\n{ok} tests réussis, {ko} échecs")
 sys.exit(1 if ko else 0)
