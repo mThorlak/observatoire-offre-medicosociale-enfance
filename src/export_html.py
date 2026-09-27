@@ -16,8 +16,10 @@ Produit les pages du site depuis `front/gabarits/`, selon un découpage :
   (`indicateurs.indicateur_departement_categorie`), dans l'ordre de
   `Resultat.lignes_triees`, donc le même que le CSV de `restituer` ;
 - découpage `"departement"` (défaut, OOM-106) : une page par département
-  (gabarit `departement.html`), chacune ne portant que ses établissements,
-  avec leurs activités de niveau `ET` dans un `<details>` — voir contrat B ;
+  (gabarit `departement.html`), chacune ne portant que ses établissements ;
+  leurs activités de niveau `ET` ne sont pas embarquées mais écrites dans un
+  fragment JSON par département, chargé à la demande au premier clic sur un
+  `<details>` (OOM-107) — voir contrat B et FRAGMENTS D'ACTIVITÉS ;
 - découpage `"national"` : `liste.html` — tous les établissements sur une
   seule page (même lecture qu'`export_front.etablissements_bruts` et
   `activites_par_etablissement`). Conservé pour consultation locale : à
@@ -66,6 +68,17 @@ le modèle d'`export_front.exporter` :
     pages_departement      dict       {code ou "indetermine": établissements}
                                       (découpage départemental seulement ;
                                       vide en national)
+    fragments_ecrits       list[str]  chemins relatifs des fragments
+                                      d'activités (OOM-107), un par page
+                                      départementale ; vide en national
+    octets_fragments       dict       {fragment: taille en octets}
+    activites_fragments    int        activités écrites dans les fragments
+    activites_orphelines   int        activités dont le `num_finess_et`
+                                      n'est porté par aucun établissement
+                                      rendu (extraits décalés, cf. OOM-44) :
+                                      comptées, jamais tues ;
+                                      activites_fragments + orphelines
+                                      = activites_total (vérifié)
     actifs_copies          list[str]  fichiers de `actifs/` copiés (OOM-102)
     octets_actifs          dict       {fichier: taille en octets}
 
@@ -83,17 +96,33 @@ Relatifs à `dossier_sortie` (`site/` par défaut) ; ils ne bougeront plus :
     departement/indetermine.html    établissements dont le `cog_commune` est
                                     absent, non résolu, ou résolu en un code
                                     hors référentiel — visibles, jamais écartés
-    donnees/activites/<code>.json   fragments d'activités d'un département,
+    donnees/activites/<code>.json   fragment d'activités d'un département,
     donnees/activites/indetermine.json
-                                    même `<code>` que la page ; produits et
-                                    chargés à la demande par OOM-107 — pas
-                                    encore écrits ici (les activités restent
-                                    embarquées dans les pages départementales)
+                                    même `<code>` que la page, un fragment par
+                                    page (OOM-107) — voir ci-dessous
     actifs/                         feuille de style et îlots JS (OOM-102)
 
 Tous les liens entre pages sont relatifs (le site est servi sous un
 sous-chemin GitHub Pages) : une page de `departement/` atteint la racine par
 `../`. Aucune page ne charge de JSON national.
+
+FRAGMENTS D'ACTIVITÉS (OOM-107) — chargés à la demande, jamais en bloc
+-----------------------------------------------------------------
+Chaque page départementale a son fragment `donnees/activites/<code>.json`,
+de même structure qu'`activites.json` d'`export_front` (inchangée) restreinte
+aux établissements de la page : `{num_finess_et: [activité, ...]}`, clé
+absente = aucune activité, `code_nature` brut et `libelle_nature` à `None`
+(aucune nomenclature de nature versionnée, OOM-29). Écrit compact, même vide
+(`{}`), pour qu'à toute page corresponde un fragment.
+
+La page n'embarque que le nombre d'activités de chaque établissement (dans le
+`<summary>` d'un `<details data-finess>`) et l'URL relative du fragment
+(`data-fragment` de la table) ; aucune requête n'est émise au chargement.
+L'îlot `actifs/activites.js` télécharge le fragment à la première ouverture
+d'un panneau (une seule fois par page), puis remplit le panneau ; un échec de
+`fetch` s'affiche dans le panneau (D6). Un établissement sans activité porte
+« aucune » dans le HTML, sans panneau ni requête. Sans JavaScript, la page
+garde toutes ses fiches et un lien `<noscript>` vers le fragment (D10).
 
 ACTIFS (OOM-102) — le dossier `actifs/` voisin de `dossier_gabarits` (feuille
 de style commune, îlots JS) est recopié tel quel dans `dossier_sortie/actifs/`
@@ -141,6 +170,7 @@ Aucune dépendance tierce. Compatible Python 3.9+.
 from __future__ import annotations
 
 import html
+import json
 import shutil
 import re
 import time
@@ -155,7 +185,8 @@ from territoires import ErreurTerritoires, charger_departements
 
 __all__ = ["rendre", "ErreurExportHtml", "GABARIT_BASE", "PAGES", "DOSSIER_GABARITS",
            "DECOUPAGES", "PAGES_NATIONALES", "GABARIT_DEPARTEMENT",
-           "DOSSIER_DEPARTEMENT", "PAGE_INDETERMINEE", "chemin_page_departement"]
+           "DOSSIER_DEPARTEMENT", "PAGE_INDETERMINEE", "chemin_page_departement",
+           "DOSSIER_ACTIVITES", "chemin_fragment_activites"]
 
 GABARIT_BASE = "base.html"
 # Pages du découpage national (historique OOM-100).
@@ -168,7 +199,10 @@ PAGES_NATIONALES = {"departement": ("index.html", "indicateur.html"), "national"
 GABARITS_PAGE = {"index.html": "accueil.html"}
 GABARIT_DEPARTEMENT = "departement.html"
 DOSSIER_DEPARTEMENT = "departement"
+# Préfixe relatif d'une page de `departement/` vers la racine du site.
+RACINE_DEPARTEMENT = "../"
 PAGE_INDETERMINEE = "indetermine"
+DOSSIER_ACTIVITES = "donnees/activites"
 DOSSIER_GABARITS = Path(__file__).resolve().parent.parent / "front" / "gabarits"
 
 # Blocs que chaque gabarit de page doit fournir à `base.html`.
@@ -187,6 +221,12 @@ def chemin_page_departement(code: str) -> str:
     """Chemin relatif (contrat B) de la page d'un département, ou de la page
     indéterminée pour `PAGE_INDETERMINEE`. `code` est pris tel quel : du texte."""
     return f"{DOSSIER_DEPARTEMENT}/{code}.html"
+
+
+def chemin_fragment_activites(code: str) -> str:
+    """Chemin relatif (contrat B) du fragment d'activités de la page
+    `chemin_page_departement(code)` — même `code`, en texte."""
+    return f"{DOSSIER_ACTIVITES}/{code}.json"
 
 
 # ---------------------------------------------------------------------------
@@ -352,9 +392,21 @@ def _departement_affiche(e: Mapping[str, object], departements: Mapping[str, str
     return str(code)
 
 
+def _activites_differees(gabarit: Gabarit, num_finess: str,
+                         activites: List[Dict[str, object]]) -> str:
+    """Cellule d'activités d'une page départementale (OOM-107) : le nombre
+    seulement, le détail étant chargé à la demande depuis le fragment."""
+    if not activites:
+        return gabarit.remplir("activites_aucune", {})
+    return gabarit.remplir("activites_differees",
+                           {"num_finess": _e(num_finess), "nombre": len(activites)})
+
+
 def _lignes_etablissements(gabarit: Gabarit, etablissements: List[Dict[str, object]],
                            activites: Mapping[str, List[Dict[str, object]]],
-                           departements: Mapping[str, str]) -> str:
+                           departements: Mapping[str, str], differees: bool = False) -> str:
+    cellule = ((lambda e, a: _activites_differees(gabarit, e["num_finess_et"], a)) if differees
+               else (lambda e, a: _activites(gabarit, a)))
     return gabarit.repeter("ligne", ({
         "num_finess": _e(e["num_finess_et"]),
         "nom": _e(e["nom"]),
@@ -368,7 +420,7 @@ def _lignes_etablissements(gabarit: Gabarit, etablissements: List[Dict[str, obje
         "code_etat": _e(e["etat_objet"]),
         "etat": _e(e["etat_libelle"]),
         "classe_etat": _CLASSES_ETAT.get(e["etat_objet"], ""),
-        "activites": _activites(gabarit, activites.get(e["num_finess_et"], [])),
+        "activites": cellule(e, activites.get(e["num_finess_et"], [])),
     } for e in etablissements), "\n")
 
 
@@ -496,8 +548,9 @@ def _page_accueil(gabarit: Gabarit, donnees: _Donnees,
 def _page_departement(gabarit: Gabarit, donnees: _Donnees, code: str,
                       etablissements: List[Dict[str, object]],
                       compteurs: Dict[str, object]) -> Dict[str, str]:
-    """Une page départementale (OOM-106) : seulement ses établissements, avec
-    leurs activités embarquées ; page explicite même sans établissement."""
+    """Une page départementale (OOM-106) : seulement ses établissements, leurs
+    activités renvoyées au fragment chargé à la demande (OOM-107) ; page
+    explicite même sans établissement."""
     activites = donnees.activites()
     indeterminee = code == PAGE_INDETERMINEE
     avec_activites = sum(1 for e in etablissements if e["num_finess_et"] in activites)
@@ -517,8 +570,9 @@ def _page_departement(gabarit: Gabarit, donnees: _Donnees, code: str,
     if etablissements:
         valeurs["tableau"] = gabarit.remplir("tableau", {
             "nombre_page": len(etablissements),
+            "fragment": _e(RACINE_DEPARTEMENT + chemin_fragment_activites(code)),
             "lignes": _lignes_etablissements(gabarit, etablissements, activites,
-                                             donnees.departements),
+                                             donnees.departements, differees=True),
             "options_categorie": _options(
                 gabarit, (e["libelle_categorie"] for e in etablissements)),
         })
@@ -526,6 +580,33 @@ def _page_departement(gabarit: Gabarit, donnees: _Donnees, code: str,
         valeurs["tableau"] = gabarit.remplir("aucun", valeurs)
     compteurs["lignes_rendues"][chemin_page_departement(code)] = len(etablissements)
     return valeurs
+
+
+def _fragment_activites(donnees: _Donnees, etablissements: List[Dict[str, object]]) -> bytes:
+    """Fragment d'activités d'une page (OOM-107) : même structure
+    qu'`export_front.activites_par_etablissement`, restreinte aux établissements
+    de la page qui ont au moins une activité, dans l'ordre de la page."""
+    activites = donnees.activites()
+    contenu = {e["num_finess_et"]: activites[e["num_finess_et"]]
+               for e in etablissements if e["num_finess_et"] in activites}
+    return json.dumps(contenu, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
+
+
+def _verifier_fragments(fragments: Mapping[str, bytes], donnees: _Donnees,
+                        compteurs: Dict[str, object]) -> None:
+    """Invariant D6 : chaque activité est dans un fragment, ou comptée comme
+    orpheline (aucun établissement rendu ne porte son `num_finess_et`)."""
+    rendus = {e["num_finess_et"] for e in donnees.etablissements()}
+    orphelines = sum(len(lignes) for num, lignes in donnees.activites().items()
+                     if num not in rendus)
+    dans_fragments = sum(len(lignes) for contenu in fragments.values()
+                         for lignes in json.loads(contenu).values())
+    compteurs["activites_fragments"] = dans_fragments
+    compteurs["activites_orphelines"] = orphelines
+    if dans_fragments + orphelines != compteurs["activites_total"]:
+        raise ErreurExportHtml(
+            f"fragments d'activités incohérents : {dans_fragments} en fragments + "
+            f"{orphelines} orpheline(s) pour {compteurs['activites_total']} au total")
 
 
 _CONSTRUCTEURS = {"index.html": _page_accueil, "liste.html": _page_liste,
@@ -612,6 +693,10 @@ def rendre(entrepot: Entrepot, dossier_gabarits: Path, dossier_sortie: Path,
         "octets": {},
         "lignes_rendues": {},
         "pages_departement": {},
+        "fragments_ecrits": [],
+        "octets_fragments": {},
+        "activites_fragments": 0,
+        "activites_orphelines": 0,
     }
     _compter_etablissements(donnees, compteurs)
     millesime = _e(compteurs["millesime"])
@@ -629,6 +714,7 @@ def rendre(entrepot: Entrepot, dossier_gabarits: Path, dossier_sortie: Path,
             f"{base.chemin} (pour {page})")
 
     rendus: Dict[str, str] = {}
+    fragments: Dict[str, bytes] = {}
     for page, gabarit in gabarits.items():
         rendus[page] = habiller(page, gabarit, _CONSTRUCTEURS[page](gabarit, donnees, compteurs), "")
 
@@ -637,13 +723,16 @@ def rendre(entrepot: Entrepot, dossier_gabarits: Path, dossier_sortie: Path,
             page = chemin_page_departement(code)
             valeurs = _page_departement(gabarit_departement, donnees, code, etablissements,
                                         compteurs)
-            rendus[page] = habiller(page, gabarit_departement, valeurs, "../")
+            rendus[page] = habiller(page, gabarit_departement, valeurs, RACINE_DEPARTEMENT)
             compteurs["pages_departement"][code] = len(etablissements)
+            fragments[chemin_fragment_activites(code)] = _fragment_activites(
+                donnees, etablissements)
         reparti = sum(compteurs["pages_departement"].values())
         if reparti != compteurs["nombre_etablissements"]:
             raise ErreurExportHtml(
                 f"découpage incohérent : {reparti} établissement(s) répartis en pages "
                 f"départementales pour {compteurs['nombre_etablissements']} au total")
+        _verifier_fragments(fragments, donnees, compteurs)
 
     (dossier_sortie / DOSSIER_DEPARTEMENT if decoupage == "departement"
      else dossier_sortie).mkdir(parents=True, exist_ok=True)
@@ -652,6 +741,12 @@ def rendre(entrepot: Entrepot, dossier_gabarits: Path, dossier_sortie: Path,
         (dossier_sortie / page).write_bytes(donnees_page)
         compteurs["pages_ecrites"].append(page)
         compteurs["octets"][page] = len(donnees_page)
+    if fragments:
+        (dossier_sortie / DOSSIER_ACTIVITES).mkdir(parents=True, exist_ok=True)
+    for fragment, contenu_fragment in fragments.items():
+        (dossier_sortie / fragment).write_bytes(contenu_fragment)
+        compteurs["fragments_ecrits"].append(fragment)
+        compteurs["octets_fragments"][fragment] = len(contenu_fragment)
     _copier_actifs(actifs, dossier_sortie, compteurs)
     return compteurs
 
@@ -691,6 +786,13 @@ if __name__ == "__main__":
               f"établissement ; {bilan['pages_departement'][PAGE_INDETERMINEE]} en page "
               f"indéterminée ; la plus lourde {lourde} "
               f"({bilan['octets'][lourde] / 1024:.1f} Ko)")
+    if bilan["fragments_ecrits"]:
+        lourd = max(bilan["fragments_ecrits"], key=lambda f: bilan["octets_fragments"][f])
+        print(f"    {DOSSIER_ACTIVITES}/ : {len(bilan['fragments_ecrits'])} fragment(s), "
+              f"{bilan['activites_fragments']} activité(s), "
+              f"{bilan['activites_orphelines']} orpheline(s) sans établissement rendu ; "
+              f"le plus lourd {lourd} ({bilan['octets_fragments'][lourd] / 1024:.1f} Ko), "
+              f"chargé à la demande")
     for actif in bilan["actifs_copies"]:
         print(f"    {'actifs/' + actif:<34}{bilan['octets_actifs'][actif] / 1024:>10.1f} Ko")
     print(f"    {bilan['nombre_etablissements']} établissement(s), "

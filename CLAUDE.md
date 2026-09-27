@@ -124,12 +124,18 @@ défaut, OOM-106) ou une liste nationale unique `liste.html` (`--decoupage natio
 la consultation locale : ~55 Mo à l'échelle réelle, elle viole D9). Gabarits dans `front/gabarits/`
 (`base.html` + un gabarit par page, blocs `<!-- BLOC nom -->…<!-- FIN nom -->` substitués par
 `string.Template`, aucune logique dans le gabarit), puis recopie de `front/actifs/` (feuille de style
-commune `ooms.css`, îlot `filtres.js`, OOM-102) dans `site/actifs/`. Tout le contenu utile est dans le
-HTML ; le JS n'ajoute que tri et filtres (D10). Un gabarit ou un bloc manquant lève `ErreurExportHtml`
+commune `ooms.css`, îlots `filtres.js`, OOM-102, et `activites.js`, OOM-107) dans `site/actifs/`. Tout
+le contenu utile est dans le HTML ; le JS n'ajoute que tri et filtres (D10) — sauf le détail des
+activités des pages départementales (OOM-107) : la page n'en porte que le nombre par établissement,
+le détail est écrit dans `site/donnees/activites/<code>.json` et chargé par `activites.js` au premier
+clic sur un panneau, jamais au chargement (D9) ; sans JS, un `<noscript>` lie ce fragment. Un `fetch`
+en échec s'affiche dans le panneau (D6). Un gabarit ou un bloc manquant lève `ErreurExportHtml`
 avant toute écriture, chemin dans le message ; un code hors référentiel est rendu `[non résolu]` avec
 son code brut, jamais un libellé inventé. La liste des départements est une donnée versionnée
 (`referentiels/departements.csv`, COG INSEE, lue par `territoires.charger_departements`), jamais une
-liste en dur. Couvert par `tests/test_export_html.py` (OOM-104, OOM-106). Rendu du site :
+liste en dur. Couvert par `tests/test_export_html.py` (OOM-104, OOM-106, OOM-107 — ce dernier sert
+le site par `http.server` et exécute `activites.js` sous Node s'il est présent, contre un DOM factice,
+`tests/js/harnais_activites.js`). Rendu du site :
 ```bash
 python src/export_html.py <base.sqlite> [--sortie site/] [--gabarits front/gabarits/] [--decoupage departement|national]
 python -m http.server -d site   # consultation locale ; site/ est gitignored (D8)
@@ -143,7 +149,7 @@ python -m http.server -d site   # consultation locale ; site/ est gitignored (D8
 | `index.html`, `indicateur.html` | pages nationales (accueil, indicateur) |
 | `departement/<code>.html` | une page par département de `referentiels/departements.csv` (101), **même sans établissement** (page explicite, jamais une absence de fichier) ; `<code>` = code département INSEE **en texte** : `01`…`95`, `2A`, `2B`, `971`…`976` — jamais converti en nombre |
 | `departement/indetermine.html` | établissements dont le `cog_commune` est absent, non résolu, ou résolu en un code hors référentiel (`975`, `98x`…) — visibles, jamais écartés |
-| `donnees/activites/<code>.json`, `donnees/activites/indetermine.json` | fragments d'activités par département, même `<code>` que la page ; **produits et chargés à la demande par OOM-107**, pas encore écrits (les activités restent embarquées dans les pages départementales) |
+| `donnees/activites/<code>.json`, `donnees/activites/indetermine.json` | fragments d'activités par département, même `<code>` que la page, un par page (même vide : `{}`) ; structure d'`activites.json` (`{num_finess_et: [activité]}`) restreinte à la page ; **chargés à la demande** par `actifs/activites.js` (OOM-107), jamais au chargement de la page |
 | `actifs/` | feuille de style et îlots JS |
 
 Tous les liens entre pages sont **relatifs** (site servi sous le sous-chemin GitHub Pages

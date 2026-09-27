@@ -10,6 +10,15 @@ Vérifie `export_html.rendre` (contrats A et B) :
    aucun JSON chargé, mention de périmètre, actifs copiés, aucun `$` non
    substitué ;
 1 bis. le découpage national : `liste.html` et ses compteurs, comme avant ;
+1 ter. les activités chargées à la demande (OOM-107) : un fragment
+   `donnees/activites/<code>.json` par page, de même structure
+   qu'`activites.json` (code_nature brut, libelle_nature None), aucune
+   activité dans le HTML ; le site servi par `http.server` : le chargement
+   initial d'une page (page + feuille de style + scripts) ne demande aucun
+   fragment, le fragment est servi au chemin annoncé ; puis `activites.js`
+   exécuté sous Node (DOM factice, vrai fetch vers ce serveur) : aucune
+   requête avant clic, une seule au premier clic, panneau rempli, absence et
+   échec de fetch affichés — ignoré, en le disant, si Node est absent ;
 2. codes hors référentiel : catégorie `Z99` (repli `[non résolu]`, jamais un
    libellé inventé), et départements indéterminés (adresse absente, commune
    non résolue, collectivité `975` hors référentiel) rangés visiblement en
@@ -17,8 +26,10 @@ Vérifie `export_html.rendre` (contrats A et B) :
 3. un gabarit manquant : échec bruyant, chemin dans le message, rien d'écrit.
 """
 from __future__ import annotations
-import html, re, shutil, sys, tempfile
+import functools, html, http.server, json, re, shutil, subprocess, sys, tempfile, threading
 from pathlib import Path
+from urllib.parse import urljoin
+from urllib.request import urlopen
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
@@ -94,6 +105,161 @@ def adresse(ege_id, cog_commune):
     return dict(type_porteur="ET", id_porteur=ege_id, num_finess_porteur=ege_id,
                 rang="1", code_usage_adresse="03", code_postal="01000",
                 cog_commune=cog_commune, id_lot=LOT["id_lot"])
+
+
+class _Journal(http.server.SimpleHTTPRequestHandler):
+    """Sert `site/` et consigne chaque chemin demandé (le « journal serveur »)."""
+    journal = []
+
+    def log_message(self, *args):
+        pass
+
+    def do_GET(self):
+        _Journal.journal.append(self.path)
+        super().do_GET()
+
+
+def _sous_ressources(page_html):
+    """Ce que charge un navigateur à l'ouverture de la page, sans action de
+    l'utilisateur : feuilles de style, scripts, images, iframes (pas les <a>)."""
+    return (re.findall(r'<link [^>]*href="([^"]+)"', page_html)
+            + re.findall(r'<(?:script|img|iframe) [^>]*src="([^"]+)"', page_html))
+
+
+def verifier_activites_a_la_demande(site, bilan, activites, attendu_par_page, pages):
+    print("\n1 ter. Activités à la demande (OOM-107)")
+    codes = list(DEPARTEMENTS) + [eh.PAGE_INDETERMINEE]
+    attendus = [eh.chemin_fragment_activites(c) for c in codes]
+    verifier("un fragment par page départementale, au chemin du contrat B",
+             bilan["fragments_ecrits"] == attendus
+             and attendus[:1] == ["donnees/activites/01.json"], bilan["fragments_ecrits"][:3])
+    verifier("chaque fragment sur disque, taille = octets annoncés",
+             all((site / f).stat().st_size == bilan["octets_fragments"][f] for f in attendus))
+    fragments = {f: json.loads(lire(site, f)) for f in attendus}
+    attendu = {eh.chemin_fragment_activites(Path(p).stem):
+               {n: activites[n] for n in nums if n in activites}
+               for p, nums in attendu_par_page.items()}
+    verifier("chaque fragment = activites_par_etablissement restreint à sa page "
+             "(structure inchangée)", fragments == attendu,
+             [f for f in attendus if fragments[f] != attendu[f]][:3])
+    verifier("activités des fragments = activites_total, 0 orpheline sur l'échantillon",
+             bilan["activites_fragments"] == bilan["activites_total"]
+             and bilan["activites_orphelines"] == 0, bilan["activites_fragments"])
+    toutes = [a for f in fragments.values() for lignes in f.values() for a in lignes]
+    verifier("code_nature brut, libelle_nature None partout (aucune nomenclature, OOM-29)",
+             toutes and all(a["libelle_nature"] is None and a["code_nature"] for a in toutes))
+    verifier("page vide : fragment « {} »",
+             all(fragments[eh.chemin_fragment_activites(Path(p).stem)] == {}
+                 for p, nums in attendu_par_page.items() if not nums))
+    verifier("aucune activité embarquée dans les pages (ni ligne data-nature, ni tableau "
+             "d'activités, ni capacité)",
+             all("data-nature=" not in c and "<th>Capacité(s)</th>" not in c
+                 and "capacites-liste" not in c for c in pages.values()))
+    annonces = {n: int(k) for c in pages.values()
+                for n, k in re.findall(r'<details data-finess="([^"]+)"><summary>(\d+) '
+                                       r'activité', c)}
+    verifier("chaque panneau annonce le nombre d'activités de son fragment",
+             annonces == {n: len(l) for n, l in activites.items()}, len(annonces))
+    sans = [n for nums in attendu_par_page.values() for n in nums if n not in activites]
+    ligne_sans = next((l for c in pages.values() for l in c.splitlines()
+                       if sans and f"<td>{sans[0]}</td>" in l), "")
+    verifier("établissement sans activité : « aucune » explicite, sans panneau",
+             sans and '<span class="code-brut">aucune</span>' in ligne_sans
+             and "<details" not in ligne_sans, ligne_sans[-120:])
+    page = pages["departement/44.html"]
+    verifier("table : data-fragment relatif vers son fragment",
+             'data-fragment="../donnees/activites/44.json"' in page)
+    verifier("sans JS : lien <noscript> vers le fragment (D10)",
+             '<noscript><p class="alerte">' in page
+             and 'href="../donnees/activites/44.json"' in page)
+    verifier("îlot activites.js chargé en relatif, aucun script inline",
+             'src="../actifs/activites.js"' in page and "<script>" not in page)
+    source_js = (ACTIFS / "activites.js").read_text(encoding="utf-8")
+    verifier("activites.js : un seul appel fetch, dans la fonction de chargement différé",
+             source_js.count("fetch(") == 1
+             and re.search(r"function fragment\(\) \{\s*if \(!chargement\) \{\s*"
+                           r"chargement = fetch\(", source_js) is not None)
+
+    # Le site servi comme en local (py -3 -m http.server -d site).
+    _Journal.journal = []
+    serveur = http.server.ThreadingHTTPServer(
+        ("127.0.0.1", 0), functools.partial(_Journal, directory=str(site)))
+    threading.Thread(target=serveur.serve_forever, daemon=True).start()
+    base = f"http://127.0.0.1:{serveur.server_port}/"
+    try:
+        url_page = urljoin(base, "departement/44.html")
+        with urlopen(url_page) as r:
+            servie = r.read().decode("utf-8")
+        for ressource in _sous_ressources(servie):
+            with urlopen(urljoin(url_page, ressource)) as r:
+                r.read()
+        initial = list(_Journal.journal)
+        verifier("chargement initial servi : page, feuille de style, deux îlots, "
+                 "aucune requête d'activités", initial == [
+                     "/departement/44.html", "/actifs/ooms.css", "/actifs/filtres.js",
+                     "/actifs/activites.js"], initial)
+        url_fragment = urljoin(url_page, re.search(r'data-fragment="([^"]+)"', servie).group(1))
+        with urlopen(url_fragment) as r:
+            servi = json.loads(r.read().decode("utf-8"))
+        verifier("« clic » : le fragment est servi au chemin annoncé, contenu attendu",
+                 _Journal.journal[len(initial):] == ["/donnees/activites/44.json"]
+                 and servi == fragments["donnees/activites/44.json"], _Journal.journal)
+        _executer_ilot(site, base, fragments, page)
+    finally:
+        serveur.shutdown()
+        serveur.server_close()
+
+
+def _executer_ilot(site, base, fragments, page):
+    """activites.js exécuté sous Node contre le serveur ; ignoré (dit) sans Node."""
+    node = shutil.which("node")
+    if node is None:
+        print("  IGNORÉ activites.js sous Node : node absent du PATH")
+        return
+    avec = [{"finess": n, "nombre": int(k)}
+            for n, k in re.findall(r'<details data-finess="([^"]+)"><summary>(\d+) ', page)]
+    scenario = {
+        "tables": [
+            {"fragment": urljoin(base, "donnees/activites/44.json"),
+             "details": avec[:2] + [{"finess": "000000000", "nombre": 1}]},
+            {"fragment": urljoin(base, "donnees/activites/absent.json"),
+             "details": avec[:1]},
+        ],
+        # ouvre 0, 1, rouvre 0, ouvre l'inconnu, puis deux fois le panneau en échec
+        "ouvertures": [[0, 0], [0, 1], [0, 0], [0, 2], [1, 0], [1, 0]],
+    }
+    chemin = site.parent / "scenario.json"
+    chemin.write_text(json.dumps(scenario), encoding="utf-8")
+    harnais = Path(__file__).resolve().parent / "js" / "harnais_activites.js"
+    fini = subprocess.run([node, str(harnais), str(ACTIFS / "activites.js"), str(chemin)],
+                          capture_output=True, text=True, encoding="utf-8", timeout=60)
+    if fini.returncode != 0:
+        verifier("activites.js sous Node : exécution", False, fini.stderr[-500:])
+        return
+    r = json.loads(fini.stdout)
+    o = [x["panneau"] for x in r["apres_ouverture"]]
+    n = [x["requetes"] for x in r["apres_ouverture"]]
+    attendu_0 = fragments["donnees/activites/44.json"][avec[0]["finess"]]
+    verifier("Node : aucune requête au chargement de la page", r["requetes_initiales"] == [],
+             r["requetes_initiales"])
+    verifier("Node : premier clic -> une requête, vers le fragment de la page",
+             n[0] == 1 and r["requetes"][0].endswith("/donnees/activites/44.json"), r["requetes"])
+    verifier("Node : panneau rempli, une ligne par activité, natures brutes, « [non résolu] »",
+             o[0]["chargees"] and o[0]["lignes"] == avec[0]["nombre"]
+             and o[0]["natures"] == [a["code_nature"] for a in attendu_0]
+             and "[non résolu]" in o[0]["texte"] and o[0]["evenements"] == 1, o[0])
+    verifier("Node : deuxième panneau et réouverture sans nouvelle requête",
+             n[1] == n[2] == 1 and o[1]["lignes"] == avec[1]["nombre"]
+             and o[2]["lignes"] == avec[0]["nombre"] and o[2]["evenements"] == 1, n)
+    verifier("Node : établissement absent du fragment -> message explicite, jamais vide",
+             o[3]["alerte"] and "Aucune activité trouvée" in o[3]["alerte"] and not o[3]["vide"],
+             o[3])
+    verifier("Node : fetch en échec (404) -> message d'erreur avec statut et lien",
+             o[4]["alerte"] and "Échec du chargement" in o[4]["alerte"]
+             and "HTTP 404" in o[4]["alerte"]
+             and o[4]["liens"] == [urljoin(base, "donnees/activites/absent.json")], o[4])
+    verifier("Node : réouverture après échec -> nouvelle tentative, erreur toujours affichée",
+             n[5] == n[4] + 1 and o[5]["alerte"] and "Échec du chargement" in o[5]["alerte"], n)
 
 
 with tempfile.TemporaryDirectory(prefix="test_export_html_") as temporaire:
@@ -181,8 +347,8 @@ with tempfile.TemporaryDirectory(prefix="test_export_html_") as temporaire:
     verifier("lignes_rendues = pages_departement pour chaque page",
              all(bilan["lignes_rendues"][eh.chemin_page_departement(c)] == n
                  for c, n in bilan["pages_departement"].items()))
-    verifier("un <details> par établissement ayant des activités, sur l'ensemble des pages",
-             sum(c.count("<details>") for c in pages.values())
+    verifier("un <details data-finess> par établissement ayant des activités, sur l'ensemble "
+             "des pages", sum(c.count("<details data-finess=") for c in pages.values())
              == bilan["etablissements_avec_activites"])
     vides = [p for p in PAGES_DEP if not attendu_par_page[p]]
     verifier("l'échantillon laisse des départements sans établissement (prérequis)", len(vides) > 0)
@@ -242,9 +408,11 @@ with tempfile.TemporaryDirectory(prefix="test_export_html_") as temporaire:
         elif "<!-- BLOC" in contenu or "<!-- FIN" in contenu: defauts[page] = "commentaire de gabarit"
         elif "ooms.css" not in contenu: defauts[page] = "feuille de style absente"
         elif _ABSOLU.search(contenu): defauts[page] = "lien absolu"
-        elif ".json" in contenu: defauts[page] = "charge un JSON"
+        elif set(re.findall(r'[^"\s>]*\.json', contenu)) - {
+                "../" + eh.chemin_fragment_activites(Path(page).stem)}:
+            defauts[page] = "cite un JSON autre que son propre fragment"
     verifier("toutes les pages : aucun $ non substitué, aucun commentaire de gabarit, "
-             "feuille de style liée, aucun lien absolu, aucun JSON chargé",
+             "feuille de style liée, aucun lien absolu, aucun JSON cité hors fragment propre",
              not defauts, list(defauts.items())[:3])
     verifier("D9 : aucune page de l'échantillon au-delà de 500 Ko",
              max(bilan["octets"].values()) <= 500 * 1024, max(bilan["octets"].values()))
@@ -255,6 +423,8 @@ with tempfile.TemporaryDirectory(prefix="test_export_html_") as temporaire:
     verifier("actifs copiés à l'identique (octets)",
              all((site / "actifs" / n).read_bytes() == (ACTIFS / n).read_bytes()
                  for n in attendus))
+
+    verifier_activites_a_la_demande(site, bilan, activites, attendu_par_page, pages)
 
     # -----------------------------------------------------------------------
     print("\n1 bis. Découpage national (decoupage=\"national\")")
