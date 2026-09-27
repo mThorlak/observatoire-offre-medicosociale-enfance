@@ -2,10 +2,12 @@
   activites.js — îlot de chargement des activités à la demande (OOM-107),
   copié tel quel dans site/actifs/ par src/export_html.py.
 
-  Une page départementale n'embarque pas le détail des activités : chaque
-  établissement qui en a porte un <details data-finess="…"> dont le <summary>
-  donne le nombre, et la table porte l'URL relative du fragment de son
-  département (data-fragment, contrat B : donnees/activites/<code>.json). Ce
+  Une sous-page départementale n'embarque pas le détail des activités :
+  chaque établissement qui en a porte un <details data-finess="…"> dont le
+  <summary> donne le nombre, et la table porte l'URL relative du fragment de
+  sa sous-page (data-fragment, contrat B révisé par OOM-115 :
+  donnees/activites/<code>/<n>.json ; l'URL est résolue par fetch contre la
+  page, quelle que soit sa profondeur). Ce
   script n'émet AUCUNE requête au chargement de la page (D9) : le fragment est
   téléchargé à la première ouverture d'un panneau, une seule fois par table,
   puis sert à remplir chaque panneau ouvert.

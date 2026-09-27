@@ -1,9 +1,9 @@
-"""Mesure du poids du site rendu par export_html.py, contre le budget D9 (OOM-109).
+"""Mesure du poids du site rendu par export_html.py, contre le budget D9 (OOM-109, OOM-115).
 
 D9 : aucune page ne dépasse 500 Ko de données au chargement initial. La charge
 initiale d'une page est son HTML plus les actifs qu'elle référence
 (`<link href>`, `<script src>`, `<img src>` relatifs) ; les fragments
-`donnees/activites/*.json`, chargés à la demande par activites.js au premier
+`donnees/activites/<code>/<n>.json`, chargés à la demande par activites.js au premier
 clic, n'en font pas partie. Ils sont mesurés à part, pour information.
 
 Le budget s'applique à la taille brute (octets sur disque). La taille gzip
@@ -34,9 +34,12 @@ def gz(chemin):
 
 
 def type_de(relatif):
-    if relatif.parts[0] == "departement":
-        return "departement/*.html"
-    return relatif.as_posix()
+    """Type d'une page : son chemin, chaque segment sous le premier dossier
+    remplacé par `*` (`departement/59/2.html` -> `departement/*/*.html`)."""
+    parts = relatif.parts
+    if len(parts) == 1:
+        return relatif.as_posix()
+    return "/".join([parts[0]] + ["*"] * (len(parts) - 2) + ["*" + relatif.suffix])
 
 
 def actifs_references(page, racine):
@@ -84,7 +87,7 @@ def rapport(racine, pages, fragments, actifs):
                          key=lambda p: -p["initial"])
     lourde = max(pages, key=lambda p: p["initial"])
     l = []
-    l.append(f"# Poids du site — mesure D9 (OOM-109)\n")
+    l.append(f"# Poids du site — mesure D9 (OOM-109, OOM-115)\n")
     l.append(f"Site mesuré : `{racine}` · {len(pages)} pages HTML, "
              f"{len(fragments)} fragments, {len(actifs)} actifs.  ")
     l.append(f"Budget D9 : {ko(BUDGET)} Ko bruts au chargement initial "
@@ -108,7 +111,7 @@ def rapport(racine, pages, fragments, actifs):
     s = synthese(fragments, "brut", "gz")
     l.append("| Type | Fichiers | Médiane (Ko) | Max (Ko) | Max gzip (Ko) | Plus lourd | Total (Ko) |")
     l.append("|---|---:|---:|---:|---:|---|---:|")
-    l.append(f"| `donnees/activites/*.json` | {s['n']} | {ko(s['mediane'])} | {ko(s['max'])} | "
+    l.append(f"| `donnees/activites/*/*.json` | {s['n']} | {ko(s['mediane'])} | {ko(s['max'])} | "
              f"{ko(s['max_gz'])} | `{s['lourde']}` | {ko(s['total'])} |\n")
     l.append("## Actifs\n")
     l.append("| Actif | Brut (Ko) | gzip (Ko) |")

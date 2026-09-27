@@ -157,3 +157,7 @@ tfoot td { padding: .6rem .7rem; font-weight: 600; border-top: 2px solid var(--b
 /* ---- activités chargées à la demande (OOM-107, activites.js) ---------- */
 .activites-etat { margin: .4rem 0 0; font-size: .8rem; color: var(--texte-att); }
 details .alerte { margin: .4rem 0 0; white-space: normal; }
+
+/* ---- pages départementales paginées (OOM-115) ------------------------- */
+.limite { font-size: .85rem; color: var(--texte-att); }
+nav.sous-pages { margin: 0 0 1rem; }

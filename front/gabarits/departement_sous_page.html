@@ -1,0 +1,86 @@
+<!--
+  Gabarit d'une sous-page départementale (OOM-106, pagination bornée OOM-115),
+  rendu par src/export_html.py. Chaque département du référentiel
+  referentiels/departements.csv, plus « département indéterminé », est découpé
+  en sous-pages d'au plus LIGNES_PAR_SOUS_PAGE établissements, par numéro
+  FINESS croissant, publiées en departement/<code>/<n>.html (contrat B) — au
+  moins une par département, même vide : pas de cas particulier. Toutes sont
+  liées en HTML depuis la page du département departement/<code>.html. Tous
+  les liens passent par $racine (« ../../ »), jamais par un chemin absolu, le
+  site étant servi sous un sous-chemin.
+  Chaque bloc BLOC nom … FIN nom est un gabarit string.Template : il
+  substitue des valeurs déjà calculées et échappées par le module, il ne
+  décide rien (D7) — le choix entre « explication » et
+  « explication_indeterminee », entre « tableau » et « aucun », entre
+  « limite » et « limite_vide », la présence des liens « précédente »/« suivante » sont faits en Python. La sous-page
+  n'embarque que ses établissements et, pour chacun, le nombre de ses
+  activités : leur détail est dans le fragment
+  donnees/activites/<code>/<n>.json de la sous-page (data-fragment de la
+  table), que l'îlot actifs/activites.js charge au premier clic sur un
+  panneau — jamais au chargement de la page (OOM-107, D9). Sans JS, les
+  fiches restent toutes lisibles et le fragment est lié en <noscript> (D10) ;
+  l'îlot actifs/filtres.js n'ajoute que le filtrage, qui ne porte que sur la
+  sous-page affichée — ce que la page dit en clair. Le rappel de périmètre de
+  l'accueil tient ici en une ligne, en tête de contenu. Pas de « $ » littéral
+  dans les blocs : l'écrire « $$ ».
+-->
+
+<!-- BLOC titre -->$libelle_departement ($code_departement) — sous-page $numero sur $nombre_sous_pages<!-- FIN titre -->
+
+<!-- BLOC pied -->Généré le $genere_le · millésime FINESS $millesime · $nombre_page établissement(s) sur cette sous-page, dont $actifs_page actif(s) · $activites_page activité(s) sur $avec_activites_page établissement(s) · natures d'activité non résolues (aucune nomenclature versionnée) · $nombre_departement établissement(s) dans le département · $nombre_etablissements sur l'ensemble du site<!-- FIN pied -->
+
+<!-- BLOC style --><!-- FIN style -->
+
+<!-- BLOC contenu -->
+<p class="perimetre" id="perimetre"><strong>Comptage brut : tous les établissements du répertoire FINESS, toutes catégories confondues — la qualification enfance/adolescents n'est pas encore appliquée.</strong> <a href="${racine}index.html#perimetre">Lire la mention de périmètre</a>.</p>
+$explication
+$limite
+<nav class="sous-pages">$precedente$suivante<a href="$sommaire">Toutes les sous-pages du département</a></nav>
+$tableau
+<p><a href="${racine}index.html#par-departement">← Tous les départements</a></p>
+<!-- FIN contenu -->
+
+<!-- BLOC limite --><p class="limite" id="limite">Sous-page $numero sur $nombre_sous_pages du département : fiches $premiere à $derniere sur $nombre_departement, par numéro FINESS croissant. <strong>La recherche et les filtres ne portent que sur cette sous-page</strong> ; les autres sont listées sur la <a href="$sommaire">page du département</a>.</p><!-- FIN limite -->
+
+<!-- BLOC limite_vide --><p class="limite" id="limite">Sous-page $numero sur $nombre_sous_pages du département, qui ne compte aucune fiche.</p><!-- FIN limite_vide -->
+
+<!-- BLOC precedente --><a href="$lien" rel="prev">← Sous-page $numero</a><!-- FIN precedente -->
+
+<!-- BLOC suivante --><a href="$lien" rel="next">Sous-page $numero →</a><!-- FIN suivante -->
+
+<!-- BLOC explication --><p>Établissements FINESS dont l'adresse principale est située dans le département $libelle_departement (code INSEE $code_departement), quel que soit leur état.</p><!-- FIN explication -->
+
+<!-- BLOC explication_indeterminee --><p>Établissements FINESS dont le département n'a pas pu être déterminé : adresse principale absente (<em>[absent]</em>), code commune non résolu (<em>[non résolu]</em>), ou code résolu mais hors du référentiel des départements, comme une collectivité d'outre-mer (<em>[hors référentiel]</em>). Ils ne sont écartés d'aucune page.</p><!-- FIN explication_indeterminee -->
+
+<!-- BLOC aucun --><p class="vide" id="aucun">Aucun établissement FINESS n'est rattaché à ce département dans le millésime $millesime chargé.</p><!-- FIN aucun -->
+
+<!-- BLOC tableau -->
+<form class="filtres" id="filtres" hidden data-table="table-etablissements" data-compteur="compteur" data-unite="établissement(s) affiché(s) sur cette sous-page" data-vide="vide">
+  <label>Recherche (nom) <input type="search" id="f-recherche" placeholder="ex. IME" data-colonne="1"></label>
+  <label>Catégorie <select id="f-categorie" data-champ="cat"><option value="">Toutes</option>$options_categorie</select></label>
+  <label>État <select id="f-etat" data-champ="etat"><option value="">Tous</option><option value="A">Actif</option><option value="I">Inactif</option></select></label>
+  <button type="reset" id="f-reinitialiser">Réinitialiser</button>
+</form>
+<p class="compteur" id="compteur">$nombre_page établissement(s) sur cette sous-page.</p>
+<noscript><p class="alerte">Le détail des activités se charge à l'ouverture d'une ligne, ce qui demande JavaScript. Sans JavaScript, il reste consultable dans le <a href="$fragment">fichier de données des activités de cette sous-page (JSON)</a>.</p></noscript>
+<table id="table-etablissements" data-natures data-fragment="$fragment">
+<thead><tr><th>N° FINESS</th><th>Nom</th><th>Catégorie</th><th>Département</th><th>Code postal</th><th>État</th><th>Activités</th></tr></thead>
+<tbody>
+$lignes
+</tbody>
+</table>
+<p class="vide" id="vide" hidden>Aucun établissement de cette sous-page ne correspond aux filtres.</p>
+<!-- FIN tableau -->
+
+<!-- BLOC option --><option value="$valeur">$valeur</option><!-- FIN option -->
+
+<!-- BLOC ligne -->
+<tr data-cat="$libelle_categorie" data-etat="$code_etat"><td>$num_finess</td><td>$nom</td><td>$categorie <span class="code-brut">($code_categorie)</span></td><td>$departement</td><td>$code_postal</td><td><span class="etat $classe_etat">$etat</span></td><td>$activites</td></tr>
+<!-- FIN ligne -->
+
+<!-- BLOC activites_aucune --><span class="code-brut">aucune</span><!-- FIN activites_aucune -->
+
+<!-- BLOC activites_differees --><details data-finess="$num_finess"><summary>$nombre activité(s)</summary></details><!-- FIN activites_differees -->
+
+<!-- BLOC script --><script src="${racine}actifs/filtres.js"></script>
+<script src="${racine}actifs/activites.js"></script><!-- FIN script -->
