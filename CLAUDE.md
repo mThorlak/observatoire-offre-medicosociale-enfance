@@ -220,6 +220,29 @@ d'accord sur un contrat de fonction explicite (nom, signature, forme du retour) 
 un stub local respectant ce contrat, plutôt que de réimplémenter le module amont — puis intégrer pour
 de vrai (fetch/merge) une fois que le module amont a atterri sur la branche source.
 
+## Graphe de connaissance (graphify)
+
+Outil de développement, hors pipeline : `graphify-out/` (graphe du code et des docs) est gitignoré et
+régénérable, jamais versionné (D8). Il n'existe que dans le checkout où il a été construit
+(`graphify-out/.graphify_root` en donne la racine), pas dans les worktrees d'issue.
+
+- **Lecture** : pour une question transverse (« qu'est-ce qui touche X à travers les couches »,
+  « quel code applique la décision D… »), interroger d'abord le graphe (`graphify query`, `path`,
+  `explain`) avant de balayer les fichiers. Il ne remplace pas la lecture du code avant une modification,
+  et les arêtes inférées se vérifient dans le code.
+- **Mise à jour dès que nécessaire** : le graphe périme à chaque changement. Le checkout qui le porte
+  le met à jour avec `/graphify . --update` (ne ré-extrait que les fichiers modifiés) :
+  - après chaque fusion dans `main` touchant `src/`, `front/`, `scripts/`, `tests/` ou
+    `.github/workflows/` — en boucle d'orchestration, une fois par vague fusionnée, après avoir
+    ramené le checkout sur `main` ;
+  - après toute modification de `docs/` ou de `CLAUDE.md` (décisions d'architecture) — ré-extraction
+    sémantique, plus coûteuse que le seul code ;
+  - avant de s'appuyer sur le graphe pour répondre, si des fichiers ont changé depuis sa dernière
+    construction (`graphify-out/manifest.json`).
+- Un agent d'issue, dans son propre worktree, ne construit ni ne met à jour de graphe : c'est à
+  l'orchestrateur de le faire après fusion, pour qu'il n'existe qu'un graphe de référence, aligné
+  sur `main`.
+
 ---
 
 *Ce fichier doit être tenu à jour : le mettre à jour au fil de l'eau (nouvelles commandes, nouvelle
