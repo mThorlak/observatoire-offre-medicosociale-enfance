@@ -62,7 +62,7 @@ env:
 
 jobs:
   charger:
-    if: (inputs.run_id_base || '') == ''
+    if: (inputs.run_id_base || '36325164172') == ''
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -153,7 +153,7 @@ jobs:
     # d'un run précédent (`charger` sauté). Jamais après un `charger` en échec.
     if: >-
       always() && (needs.charger.result == 'success' ||
-      (needs.charger.result == 'skipped' && (inputs.run_id_base || '') != ''))
+      (needs.charger.result == 'skipped' && (inputs.run_id_base || '36325164172') != ''))
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -166,7 +166,7 @@ jobs:
           {
             echo "### Job rendre"
             echo
-            echo "Base : run ${{ inputs.run_id_base || github.run_id }}"
+            echo "Base : run ${{ inputs.run_id_base || '36325164172' }}"
             echo
             echo "| Étape | Durée |"
             echo "|---|---:|"
@@ -182,7 +182,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: base-sqlite
-          run-id: ${{ inputs.run_id_base || github.run_id }}
+          run-id: ${{ inputs.run_id_base || '36325164172' }}
           github-token: ${{ github.token }}
 
       - name: Rendre le site
