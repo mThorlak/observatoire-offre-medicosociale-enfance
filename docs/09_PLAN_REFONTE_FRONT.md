@@ -8,8 +8,10 @@ et les points de coordination.
 - **Linear** : équipe `OOMS` (clé `OOM`), projet `OOMS`
 - **Épopées créées** : OOM-93, OOM-94, OOM-95, OOM-96 — 17 issues au départ, plus deux nées en cours
   de route : OOM-114 (dérive de source) et OOM-115 (découpage sous D9)
-- **État au 27/09/2026** : vagues 0 à 6 fusionnées, boucle arrêtée à la demande de
-  l'utilisateur ; reprise à la vague 7 (voir section 10)
+- **État au 29/09/2026** : vagues 0 à 6 fusionnées. **Site en ligne** sur
+  https://mthorlak.github.io/observatoire-offre-medicosociale-enfance/ (OOM-55, OOM-116).
+  Priorité en cours : fiabiliser la publication (OOM-54, OOM-117) ; les vagues 7 à 9
+  viennent ensuite (voir section 10)
 
 ---
 
@@ -287,17 +289,28 @@ python tests/tout.py
 La stratégie A étant arbitrée (section 6), Orca déroule le plan seul, de la vague 0 à la
 vague 9, sans demander d'arbitrage — sauf condition d'arrêt ci-dessous.
 
-### État au 27/09/2026
+### État au 29/09/2026
 
 | Issue | État | Action |
 | --- | --- | --- |
-| OOM-97 à OOM-109, OOM-114, OOM-115 | Fusionnées (`main` = `8e659be`) | — |
-| OOM-110 | Backlog, débloquée par OOM-115 | **Première issue à la reprise** (vague 7) |
+| OOM-97 à OOM-109, OOM-114, OOM-115 | Fusionnées | — |
+| OOM-55, OOM-116 | Fusionnées (`main` = `c870f33`) : site public en ligne | — |
+| OOM-54 | En cours : millésime mensuel figé, `schedule` | Contrôler, fusionner, relancer `pages.yml` |
+| OOM-117 | En cours : 40 codes de catégorie absents du référentiel | Contrôler, fusionner, relancer `pages.yml` |
+| OOM-110 | Backlog, débloquée par OOM-115 | Vague 7, après OOM-54 et OOM-117 |
 | OOM-111 à OOM-113 | Backlog | Selon la boucle |
 
-La boucle a été arrêtée le 27/09/2026 à la demande de l'utilisateur, sans condition d'arrêt
-en cours. À la reprise, avant la vague 7 : mettre à jour le graphe graphify (étape 7 de la
-boucle, en retard sur OOM-109, OOM-115 et #10), puis relire cette section.
+**Mise en ligne, 29/09/2026.** Priorité choisie par l'utilisateur : publier vite. Pages est
+passé en `build_type=workflow` et `PAGES_ACTIVE=true` ; le site est construit par
+`pages.yml` depuis `main` (run 36622600318, millésime 202609). Le premier déploiement
+affichait « millésime inconnu », parce que le workflow renommait les extraits : OOM-116 l'a
+corrigé et rend un millésime inconnu bloquant. La branche jetable `gh-pages-test` (OOM-99)
+et les branches fusionnées ont été supprimées. Pages sert les fichiers compressés en gzip.
+
+**Publication = action de l'orchestrateur.** Après chaque fusion qui change le rendu,
+relancer `gh workflow run pages.yml --ref main`, suivre le run, puis vérifier par `curl`
+l'accueil (millésime, mention de périmètre, pied de page) et quelques pages profondes. Ne
+jamais publier depuis une autre branche : `deployer` est sauté hors `main`.
 
 ### La boucle
 
