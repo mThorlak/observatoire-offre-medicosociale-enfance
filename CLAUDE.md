@@ -74,7 +74,9 @@ fixture synthétiques dans `tests/data/` pour les tests de la V1 historique (`ca
 `telecharger_finess_activites.py` (récupération quotidienne, tournent aussi via `.github/workflows/` ;
 `--mensuel AAAAMM` prend le mensuel figé, seul extrait publié par `pages.yml` depuis OOM-54,
 `--lister-mensuels` liste ceux que data.gouv.fr publie ; garder le nom source du fichier, qui porte le
-millésime), `recensement.py` (à rejouer sur tout nouveau millésime, avant
+millésime), `maj_nomenclature_categories.py` (régénère `referentiels/nomenclature_categorie_finess.csv`
+depuis la nomenclature ANS TRE_R66, source qui fait foi — OOM-118 ; `--verifier` compare sans écrire),
+`recensement.py` (à rejouer sur tout nouveau millésime, avant
 toute ingestion — révèle une dérive de schéma), `construire_echantillon.py` (régénère l'échantillon de
 test par fermeture transitive à partir de fichiers complets). `mesures/` contient les scripts de
 mesure de performance/RSS utilisés pour justifier les décisions de `docs/architecture/06_DECISIONS_SCHEMA.md`
