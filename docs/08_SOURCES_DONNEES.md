@@ -86,31 +86,65 @@ Elle permet notamment de décrire :
 ### Nomenclature des catégories d'établissement
 
 Référentiel versionné : `referentiels/nomenclature_categorie_finess.csv` (D4), lu par
-`nomenclatures.charger_categories`. Deux sources officielles, consignées dans son en-tête :
+`nomenclatures.charger_categories`, **généré** par `scripts/maj_nomenclature_categories.py` :
+ne pas l'éditer à la main.
 
-| Lignes | Source | Consultée le |
-| --- | --- | --- |
-| 274 codes (OOM-12) | DREES/DMSI, data.gouv.fr « FINESS - Extraction des principales nomenclatures » : catégories ouvertes (01-06-2021) et fermées (08-06-2021), PDF | 2026-08-18 |
-| 40 codes (OOM-117) | ANS, NOS [`TRE_R66-CategorieEtablissement`](https://mos.esante.gouv.fr/NOS/TRE_R66-CategorieEtablissement/), OID 1.2.250.1.213.1.6.1.8, version `20260505120000` (322 codes), fichier `.tabs`, colonne « Libellé long » | 2026-09-29 |
+**Source qui fait foi (décision OOM-118 du 29/09/2026) : ANS, NOS
+[`TRE_R66-CategorieEtablissement`](https://mos.esante.gouv.fr/NOS/TRE_R66-CategorieEtablissement/)**,
+OID 1.2.250.1.213.1.6.1.8, pour tout le référentiel. Les PDF DREES/DMSI de 2021 ne servent plus
+de source.
 
-Les 40 codes ajoutés sont ceux que l'extrait FINESS-Structures journalier du 2026-09-29
-(millésime 202609) porte sans que les PDF de 2021 les documentent — les mêmes qu'en 202607 :
-218, 220, 242, 259, 324, 345, 359, 400, 403, 405, 447, 450, 451, 452, 601, 602, 605–609, 614,
-616, 617, 621, 622, 637–650. Tous figurent dans TRE_R66 : **aucun code observé ne reste non
-résolu**. 17 sont des catégories fermées (`statut` = `fermee`, `date_fermeture` = « Date fin »
-de TRE_R66), qui subsistent sur des établissements existants — par exemple 220 « Centre
-Social » et 405 « Service Social Polyvalent de Secteur », fermées le 2026-03-30, ou 602
-« Cabinet de Groupe », fermée le 1999-09-15. Le code 259, écarté en OOM-12 parce que son
-libellé PDF était tronqué, est repris avec le libellé complet de TRE_R66. Un code qui
-apparaîtrait demain hors référentiel reste signalé (`CodeCategorieInconnu`, compteur
-« catégorie(s) non résolue(s) » d'`export_html`), jamais approximé (D6).
+*Motif.* TRE_R66 est la nomenclature de référence que l'ANS tient à jour ; les PDF de 2021
+(data.gouv.fr « FINESS - Extraction des principales nomenclatures ») sont figés. Ils ignorent les
+catégories créées depuis (40 codes observés, comblés par OOM-117) et les réformes récentes — les
+services autonomie SAAS et SAA, par exemple, y portent encore leurs anciens noms
+(S.P.A.S.A.D., S.A.A.D.). Garder deux sources pour une même nomenclature donnait des libellés
+d'époques différentes sur une même page.
 
-**Écart connu, non traité.** Les 274 lignes d'origine n'ont pas été modifiées (OOM-117 ne fait
-qu'ajouter). Or TRE_R66 2026 renomme 24 de ces catégories (ex. 209 « Service autonomie aide et
-soins (SAAS) » au lieu de « S.P.A.S.A.D. », 460 « Service autonomie aide (SAA) » au lieu de
-« S.A.A.D. », 228 « Centre de Santé Sexuelle ») ; pour 17 d'entre elles, la date de fin de TRE_R66 diffère de celle du PDF de 2021
-ou existe là où le PDF n'en donnait aucune (ex. 159, 252, 418). Réaligner ces lignes sur TRE_R66 est
-une décision distincte (quelle source fait foi, quel libellé pour une catégorie renommée).
+| Élément | Valeur |
+| --- | --- |
+| Version | `20260505120000` (champ « Date MàJ » de l'en-tête `.tabs`), 322 codes |
+| Fichier | `TRE_R66-CategorieEtablissement.tabs`, SHA-256 `8e6356d5…6795dabd` (complet dans l'en-tête du CSV) |
+| Consultée le | 2026-09-29 |
+| `libelle` | colonne « Libellé long », verbatim |
+| `date_fermeture` | « Date fin » (AAAA-MM-JJ), vide si la source n'en donne pas |
+| `statut` | `fermee` si la date de fin est atteinte au jour de la consultation, `ouverte` sinon |
+| `source` | `ANS_TRE_R66` ; sinon l'origine d'une ligne conservée hors source |
+
+**Aucun code n'est retiré.** Un code du référentiel absent de TRE_R66 garde sa ligne actuelle,
+avec son origine en colonne `source` (`hors_TRE_R66` à défaut d'autre indication). À la version
+20260505120000, les 314 codes antérieurs figurent tous dans TRE_R66 : aucune ligne n'est dans ce
+cas.
+
+**Effet de l'alignement** (sur les 314 lignes d'avant, 274 issues des PDF de 2021) :
+
+- 24 libellés changent — par exemple 209 « Service autonomie aide et soins (SAAS) » au lieu de
+  « Service Polyvalent Aide et Soins A Domicile (S.P.A.S.A.D.) », 460 « Service autonomie aide
+  (SAA) », 228 « Centre de Santé Sexuelle », 166 « Centre Parents-Enfants de moins de 3 ans » ;
+- 17 statuts ou dates de fin changent : 11 catégories que le PDF donnait ouvertes sont fermées
+  selon TRE_R66 (159, 252, 253, 377, 379, 382, 418, 427, 437, 453, 690), 6 dates de fin sont
+  décalées de quelques jours à quelques mois (205, 208, 212, 327, 346, 368) ;
+- 8 codes de TRE_R66 absents jusqu'ici sont ajoutés : 618, 623, 700 à 705 — dont 701 « Maison
+  des adolescents (MDA) » et 702 « Point Accueil Ecoute Jeunes (PAEJ) ». Aucun n'est porté par
+  l'extrait du 2026-09-29.
+
+La liste complète, avant et après, est imprimée par le script et reprise dans la PR d'OOM-118.
+Sur l'extrait FINESS-Structures journalier du 2026-09-29 (millésime 202609), toutes les
+catégories observées sont résolues. Un code qui apparaîtrait demain hors référentiel reste
+signalé (`CodeCategorieInconnu`, compteur « catégorie(s) non résolue(s) » d'`export_html`),
+jamais approximé (D6).
+
+**Mise à jour, à chaque nouvelle version de TRE_R66** (stdlib seule) :
+
+```bash
+py -3 scripts/maj_nomenclature_categories.py --verifier   # compare ; code 1 si le référentiel diffère
+py -3 scripts/maj_nomenclature_categories.py              # télécharge, réécrit le CSV et son en-tête
+py -3 tests/test_nomenclatures.py                         # ajuster les effectifs attendus
+```
+
+Le script refuse d'écrire si le fichier source est malformé (structure `.tabs`, code en double)
+et imprime les libellés, dates, ajouts et codes conservés hors source. Relire ce rapport avant
+de committer : un libellé renommé change des pages déjà publiées.
 
 ### Statut
 
