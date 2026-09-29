@@ -1,5 +1,12 @@
 # Observatoire médico-social enfance/adolescents
 
+🌐 **Site : <https://mthorlak.github.io/observatoire-offre-medicosociale-enfance/>**
+
+Code sous licence [EUPL 1.2](LICENSE) (Licence publique de l'Union européenne, texte officiel
+français). Les chiffres publiés sont un retraitement indépendant du répertoire FINESS, pas une
+donnée officielle de l'administration ; la licence des données reste celle de leur producteur (voir
+[Sources de données](#sources-de-données)).
+
 Observatoire national **libre** de l'offre médico-sociale enfance/adolescents, construit à
 partir de données publiques (FINESS aujourd'hui ; à terme INSEE, CNSA, ROR, IGN, OpenStreetMap).
 Double finalité : un logiciel réutilisable et reproductible, et des travaux scientifiques
@@ -66,3 +73,11 @@ complet, charger l'échantillon versionné de [`tests/echantillon/`](tests/echan
 Recensées et documentées dans [`docs/08_SOURCES_DONNEES.md`](docs/08_SOURCES_DONNEES.md) : rôle,
 licence, fréquence de mise à jour, niveau d'intégration et procédure d'acquisition automatisée
 pour chacune.
+
+## Licence
+
+Le code de ce dépôt est distribué sous la [Licence publique de l'Union européenne (EUPL) v1.2](LICENSE),
+texte officiel en français publié par la Commission européenne. Les données FINESS restituées par
+le site restent sous la licence de leur producteur ; l'attribution affichée à l'écran et la
+divergence de licence de FINESS-Structures sont consignées dans
+[`docs/08_SOURCES_DONNEES.md`](docs/08_SOURCES_DONNEES.md).

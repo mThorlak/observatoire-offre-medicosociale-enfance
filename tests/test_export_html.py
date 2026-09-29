@@ -29,6 +29,11 @@ Vérifie `export_html.rendre` (contrats A et B) :
    non résolue, collectivité `975` hors référentiel) rangés visiblement en
    page indéterminée, Corse en `2A.html` (D4, D6) ;
 3. un gabarit manquant : échec bruyant, chemin dans le message, rien d'écrit.
+
+OOM-55 : le pied de page commun (lien vers le dépôt, statut non officiel,
+source, licence du code EUPL 1.2) sur chaque type de page, valeurs fournies
+par le module (`MENTIONS_PIED`), et le paragraphe « Méthode et
+reproductibilité » de l'accueil.
 """
 from __future__ import annotations
 import functools, html, http.server, json, re, shutil, subprocess, sys, tempfile, threading
@@ -518,6 +523,54 @@ with tempfile.TemporaryDirectory(prefix="test_export_html_") as temporaire:
     verifier("toutes les pages : aucun $ non substitué, aucun commentaire de gabarit, "
              "feuille de style liée, aucun lien absolu, aucun JSON cité hors fragment propre",
              not defauts, list(defauts.items())[:3])
+    # Pied de page commun (OOM-55) : sur chaque type de page, valeurs du
+    # module (jamais écrites dans un gabarit, D7), sans script (D10).
+    depot = "https://github.com/mThorlak/observatoire-offre-medicosociale-enfance"
+    verifier("MENTIONS_PIED : dépôt, licence EUPL 1.2 et statut non officiel",
+             eh.DEPOT == depot and eh.MENTIONS_PIED["lien_depot"] == depot
+             and eh.MENTIONS_PIED["licence_code"] == "EUPL 1.2"
+             and eh.MENTIONS_PIED["lien_licence"] == depot + "/blob/main/LICENSE"
+             and "pas une donnée officielle de l'administration"
+             in eh.MENTIONS_PIED["statut_donnees"], eh.MENTIONS_PIED)
+    verifier("gabarits : aucune valeur du pied écrite en dur (D7)",
+             all(depot not in g.read_text(encoding="utf-8") and "EUPL" not in
+                 g.read_text(encoding="utf-8") for g in GABARITS.glob("*.html")))
+    attendu_pied = [f'<a href="{depot}">{depot}</a>',
+                    f'sous licence <a href="{depot}/blob/main/LICENSE">EUPL 1.2</a>',
+                    html.escape(eh.MENTIONS_PIED["statut_donnees"]),
+                    html.escape(eh.MENTIONS_PIED["attribution_source"])]
+
+    def pied(contenu):
+        trouve = re.search(r"<footer>(.*?)</footer>", contenu, re.DOTALL)
+        return trouve.group(1) if trouve else ""
+
+    sans_pied = [p for p in bilan["pages_ecrites"]
+                 if not all(a in pied(lire(site, p)) for a in attendu_pied)
+                 or "<script" in pied(lire(site, p))]
+    verifier("pied commun (dépôt, statut non officiel, source, licence du code), sans script, "
+             "sur chaque page écrite", not sans_pied, sans_pied[:5])
+    types = {"accueil": "index.html", "indicateur": "indicateur.html",
+             "page d'indicateur par département": "indicateur/44.html",
+             "page départementale": "departement/44.html",
+             "sous-page départementale": "departement/44/2.html",
+             "page indéterminée": "departement/indetermine.html",
+             "sous-page vide": vides[0]}
+    for nom, page in types.items():
+        verifier(f"pied commun présent : {nom} ({page})",
+                 page in bilan["pages_ecrites"] and page not in sans_pied
+                 and pied(lire(site, page)).count('id="mentions"') == 1)
+    verifier("pied commun présent : liste.html (découpage national)",
+             all(a in pied(lire(site_national, "liste.html")) for a in attendu_pied))
+    verifier("index.html : « Méthode et reproductibilité » dans « Source et licence », "
+             "après la mention de périmètre",
+             accueil.index('id="source"') < accueil.index('id="methode"')
+             and accueil.index('id="perimetre"') < accueil.index('id="methode"')
+             and "fermés sont conservés dans l'entrepôt mais exclus des comptages" in accueil
+             and "n'est pas encore qualifié" in accueil
+             and f'<a href="{depot}#readme">README du dépôt</a>' in accueil)
+    verifier("index.html : la mention de périmètre reste la première section du contenu",
+             '<main>\n<section class="perimetre" id="perimetre">' in accueil)
+
     cassés = []
     for page in bilan["pages_ecrites"]:
         for cible in re.findall(r'<a href="([^"#]+)', lire(site, page)):

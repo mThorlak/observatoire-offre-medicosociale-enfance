@@ -196,8 +196,10 @@ littéral). Le texte hors blocs n'est pas publié (il sert à documenter le
 gabarit). `base.html` est un seul gabarit, sans blocs, dont les trous `$titre`,
 `$style`, `$contenu`, `$script`, `$pied` et `$millesime` reçoivent les blocs
 homonymes de la page, `$racine` le préfixe relatif vers la racine du site
-(`""` ou `"../"`) et `$lien_etablissements` la cible du lien de navigation
-« Établissements ». Les blocs de ligne (`ligne`, `option`, `activite`…) sont
+(`""` ou `"../"`), `$lien_etablissements` la cible du lien de navigation
+« Établissements » et les valeurs de `MENTIONS_PIED` le pied de page commun
+(OOM-55 : statut non officiel, attribution de la source, lien vers le dépôt,
+licence du code) ; ces dernières sont aussi offertes aux blocs de page. Les blocs de ligne (`ligne`, `option`, `activite`…) sont
 substitués une fois par élément puis concaténés par ce module ; quand une page
 a deux variantes (département vide ou non, accueil national ou découpé), le
 choix du bloc est fait ici.
@@ -237,7 +239,8 @@ __all__ = ["rendre", "ErreurExportHtml", "GABARIT_BASE", "PAGES", "DOSSIER_GABAR
            "GABARIT_INDICATEUR_DEPARTEMENT", "DOSSIER_DEPARTEMENT", "DOSSIER_INDICATEUR",
            "PAGE_INDETERMINEE", "chemin_page_departement", "chemin_sous_page",
            "chemin_indicateur_departement", "DOSSIER_ACTIVITES", "chemin_fragment_activites",
-           "LIGNES_PAR_SOUS_PAGE", "BUDGET_PAGE", "PAGES_NON_BORNEES", "decouper"]
+           "LIGNES_PAR_SOUS_PAGE", "BUDGET_PAGE", "PAGES_NON_BORNEES", "decouper",
+           "DEPOT", "MENTIONS_PIED"]
 
 GABARIT_BASE = "base.html"
 # Pages du découpage national (historique OOM-100).
@@ -274,6 +277,18 @@ LIGNES_PAR_SOUS_PAGE = 1000
 # locale, ~55 Mo à l'échelle réelle, viole D9 en connaissance de cause).
 PAGES_NON_BORNEES = ("liste.html",)
 # Un code servant de nom de fichier : lettres et chiffres seulement.
+# Pied de page commun (OOM-55) : de quoi citer le site honnêtement, sur chaque
+# page et sous-page. Valeurs fixées ici et substituées dans `base.html` (et
+# offertes aux blocs de page) : le gabarit ne les compose pas (D7).
+DEPOT = "https://github.com/mThorlak/observatoire-offre-medicosociale-enfance"
+MENTIONS_PIED = {
+    "statut_donnees": "Retraitement indépendant de données publiques, pas une donnée "
+                      "officielle de l'administration.",
+    "attribution_source": "FINESS, ministère chargé de la Santé, publié sur data.gouv.fr",
+    "lien_depot": DEPOT,
+    "licence_code": "EUPL 1.2",
+    "lien_licence": DEPOT + "/blob/main/LICENSE",
+}
 _CODE_FICHIER = re.compile(r"[0-9A-Za-z]+")
 DOSSIER_GABARITS = Path(__file__).resolve().parent.parent / "front" / "gabarits"
 
@@ -906,12 +921,16 @@ def rendre(entrepot: Entrepot, dossier_gabarits: Path, dossier_sortie: Path,
     lien_etablissements = ("index.html#par-departement" if decoupage == "departement"
                            else "liste.html")
 
+    mentions = {cle: _e(valeur) for cle, valeur in MENTIONS_PIED.items()}
+
     def habiller(page: str, gabarit: Gabarit, valeurs: Dict[str, object], racine: str) -> str:
         valeurs["millesime"] = millesime
         valeurs["racine"] = racine
+        valeurs.update(mentions)
         return _substituer(
             base_modele,
             {bloc: gabarit.remplir(bloc, valeurs) for bloc in BLOCS_PAGE}
+            | mentions
             | {"millesime": millesime, "racine": racine,
                "lien_etablissements": racine + lien_etablissements},
             f"{base.chemin} (pour {page})")
