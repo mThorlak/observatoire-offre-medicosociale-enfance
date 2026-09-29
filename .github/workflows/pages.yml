@@ -1,16 +1,33 @@
 name: Publication GitHub Pages
 
 # Workflow de publication UNIQUE du site (OOM-108, repris et ajusté par
-# OOM-54 : millésime mensuel figé, `schedule`, qualification). Ne jamais
-# créer un second workflow de publication à côté de celui-ci.
+# OOM-54 : millésime mensuel figé, `schedule`). Ne jamais créer un second
+# workflow de publication à côté de celui-ci.
+#
+# Millésime figé (OOM-54). Le site est construit sur l'extrait MENSUEL figé
+# `finess-*-mensuel-AAAAMM.json.gz` des deux sources, jamais sur le journalier :
+# reconstruire le même millésime donne le même site, à l'horodatage de
+# génération près. L'entrée `millesime` (AAAAMM) le désigne ; vide (et pour le
+# `schedule`), elle vaut le dernier mensuel publié, résolu explicitement depuis
+# l'API data.gouv.fr des deux sources — qui doivent concorder — et affiché dans
+# le résumé du run. Un mensuel absent fait échouer le run avec la liste des
+# mensuels disponibles, sans repli sur un autre extrait (D6).
+#
+# Choix du jour du `schedule` : le 3 du mois à 06:00 UTC. data.gouv.fr publie
+# le mensuel AAAAMM le 1er du mois suivant, vers 02:15 UTC (constaté pour
+# 202607, publié le 01/08/2026 entre 02:15 et 04:15 UTC, et 202608, publié le
+# 01/09/2026 à 02:16 UTC, sur les deux sources). Deux jours de marge absorbent
+# un retard de publication ; si le mensuel attendu manque encore, le run
+# reconstruit le dernier publié (même site) et le signale par un avertissement.
 #
 # GitHub Pages fait échouer tout déploiement de plus de dix minutes. Charger
 # l'extrait complet puis rendre ~102 pages dans un seul job frôle cette
 # limite : la chaîne est donc découpée en trois jobs, chacun borné à
 # `timeout-minutes: 10` :
 #
-#   charger   télécharge Structures + Activités (extraits courants de
-#             data.gouv.fr, mêmes scripts que les workflows quotidiens),
+#   charger   résout le millésime, télécharge Structures + Activités (mensuels
+#             figés de data.gouv.fr, mêmes scripts que les workflows
+#             quotidiens, option `--mensuel`),
 #             `cli.py charger --creer`, `cli.py integrite`, puis publie
 #             `base.sqlite` en artefact à rétention courte ;
 #   rendre    récupère la base (de ce run, ou d'un run précédent via
@@ -31,8 +48,14 @@ name: Publication GitHub Pages
 # dans le résumé du run ($GITHUB_STEP_SUMMARY).
 
 "on":
+  schedule:
+    - cron: "0 6 3 * *"  # le 3 à 06:00 UTC — voir l'argument en tête de fichier
   workflow_dispatch:
     inputs:
+      millesime:
+        description: "Millésime mensuel figé AAAAMM à publier — vide : dernier mensuel publié (résolu et affiché dans le résumé)"
+        required: false
+        default: ""
       run_id_base:
         description: "Identifiant d'un run précédent dont réutiliser base.sqlite (rejoue le rendu sans recharger) — vide : charger à neuf"
         required: false
@@ -76,23 +99,64 @@ jobs:
         with:
           python-version: "3.11"
 
+      # Millésime explicite ou, à défaut, dernier mensuel publié. Les deux
+      # sources doivent publier le même dernier mensuel : sinon, on ne choisit
+      # pas à la place de l'utilisateur, on échoue (D6).
+      - name: Résoudre le millésime
+        env:
+          MILLESIME_DEMANDE: ${{ inputs.millesime || '' }}
+        run: |
+          set -euo pipefail
+          s=$(python3 scripts/telecharger_finess_structures.py --lister-mensuels)
+          a=$(python3 scripts/telecharger_finess_activites.py --lister-mensuels)
+          echo "Mensuels Structures publiés : $(echo $s)"
+          echo "Mensuels Activités publiés  : $(echo $a)"
+          if [ -n "$MILLESIME_DEMANDE" ]; then
+            if ! echo "$MILLESIME_DEMANDE" | grep -Eq '^[0-9]{4}(0[1-9]|1[0-2])$'; then
+              echo "Entrée millesime invalide : '$MILLESIME_DEMANDE' (attendu AAAAMM)" >&2
+              exit 1
+            fi
+            millesime="$MILLESIME_DEMANDE"
+            origine="demandé"
+          else
+            ds=$(echo "$s" | tail -1)
+            da=$(echo "$a" | tail -1)
+            if [ "$ds" != "$da" ]; then
+              echo "Derniers mensuels divergents : Structures $ds, Activités $da — préciser l'entrée millesime" >&2
+              exit 1
+            fi
+            millesime="$ds"
+            origine="dernier mensuel publié, résolu"
+            attendu=$(date -u -d "$(date -u +%Y-%m-01) -1 month" +%Y%m)
+            if [ "$millesime" != "$attendu" ]; then
+              echo "::warning::Dernier mensuel publié $millesime, mensuel du mois écoulé ($attendu) pas encore publié"
+            fi
+          fi
+          echo "MILLESIME=$millesime" >> "$GITHUB_ENV"
+          {
+            echo "**Millésime publié : $millesime** ($origine)"
+            echo
+            echo "Mensuels publiés sur data.gouv.fr — Structures : $(echo $s) ; Activités : $(echo $a)"
+            echo
+          } >> "$GITHUB_STEP_SUMMARY"
+
       - name: Télécharger FINESS-Structures
         run: |
           set -euo pipefail
           t=$(date +%s)
           mkdir -p donnees
-          python3 scripts/telecharger_finess_structures.py donnees/structures.json.gz
+          python3 scripts/telecharger_finess_structures.py donnees/structures.json.gz --mensuel "$MILLESIME"
           echo "| Télécharger Structures ($(stat -c%s donnees/structures.json.gz) o) | $(( $(date +%s) - t )) s |" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Télécharger FINESS-Activités
         run: |
           set -euo pipefail
           t=$(date +%s)
-          python3 scripts/telecharger_finess_activites.py donnees/activites.json.gz
+          python3 scripts/telecharger_finess_activites.py donnees/activites.json.gz --mensuel "$MILLESIME"
           echo "| Télécharger Activités ($(stat -c%s donnees/activites.json.gz) o) | $(( $(date +%s) - t )) s |" >> "$GITHUB_STEP_SUMMARY"
 
       # Le millésime est lu dans le nom du fichier (finess_commun.extraire_millesime,
-      # `finess-*-journalier-AAAAMMJJ.json.gz`) : chaque extrait reprend donc le
+      # `finess-*-mensuel-AAAAMM.json.gz`) : chaque extrait reprend donc le
       # titre source consigné par le script de téléchargement dans
       # <destination>.metadata.json. Un millésime « inconnu » est bloquant (D5,
       # D6) : aucun site ne sort sans millésime (OOM-116).
@@ -109,6 +173,10 @@ jobs:
             millesime=$(PYTHONPATH=src python3 -c "import sys, finess_commun as fc; print(fc.extraire_millesime(sys.argv[1]))" "$titre")
             if [ "$millesime" = "inconnu" ]; then
               echo "Millésime introuvable dans le titre source de $source : '$titre'" >&2
+              exit 1
+            fi
+            if [ "$millesime" != "$MILLESIME" ]; then
+              echo "Millésime $millesime lu dans '$titre', $MILLESIME demandé" >&2
               exit 1
             fi
             var=$(echo "$source" | tr '[:lower:]' '[:upper:]')

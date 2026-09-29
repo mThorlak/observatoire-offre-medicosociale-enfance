@@ -473,7 +473,7 @@ Divergence repérée entre la page web du jeu de données (« Licence Ouverte / 
 
 ## Script
 
-`scripts/telecharger_finess_structures.py` — interroge l'API, sélectionne la ressource journalière (jamais la mensuelle, distinguée par le préfixe du titre), télécharge en flux, puis vérifie systématiquement **taille et checksum** contre les valeurs publiées avant d'écrire un fichier de métadonnées à côté du `.json.gz` (provenance : id de ressource, URL, taille, checksum, date de publication source, date de téléchargement). Refuse explicitement si zéro ou plusieurs ressources journalières sont trouvées, ou si taille/checksum divergent — jamais de fichier silencieusement corrompu ou mal identifié. Aucune dépendance tierce.
+`scripts/telecharger_finess_structures.py` — interroge l'API, sélectionne par défaut la ressource journalière (distinguée par le préfixe du titre) ou, avec `--mensuel AAAAMM`, le mensuel figé de ce millésime (voir section 18), télécharge en flux, puis vérifie systématiquement **taille et checksum** contre les valeurs publiées avant d'écrire un fichier de métadonnées à côté du `.json.gz` (provenance : id de ressource, URL, taille, checksum, date de publication source, date de téléchargement). Refuse explicitement si zéro ou plusieurs ressources journalières sont trouvées, ou si taille/checksum divergent — jamais de fichier silencieusement corrompu ou mal identifié. Aucune dépendance tierce.
 
 Testé hors réseau réel dans `tests/test_telecharger_finess_structures.py` (le double d'`urllib.request.urlopen` rejoue la forme de réponse constatée le 13/08/2026).
 
@@ -510,7 +510,7 @@ Le champ API `license` vaut `lov2` (Licence Ouverte v2.0), une seule valeur coh�
 
 ## Script
 
-`scripts/telecharger_finess_activites.py` — interroge l'API, sélectionne la ressource journalière (jamais la mensuelle, distinguée par le préfixe du titre), télécharge en flux, puis vérifie systématiquement **taille et checksum** contre les valeurs publiées avant d'écrire un fichier de métadonnées à côté du `.json.gz` (provenance : id de ressource, URL, taille, checksum, date de publication source, date de téléchargement). Refuse explicitement si zéro ou plusieurs ressources journalières sont trouvées, ou si taille/checksum divergent — jamais de fichier silencieusement corrompu ou mal identifié. Aucune dépendance tierce.
+`scripts/telecharger_finess_activites.py` — interroge l'API, sélectionne par défaut la ressource journalière (distinguée par le préfixe du titre) ou, avec `--mensuel AAAAMM`, le mensuel figé de ce millésime (voir section 18), télécharge en flux, puis vérifie systématiquement **taille et checksum** contre les valeurs publiées avant d'écrire un fichier de métadonnées à côté du `.json.gz` (provenance : id de ressource, URL, taille, checksum, date de publication source, date de téléchargement). Refuse explicitement si zéro ou plusieurs ressources journalières sont trouvées, ou si taille/checksum divergent — jamais de fichier silencieusement corrompu ou mal identifié. Aucune dépendance tierce.
 
 Testé hors réseau réel dans `tests/test_telecharger_finess_activites.py` (le double d'`urllib.request.urlopen` rejoue la forme de réponse constatée le 19/08/2026).
 
@@ -621,3 +621,39 @@ La page web du jeu `finess-structures-1` annonce la Licence Ouverte / Open Licen
 ## Licence du code
 
 Le code est sous EUPL 1.2 (fichier `LICENSE` à la racine : texte officiel français publié par la Commission européenne). Elle ne s'applique pas aux données FINESS, qui restent sous la licence de leur producteur.
+
+---
+
+# 18. Extrait mensuel figé FINESS — publication du site (OOM-54)
+
+Constaté le 29/09/2026 par l'API data.gouv.fr des deux jeux de données (`finess-structures-1`, `finess-activites-1`).
+
+## Nom
+
+À côté du journalier, chaque jeu publie un extrait **mensuel figé** au même format (`json.gz`), avec la même forme de ressource (`id`, `title`, `url`, `filesize`, `checksum` sha1, `last_modified`) :
+
+- `finess-structures-mensuel-AAAAMM.json.gz`
+- `finess-activites-mensuel-AAAAMM.json.gz`
+
+`AAAAMM` est le mois des données : le mensuel `202608` est publié le 1er septembre. Ce motif porte le millésime lu par `finess_commun.extraire_millesime` : le fichier téléchargé doit garder son nom source (OOM-116), sinon le millésime devient `inconnu`, ce qui bloque la publication.
+
+## Rythme de publication observé
+
+| Mensuel | Structures (`created_at`, UTC) | Activités (`created_at`, UTC) | Taille Structures | Taille Activités |
+|---|---|---|---:|---:|
+| `202607` | 01/08/2026 02:15 (`last_modified` 04:15) | 01/08/2026 02:15 (`last_modified` 04:15) | 50 044 904 o | 57 793 142 o |
+| `202608` | 01/09/2026 02:16 | 01/09/2026 02:16 | 50 191 316 o | 58 236 979 o |
+
+Publication le **1er du mois suivant, vers 02:15 UTC**, simultanée sur les deux sources. Deux observations seulement : le rythme est constaté, pas garanti par le producteur.
+
+## Profondeur d'historique disponible
+
+Le 29/09/2026, l'API publie **deux mensuels par source, `202607` et `202608`**, plus le journalier du jour. Le plus ancien est le premier mensuel publié (créé le 01/08/2026 ; la ressource journalière date du 06/05/2026) : aucun mensuel n'a encore été retiré, mais la politique de conservation de data.gouv.fr n'est documentée nulle part. On ne sait donc pas si un mensuel reste publié indéfiniment ou s'il tourne sur une fenêtre glissante. Un millésime passé n'est reconstructible depuis la source que tant que data.gouv.fr le publie ; la conservation durable des extraits relève d'OOM-43 et OOM-45.
+
+## Sélection
+
+Les deux scripts de téléchargement prennent `--mensuel AAAAMM` : ils sélectionnent la ressource dont le titre est exactement `finess-*-mensuel-AAAAMM.json.gz`, puis vérifient taille et checksum comme pour le journalier. Si ce mensuel n'est pas publié (ou l'est en double), le script échoue avec la liste des mensuels disponibles, sans jamais se rabattre sur le journalier ni sur un mois voisin (D6). `--lister-mensuels` affiche les millésimes publiés, un par ligne, croissants, sans rien télécharger. Sans option, le journalier reste le comportement par défaut : les workflows d'acquisition quotidiens sont inchangés.
+
+## Publication du site
+
+`.github/workflows/pages.yml` ne publie plus que des mensuels. L'entrée `millesime` (`AAAAMM`) de `workflow_dispatch` désigne le millésime ; vide, elle vaut le dernier mensuel publié, résolu depuis l'API des deux sources (qui doivent concorder, sinon échec) et affiché dans le résumé du run. Un `schedule` le **3 du mois à 06:00 UTC** publie le dernier mensuel : deux jours de marge sur la publication observée le 1er vers 02:15 UTC. Si le mensuel du mois écoulé manque encore, le run reconstruit le dernier publié et le signale par un avertissement. Reconstruire le même millésime donne un site identique, à l'horodatage « Généré le » près.

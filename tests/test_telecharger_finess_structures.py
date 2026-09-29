@@ -164,5 +164,103 @@ with mock.patch.object(urllib.request, "urlopen",
     retour = tfs.main([str(dest5)])
 verifier("code de retour non nul sur échec de vérification", retour == 1)
 
+print("6. Mensuel figé (OOM-54) — sélection par millésime exact, jamais de repli")
+donnees_mensuels = api_reponse([
+    resource(titre="finess-structures-mensuel-202608.json.gz"),
+    resource(titre="finess-structures-mensuel-202607.json.gz"),
+    resource(),
+    resource(titre="finess-structures-mensuel-202606.csv", format_="csv"),
+    resource(titre="finess-structures-mensuel-2026-05.json.gz"),
+])
+verifier("mensuels disponibles listés, triés, formats et titres hors motif écartés",
+         tfs.mensuels_disponibles(donnees_mensuels) == ["202607", "202608"],
+         tfs.mensuels_disponibles(donnees_mensuels))
+verifier("le mensuel demandé est sélectionné",
+         tfs.resource_mensuelle(donnees_mensuels, "202607")["title"]
+         == "finess-structures-mensuel-202607.json.gz")
+
+try:
+    tfs.resource_mensuelle(donnees_mensuels, "202609")
+    verifier("mensuel non publié → refus", False)
+except tfs.ErreurTelechargement as erreur:
+    message = str(erreur)
+    verifier("mensuel non publié → refus qui liste les mensuels disponibles",
+             "202607" in message and "202608" in message, message)
+
+for invalide in ("2026-08", "202613", "20260801", "", "abcdef"):
+    try:
+        tfs.resource_mensuelle(donnees_mensuels, invalide)
+        verifier(f"millésime invalide {invalide!r} → refus", False)
+    except tfs.ErreurTelechargement:
+        verifier(f"millésime invalide {invalide!r} → refus", True)
+
+try:
+    tfs.resource_mensuelle(api_reponse([resource()]), "202608")
+    verifier("aucun mensuel publié → refus, sans repli sur le journalier", False)
+except tfs.ErreurTelechargement as erreur:
+    verifier("aucun mensuel publié → refus, sans repli sur le journalier",
+             "aucun" in str(erreur), str(erreur))
+
+try:
+    tfs.resource_mensuelle(api_reponse([
+        resource(titre="finess-structures-mensuel-202608.json.gz"),
+        resource(titre="finess-structures-mensuel-202608.json.gz"),
+    ]), "202608")
+    verifier("mensuel publié en double → refus", False)
+except tfs.ErreurTelechargement:
+    verifier("mensuel publié en double → refus", True)
+
+dest6 = BASE / "finess-structures-mensuel-202608.json.gz"
+if dest6.exists():
+    dest6.unlink()
+with mock.patch.object(urllib.request, "urlopen",
+                       urlopen_pour(donnees_mensuels, CONTENU_FICHIER)):
+    resultat = tfs.executer(dest6, mensuel="202608")
+verifier("executer(mensuel=...) télécharge le mensuel demandé",
+         resultat["resource"]["title"] == "finess-structures-mensuel-202608.json.gz"
+         and dest6.read_bytes() == CONTENU_FICHIER)
+meta = json.loads(resultat["metadata"].read_text(encoding="utf-8"))
+verifier("titre source du mensuel consigné (porte le millésime, OOM-116)",
+         meta["titre"] == "finess-structures-mensuel-202608.json.gz", meta["titre"])
+
+donnees_mensuel_corrompu = api_reponse([
+    resource(titre="finess-structures-mensuel-202608.json.gz", checksum="0" * 40)])
+try:
+    with mock.patch.object(urllib.request, "urlopen",
+                           urlopen_pour(donnees_mensuel_corrompu, CONTENU_FICHIER)):
+        tfs.executer(BASE / "mensuel_corrompu.json.gz", mensuel="202608")
+    verifier("checksum du mensuel vérifié comme pour le journalier", False)
+except tfs.ErreurTelechargement as erreur:
+    verifier("checksum du mensuel vérifié comme pour le journalier",
+             "Checksum divergent" in str(erreur), str(erreur))
+
+print("7. CLI — --mensuel et --lister-mensuels")
+dest7 = BASE / "cli_mensuel.json.gz"
+if dest7.exists():
+    dest7.unlink()
+with mock.patch.object(urllib.request, "urlopen",
+                       urlopen_pour(donnees_mensuels, CONTENU_FICHIER)):
+    retour = tfs.main([str(dest7), "--mensuel", "202607"])
+verifier("--mensuel publié → code 0", retour == 0)
+with mock.patch.object(urllib.request, "urlopen",
+                       urlopen_pour(donnees_mensuels, CONTENU_FICHIER)):
+    retour = tfs.main([str(BASE / "cli_absent.json.gz"), "--mensuel", "202609"])
+verifier("--mensuel non publié → code 1", retour == 1)
+verifier("--mensuel non publié → aucun fichier écrit",
+         not (BASE / "cli_absent.json.gz").exists())
+
+sortie = io.StringIO()
+with mock.patch.object(urllib.request, "urlopen",
+                       urlopen_pour(donnees_mensuels, CONTENU_FICHIER)), \
+        mock.patch.object(sys, "stdout", sortie):
+    retour = tfs.main(["--lister-mensuels"])
+verifier("--lister-mensuels → un millésime par ligne, croissants, code 0",
+         retour == 0 and sortie.getvalue().split() == ["202607", "202608"],
+         repr(sortie.getvalue()))
+with mock.patch.object(urllib.request, "urlopen",
+                       urlopen_pour(api_reponse([resource()]), CONTENU_FICHIER)):
+    retour = tfs.main(["--lister-mensuels"])
+verifier("--lister-mensuels sans aucun mensuel → code 1", retour == 1)
+
 print(f"\n{ok} tests réussis, {ko} échecs")
 sys.exit(1 if ko else 0)

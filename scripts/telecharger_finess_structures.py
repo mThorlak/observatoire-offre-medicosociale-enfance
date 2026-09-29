@@ -21,10 +21,14 @@ CONTRAT AVEC L'API DATA.GOUV.FR, CONSTATÉ LE 13/08/2026
 Renvoie un objet portant une liste "resources". Deux ressources y coexistent
 sous le même format ("json.gz") : le flux journalier
 ("finess-structures-journalier-AAAAMMJJ.json.gz") et un mensuel figé
-("finess-structures-mensuel-AAAAMM.json.gz"). Seul le journalier nous
-intéresse ici ; le distinguer par le préfixe de titre évite de charger le
-mauvais fichier en silence si data.gouv.fr modifie un jour l'ordre de la
-liste.
+("finess-structures-mensuel-AAAAMM.json.gz"). Le journalier est le
+comportement par défaut (workflow d'acquisition quotidien) ; `--mensuel
+AAAAMM` sélectionne à la place le mensuel figé de ce millésime (OOM-54,
+publication du site sur millésime figé). Le 29/09/2026, l'API publiait deux
+mensuels (202607 et 202608) : plusieurs peuvent coexister, d'où la sélection
+par millésime exact, jamais « le premier trouvé ». Distinguer les ressources
+par leur titre évite de charger le mauvais fichier en silence si
+data.gouv.fr modifie un jour l'ordre de la liste.
 
 Chaque ressource porte : id, title, url (téléchargement direct, hébergé sur
 static.data.gouv.fr — distinct de l'URL redirectrice data.gouv.fr/api/1/
@@ -42,20 +46,25 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import re
 import sys
 import time
 import urllib.error
 import urllib.request
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any, Dict, List, Optional
 
 __all__ = ["ErreurTelechargement", "resource_courante", "interroger_api",
            "telecharger", "empreinte_sha1", "verifier_checksum",
-           "verifier_taille", "executer", "API_DATASET"]
+           "verifier_taille", "executer", "API_DATASET",
+           "mensuels_disponibles", "resource_mensuelle"]
 
 API_DATASET = "https://www.data.gouv.fr/api/1/datasets/finess-structures-1/"
 FORMAT_ATTENDU = "json.gz"
 PREFIXE_JOURNALIER = "finess-structures-journalier-"
+# Mensuel figé (OOM-54) : titre exact, millésime AAAAMM capturé.
+MOTIF_MENSUEL = re.compile(r"^finess-structures-mensuel-(\d{6})\.json\.gz$")
+MOTIF_MILLESIME_MENSUEL = re.compile(r"^\d{4}(0[1-9]|1[0-2])$")
 TIMEOUT_S = 120
 TAILLE_BLOC = 1 << 20  # 1 Mio
 
@@ -81,6 +90,44 @@ def resource_courante(donnees_api: Dict[str, Any]) -> Dict[str, Any]:
         raise ErreurTelechargement(
             f"{len(candidats)} ressource(s) journalière(s) {FORMAT_ATTENDU!r} "
             f"trouvée(s) dans l'API, une seule attendue. Titres vus : {titres}")
+    return candidats[0]
+
+
+def mensuels_disponibles(donnees_api: Dict[str, Any]) -> List[str]:
+    """Millésimes AAAAMM des ressources mensuelles publiées, triés croissants.
+
+    Une ressource ne compte que si son format est `json.gz` et son titre suit
+    exactement le motif `finess-*-mensuel-AAAAMM.json.gz`.
+    """
+    millesimes = []
+    for r in donnees_api.get("resources", []):
+        trouve = MOTIF_MENSUEL.match(str(r.get("title", "")))
+        if trouve and r.get("format") == FORMAT_ATTENDU:
+            millesimes.append(trouve.group(1))
+    return sorted(millesimes)
+
+
+def resource_mensuelle(donnees_api: Dict[str, Any], millesime: str) -> Dict[str, Any]:
+    """Sélectionne le mensuel figé `millesime` (AAAAMM), sans jamais se rabattre.
+
+    Si ce mensuel n'est pas publié (ou l'est en double), échoue en listant les
+    mensuels disponibles : ni le journalier ni un mois voisin ne le
+    remplacent en silence (D6).
+    """
+    if not MOTIF_MILLESIME_MENSUEL.match(millesime or ""):
+        raise ErreurTelechargement(
+            f"Millésime mensuel invalide : {millesime!r} (attendu AAAAMM, "
+            f"mois 01 à 12)")
+    candidats = []
+    for r in donnees_api.get("resources", []):
+        trouve = MOTIF_MENSUEL.match(str(r.get("title", "")))
+        if trouve and trouve.group(1) == millesime and r.get("format") == FORMAT_ATTENDU:
+            candidats.append(r)
+    if len(candidats) != 1:
+        raise ErreurTelechargement(
+            f"{len(candidats)} ressource(s) mensuelle(s) {millesime} "
+            f"{FORMAT_ATTENDU!r} trouvée(s) dans l'API, une seule attendue. "
+            f"Mensuels disponibles : {mensuels_disponibles(donnees_api) or 'aucun'}")
     return candidats[0]
 
 
@@ -156,8 +203,12 @@ def ecrire_metadonnees(chemin_meta: Path, resource: Dict[str, Any],
         json.dumps(metadonnees, indent=2, ensure_ascii=False), encoding="utf-8")
 
 
-def executer(destination: Path, api_url: str = API_DATASET) -> Dict[str, Any]:
+def executer(destination: Path, api_url: str = API_DATASET,
+             mensuel: Optional[str] = None) -> Dict[str, Any]:
     """Point d'entrée réutilisable (CLI et tests).
+
+    Sans `mensuel`, sélectionne le journalier (comportement par défaut) ;
+    avec `mensuel` = AAAAMM, le mensuel figé de ce millésime (OOM-54).
 
     Ordre délibéré : taille avant checksum. La taille suffit à écarter la
     plupart des téléchargements tronqués sans relire tout le fichier ; le
@@ -165,7 +216,10 @@ def executer(destination: Path, api_url: str = API_DATASET) -> Dict[str, Any]:
     taille est déjà correcte.
     """
     donnees_api = interroger_api(api_url)
-    resource = resource_courante(donnees_api)
+    if mensuel is None:
+        resource = resource_courante(donnees_api)
+    else:
+        resource = resource_mensuelle(donnees_api, mensuel)
     telecharger(resource["url"], destination)
     verifier_taille(destination, resource)
     verifier_checksum(destination, resource)
@@ -177,14 +231,35 @@ def executer(destination: Path, api_url: str = API_DATASET) -> Dict[str, Any]:
 def main(argv=None) -> int:
     analyseur = argparse.ArgumentParser(
         description="Télécharge et vérifie l'extrait FINESS-Structures quotidien "
-                     "publié par l'Agence du Numérique en Santé sur data.gouv.fr.")
-    analyseur.add_argument("destination", type=Path,
-                           help="chemin du fichier .json.gz à écrire")
+                     "(ou, avec --mensuel, le mensuel figé AAAAMM) publié par "
+                     "l'Agence du Numérique en Santé sur data.gouv.fr.")
+    analyseur.add_argument("destination", type=Path, nargs="?",
+                           help="chemin du fichier .json.gz à écrire (garder le "
+                                "nom source, qui porte le millésime)")
+    analyseur.add_argument("--mensuel", metavar="AAAAMM",
+                           help="sélectionner le mensuel figé de ce millésime au "
+                                "lieu du journalier ; échoue s'il n'est pas publié")
+    analyseur.add_argument("--lister-mensuels", action="store_true",
+                           help="afficher les millésimes mensuels publiés (un par "
+                                "ligne, croissants) et sortir, sans télécharger")
     analyseur.add_argument("--api", default=API_DATASET,
                            help="URL de l'API dataset (défaut : FINESS-Structures)")
     arguments = analyseur.parse_args(argv)
+    if arguments.lister_mensuels:
+        try:
+            millesimes = mensuels_disponibles(interroger_api(arguments.api))
+        except (urllib.error.URLError, OSError, ValueError) as erreur:
+            print(f"ÉCHEC — {erreur}", file=sys.stderr)
+            return 1
+        if not millesimes:
+            print("ÉCHEC — aucun mensuel publié dans l'API", file=sys.stderr)
+            return 1
+        print("\n".join(millesimes))
+        return 0
+    if arguments.destination is None:
+        analyseur.error("destination requise (sauf avec --lister-mensuels)")
     try:
-        resultat = executer(arguments.destination, arguments.api)
+        resultat = executer(arguments.destination, arguments.api, arguments.mensuel)
     except (ErreurTelechargement, urllib.error.URLError, OSError) as erreur:
         print(f"ÉCHEC — {erreur}", file=sys.stderr)
         return 1
