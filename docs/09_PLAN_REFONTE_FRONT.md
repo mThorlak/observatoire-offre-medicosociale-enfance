@@ -10,8 +10,8 @@ et les points de coordination.
   de route : OOM-114 (dérive de source) et OOM-115 (découpage sous D9)
 - **État au 29/09/2026** : vagues 0 à 6 fusionnées. **Site en ligne** sur
   https://mthorlak.github.io/observatoire-offre-medicosociale-enfance/ (OOM-55, OOM-116).
-  Priorité en cours : fiabiliser la publication (OOM-54, OOM-117) ; les vagues 7 à 9
-  viennent ensuite (voir section 10)
+  Publication fiabilisée : mensuel figé et citable (OOM-54), catégories complètes (OOM-117,
+  OOM-118). Prochaine étape : OOM-119, puis vagues 7 à 9 (voir section 10)
 
 ---
 
@@ -167,7 +167,7 @@ doublon n'a été créé — voici la cartographie.
 | Issue existante | Recouvrement | Traitement |
 | --- | --- | --- |
 | OOM-53 « Export front restreint au périmètre et format compact » | Le « format compact » est la minification JSON | Garder OOM-53 pour la restriction au périmètre. La minification peut y rester. |
-| OOM-54 « Workflow GitHub Pages : construction mensuelle sur millésime figé » | Est la chaîne de publication entière | OOM-54 était encore en Backlog quand OOM-108 a démarré. **OOM-108 a donc créé `pages.yml`, l'unique workflow de publication** (#22) ; OOM-54 l'ajustera (millésime figé, `schedule`, `qualifier`) sans jamais en créer un second. Le job `deployer` ne tourne que si la variable de dépôt `PAGES_ACTIVE` vaut `true`, et c'est OOM-55 qui la posera. |
+| OOM-54 « Workflow GitHub Pages : construction mensuelle sur millésime figé » | Est la chaîne de publication entière | OOM-54 était encore en Backlog quand OOM-108 a démarré. **OOM-108 a donc créé `pages.yml`, l'unique workflow de publication** (#22) ; OOM-54 l'a ajusté (mensuel figé, `schedule` le 3 du mois), sans en créer un second ; `qualifier` attend la couche 4. Le job `deployer` ne tourne que si `PAGES_ACTIVE` vaut `true` (posée le 29/09). |
 | OOM-55 « Activation de Pages, mentions de source, licence, citabilité » | La mention de licence | OOM-55 garde licence et citabilité ; OOM-103 porte la mention de périmètre sur l'accueil. Réparti explicitement dans les deux issues. |
 | OOM-40 « Stratégie géospatiale sans dépendance : WKT + R*Tree » | Géospatial côté entrepôt | Distinct : OOM-40 est couche 2, OOM-110 est couche 6. Se coordonner si les deux avancent. |
 
@@ -295,9 +295,9 @@ vague 9, sans demander d'arbitrage — sauf condition d'arrêt ci-dessous.
 | --- | --- | --- |
 | OOM-97 à OOM-109, OOM-114, OOM-115 | Fusionnées | — |
 | OOM-55, OOM-116 | Fusionnées (`main` = `c870f33`) : site public en ligne | — |
-| OOM-54 | En cours : millésime mensuel figé, `schedule` | Contrôler, fusionner, relancer `pages.yml` |
-| OOM-117 | En cours : 40 codes de catégorie absents du référentiel | Contrôler, fusionner, relancer `pages.yml` |
-| OOM-110 | Backlog, débloquée par OOM-115 | Vague 7, après OOM-54 et OOM-117 |
+| OOM-54, OOM-117, OOM-118 | Fusionnées (`main` = `8807683`) : site sur le mensuel figé 202608, catégories alignées sur l'ANS TRE_R66 | — |
+| OOM-119 | Backlog : concurrence de `pages.yml` par référence | **À faire avant la vague 7** (beaucoup de runs de branche) |
+| OOM-110 | Backlog, débloquée par OOM-115 | Vague 7, après OOM-119 |
 | OOM-111 à OOM-113 | Backlog | Selon la boucle |
 
 **Mise en ligne, 29/09/2026.** Priorité choisie par l'utilisateur : publier vite. Pages est
