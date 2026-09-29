@@ -70,8 +70,11 @@ contient l'échantillon FINESS réel versionné dont dépendent `test_chargement
 rester committé (voir `.gitignore`, exception explicite). `tests/generer.tests.py` fabrique des CSV de
 fixture synthétiques dans `tests/data/` pour les tests de la V1 historique (`categories`/`taxonomie`).
 
-**Scripts utilitaires** (`scripts/`) : `telecharger_finess_structures.py` (récupération quotidienne,
-tourne aussi via `.github/workflows/`), `recensement.py` (à rejouer sur tout nouveau millésime, avant
+**Scripts utilitaires** (`scripts/`) : `telecharger_finess_structures.py` et
+`telecharger_finess_activites.py` (récupération quotidienne, tournent aussi via `.github/workflows/` ;
+`--mensuel AAAAMM` prend le mensuel figé, seul extrait publié par `pages.yml` depuis OOM-54,
+`--lister-mensuels` liste ceux que data.gouv.fr publie ; garder le nom source du fichier, qui porte le
+millésime), `recensement.py` (à rejouer sur tout nouveau millésime, avant
 toute ingestion — révèle une dérive de schéma), `construire_echantillon.py` (régénère l'échantillon de
 test par fermeture transitive à partir de fichiers complets). `mesures/` contient les scripts de
 mesure de performance/RSS utilisés pour justifier les décisions de `docs/architecture/06_DECISIONS_SCHEMA.md`
