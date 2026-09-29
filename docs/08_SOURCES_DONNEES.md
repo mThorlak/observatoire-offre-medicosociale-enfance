@@ -592,3 +592,32 @@ GitHub Pages convient pour servir l'archive de tuiles : le repli prévu (archive
 ## État laissé en place
 
 Pages est activé en mode legacy sur `gh-pages-test`. La chaîne de publication pérenne (OOM-54) devra basculer la source sur « GitHub Actions » (`gh api -X PUT repos/.../pages -f build_type=workflow`) puis supprimer la branche `gh-pages-test`.
+
+---
+
+# 17. Attribution publiée sur le site (OOM-55)
+
+Consignée le 29/09/2026, avant la mise en ligne publique du site.
+
+## Ce qui est affiché
+
+**Pied de page commun**, sur chaque page et sous-page du site (valeurs de `MENTIONS_PIED` dans `src/export_html.py`, substituées dans `front/gabarits/base.html` ; aucun gabarit ne les écrit en dur, D7 ; pas de script, D10) :
+
+> Retraitement indépendant de données publiques, pas une donnée officielle de l'administration. Données : FINESS, ministère chargé de la Santé, publié sur data.gouv.fr. Code source : https://github.com/mThorlak/observatoire-offre-medicosociale-enfance, sous licence EUPL 1.2.
+
+**Accueil, section « Source et licence »** (`front/gabarits/accueil.html`) :
+
+- producteur et jeux de données, avec lien vers leur page data.gouv.fr (FINESS-Structures, FINESS-Activités) ;
+- licence de chaque jeu, **divergence de FINESS-Structures comprise** (voir ci-dessous) ;
+- lots chargés dans l'entrepôt ayant produit la page : source, millésime, fichier, empreinte (provenance D5) ;
+- paragraphe « Méthode et reproductibilité » : entités fermées conservées mais exclues des comptages, périmètre enfance/adolescents non encore qualifié, construction rejouable avec les commandes du README.
+
+La mention de périmètre (comptage brut, qualification enfance/adolescents non appliquée, OOM-103) reste en tête de l'accueil, avant tout chiffre.
+
+## Divergence de licence de FINESS-Structures — non tranchée
+
+La page web du jeu `finess-structures-1` annonce la Licence Ouverte / Open Licence v2.0 ; le champ `license` de l'API data.gouv.fr vaut `ODbL` (constat du 13/08/2026, section 14). FINESS-Activités ne présente pas cette divergence (`lov2`, section 15). L'observatoire ne tranche pas : l'accueil publie les deux indications telles quelles. Les deux licences exigent la mention de la source, que le pied de page et l'accueil portent ; l'ODbL impose en plus le partage à l'identique d'une base de données dérivée, question à régler avant toute redistribution de l'entrepôt lui-même (hors périmètre d'OOM-55).
+
+## Licence du code
+
+Le code est sous EUPL 1.2 (fichier `LICENSE` à la racine : texte officiel français publié par la Commission européenne). Elle ne s'applique pas aux données FINESS, qui restent sous la licence de leur producteur.
