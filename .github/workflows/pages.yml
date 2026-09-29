@@ -91,13 +91,38 @@ jobs:
           python3 scripts/telecharger_finess_activites.py donnees/activites.json.gz
           echo "| Télécharger Activités ($(stat -c%s donnees/activites.json.gz) o) | $(( $(date +%s) - t )) s |" >> "$GITHUB_STEP_SUMMARY"
 
+      # Le millésime est lu dans le nom du fichier (finess_commun.extraire_millesime,
+      # `finess-*-journalier-AAAAMMJJ.json.gz`) : chaque extrait reprend donc le
+      # titre source consigné par le script de téléchargement dans
+      # <destination>.metadata.json. Un millésime « inconnu » est bloquant (D5,
+      # D6) : aucun site ne sort sans millésime (OOM-116).
+      - name: Nommer les extraits d'après leur titre source
+        run: |
+          set -euo pipefail
+          for source in structures activites; do
+            titre=$(python3 -c "import json,sys; print(json.load(open(sys.argv[1], encoding='utf-8'))['titre'])" \
+              "donnees/$source.json.gz.metadata.json")
+            case "$titre" in
+              */*|""|.*) echo "Titre source invalide pour $source : '$titre'" >&2; exit 1 ;;
+            esac
+            mv "donnees/$source.json.gz" "donnees/$titre"
+            millesime=$(PYTHONPATH=src python3 -c "import sys, finess_commun as fc; print(fc.extraire_millesime(sys.argv[1]))" "$titre")
+            if [ "$millesime" = "inconnu" ]; then
+              echo "Millésime introuvable dans le titre source de $source : '$titre'" >&2
+              exit 1
+            fi
+            var=$(echo "$source" | tr '[:lower:]' '[:upper:]')
+            echo "$var=donnees/$titre" >> "$GITHUB_ENV"
+            echo "| Extrait $source : \`$titre\` (millésime $millesime) | — |" >> "$GITHUB_STEP_SUMMARY"
+          done
+
       - name: Charger l'entrepôt
         run: |
           set -euo pipefail
           t=$(date +%s)
           rc=0
-          python3 src/cli.py charger base.sqlite donnees/structures.json.gz \
-            --activites donnees/activites.json.gz --creer || rc=$?
+          python3 src/cli.py charger base.sqlite "$STRUCTURES" \
+            --activites "$ACTIVITES" --creer || rc=$?
           echo "| Charger l'entrepôt (code $rc) | $(( $(date +%s) - t )) s |" >> "$GITHUB_STEP_SUMMARY"
           exit $rc
 
@@ -106,7 +131,7 @@ jobs:
           set -euo pipefail
           t=$(date +%s)
           rc=0
-          python3 src/cli.py integrite donnees/structures.json.gz donnees/activites.json.gz || rc=$?
+          python3 src/cli.py integrite "$STRUCTURES" "$ACTIVITES" || rc=$?
           echo "| Contrôler l'intégrité (code $rc) | $(( $(date +%s) - t )) s |" >> "$GITHUB_STEP_SUMMARY"
           exit $rc
 
