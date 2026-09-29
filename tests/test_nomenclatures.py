@@ -1,5 +1,7 @@
 """test_nomenclatures.py — Critère de sortie de OOM-12 (résolution categorie)."""
 from __future__ import annotations
+import csv
+import importlib.util
 import sys
 import tempfile
 from pathlib import Path
@@ -16,15 +18,15 @@ def verifier(intitule, condition, detail=""):
 print("1. Le référentiel par défaut se charge et respecte sa propre provenance")
 categories = n.charger_categories()
 verifier("référentiel non vide", len(categories) > 0, len(categories))
-verifier("314 codes, comme annoncé en en-tête du CSV (274 + 40 d'OOM-117)",
-         len(categories) == 314, len(categories))
+verifier("322 codes, ceux de TRE_R66 version 20260505120000 (OOM-118)",
+         len(categories) == 322, len(categories))
 verifier("aucun libellé vide", all(lib.strip() for lib in categories.values()))
 verifier("aucun code vide", all(code.strip() for code in categories))
 
 
 print("2. Résolution de codes réels connus (extrait FINESS-Structures 202607)")
-# Ces couples code -> libellé proviennent de la documentation officielle
-# DREES/DMSI (cf. en-tête de referentiels/nomenclature_categorie_finess.csv)
+# Ces couples code -> libellé proviennent de la source qui fait foi, ANS NOS
+# TRE_R66 (cf. en-tête de referentiels/nomenclature_categorie_finess.csv),
 # et correspondent aux codes effectivement observés dans l'entrepôt réel.
 attendus = {
     "183": "Institut Médico-Educatif (I.M.E.)",
@@ -77,6 +79,74 @@ for code, libelle_attendu in ajoutes.items():
     obtenu = n.resoudre_categorie(code)
     verifier(f"code {code} -> {libelle_attendu!r}", obtenu == libelle_attendu,
              f"obtenu {obtenu!r}")
+
+
+print("4 ter. TRE_R66 fait foi pour tout le référentiel (OOM-118)")
+# Libellés renommés par TRE_R66 depuis les PDF DREES/DMSI de 2021, et
+# catégories ajoutées par la version 20260505120000.
+renommes = {
+    "209": "Service autonomie aide et soins (SAAS)",
+    "460": "Service autonomie aide (SAA)",
+    "228": "Centre de Santé Sexuelle",
+    "701": "Maison des adolescents (MDA)",
+}
+for code, libelle_attendu in renommes.items():
+    obtenu = n.resoudre_categorie(code)
+    verifier(f"code {code} -> {libelle_attendu!r}", obtenu == libelle_attendu,
+             f"obtenu {obtenu!r}")
+with open(n.CHEMIN_REFERENTIEL_CATEGORIE, encoding="utf-8", newline="") as f:
+    lignes = list(csv.DictReader((l for l in f if not l.startswith("#")), delimiter=";"))
+par_code = {l["code"]: l for l in lignes}
+verifier("chaque ligne indique son origine (colonne source)",
+         all(l.get("source") for l in lignes))
+verifier("toutes les lignes viennent de TRE_R66 (aucun code hors source à ce jour)",
+         all(l["source"] == "ANS_TRE_R66" for l in lignes))
+verifier("159 fermée le 2016-05-05 selon TRE_R66",
+         (par_code["159"]["statut"], par_code["159"]["date_fermeture"]) == ("fermee", "2016-05-05"),
+         par_code["159"])
+verifier("date de fin présente <=> catégorie fermée",
+         all((l["statut"] == "fermee") == bool(l["date_fermeture"]) for l in lignes))
+with open(n.CHEMIN_REFERENTIEL_CATEGORIE, encoding="utf-8") as f:
+    en_tete = "".join(l for l in f if l.startswith("#"))
+verifier("en-tête : version de TRE_R66 notée", "version 20260505120000" in en_tete)
+
+
+print("4 quater. Script de mise à jour : aucun code retiré, origine conservée")
+spec = importlib.util.spec_from_file_location(
+    "maj_nomenclature_categories",
+    Path(__file__).resolve().parent.parent / "scripts" / "maj_nomenclature_categories.py")
+maj = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(maj)
+tabs = "\n".join([
+    "<OID>;<Type fichier>;<Nom fichier>;<Description>;<URL fichier>;<Date valid>;<Date fin>;<Date MàJ>",
+    f"{maj.OID};TRE;TRE_R66_CategorieEtablissement.tabs;Test;url;19790101000000;;20990101000000",
+    "<OID>;<Code>;<Libellé adapté>;<Libellé court>;<Libellé long>;<Date valid>;<Date fin>;<Date MàJ> ",
+    f"{maj.OID};Z1;adapté;court;Libellé long Z1;19790101000000;;19790101000000",
+    f"{maj.OID};Z2;adapté;court;Libellé long Z2;19790101000000;20200101000000;19790101000000",
+    f"{maj.OID};Z3;adapté;court;Libellé long Z3;19790101000000;20990101000000;19790101000000",
+]) + "\n"
+meta, concepts = maj.lire_tabs(tabs.encode("utf-8"))
+verifier("version lue dans l'en-tête .tabs", meta["date_maj"] == "20990101000000", meta)
+actuel = {
+    "Z1": {"code": "Z1", "libelle": "Ancien Z1", "statut": "ouverte", "date_fermeture": ""},
+    "Z9": {"code": "Z9", "libelle": "Code absent de la source", "statut": "ouverte",
+           "date_fermeture": ""},
+}
+nouvelles = {l["code"]: l for l in maj.construire(concepts, actuel, "2026-09-29")}
+verifier("libellé long de la source retenu", nouvelles["Z1"]["libelle"] == "Libellé long Z1")
+verifier("date de fin passée -> fermée",
+         (nouvelles["Z2"]["statut"], nouvelles["Z2"]["date_fermeture"]) == ("fermee", "2020-01-01"))
+verifier("date de fin future -> encore ouverte", nouvelles["Z3"]["statut"] == "ouverte")
+verifier("code absent de la source conservé, jamais retiré",
+         nouvelles.get("Z9", {}).get("libelle") == "Code absent de la source", nouvelles.get("Z9"))
+verifier("origine indiquée pour le code conservé",
+         nouvelles.get("Z9", {}).get("source") == "hors_TRE_R66", nouvelles.get("Z9"))
+try:
+    doublon = f"{maj.OID};Z1;adapté;court;Doublon;19790101000000;;19790101000000"
+    maj.lire_tabs((tabs + doublon).encode("utf-8"))
+    verifier("source malformée (code en double) -> erreur explicite", False, "aucune exception")
+except maj.ErreurSource:
+    verifier("source malformée (code en double) -> erreur explicite", True)
 
 
 print("5. Un référentiel explicite peut être injecté (appel en masse, tests)")

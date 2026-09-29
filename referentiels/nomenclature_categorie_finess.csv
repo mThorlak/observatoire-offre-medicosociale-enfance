@@ -3,363 +3,359 @@
 # entite_juridique.code_categorie du pivot ; source JSON FINESS :
 # categorieentiteGeographiqueExercice).
 #
-# Source : DREES/DMSI, documentation FINESS.
-#   Dataset data.gouv.fr « FINESS - Extraction des principales nomenclatures »
-#   (producteur : Ministère chargé de la Santé) :
-#   https://www.data.gouv.fr/datasets/finess-extraction-des-principales-nomenclatures/
-#   Ressources utilisées :
-#     - « Catégories ouvertes - Caractéristiques » (situation au 01-06-2021)
-#       https://static.data.gouv.fr/resources/finess-extraction-des-principales-nomenclatures/20210625-130441/categories-ouvertes-caracteristiques.pdf
-#     - « Catégories fermées » (situation au 08-06-2021)
-#       https://static.data.gouv.fr/resources/finess-extraction-des-principales-nomenclatures/20210625-130947/categories-fermees.pdf
-# Date d'extraction dans ce dépôt : 2026-08-18.
+# FICHIER GÉNÉRÉ par scripts/maj_nomenclature_categories.py : ne pas éditer à
+# la main, rejouer le script à chaque nouvelle version de la source.
 #
-# Couverture initiale (OOM-12) : 274 codes (151 catégories ouvertes + 123
-# catégories fermées) tirés des deux documents ci-dessus, sur les 300 valeurs
-# distinctes de code_categorie observées dans un extrait réel
-# FINESS-Structures (millésime 202607 ; cf.
-# artefacts/01_INVENTAIRE_CODES_202607.csv, domaine categorie_etablissement).
-#
-# Complément (OOM-117) : les 40 codes observés mais absents des documents de
-# 2021 (dont la série 60x-65x créée après 2021, et 259 dont le libellé y était
-# tronqué) sont ajoutés depuis la nomenclature officielle de l'ANS :
+# Source qui fait foi (décision OOM-118 du 29/09/2026) :
 #   Agence du Numérique en Santé, NOS (Nomenclatures des Objets de Santé),
-#   TRE_R66-CategorieEtablissement, OID 1.2.250.1.213.1.6.1.8,
-#   version 20260505120000 (count 322 codes) :
+#   TRE_R66_CategorieEtablissement.tabs, OID 1.2.250.1.213.1.6.1.8,
+#   version 20260505120000 (322 codes) :
 #   https://mos.esante.gouv.fr/NOS/TRE_R66-CategorieEtablissement/TRE_R66-CategorieEtablissement.tabs
-#   Consultée le 2026-09-29.
-#   libelle = colonne « Libellé long » ; statut = "fermee" et date_fermeture =
-#   « Date fin » (AAAA-MM-JJ) quand la source en donne une, "ouverte" sinon.
-# Liste des codes absents recalculée sur l'extrait FINESS-Structures
-# journalier du 2026-09-29 (millésime 202609) : les mêmes 40 codes qu'en
-# 202607, tous documentés par TRE_R66. Couverture : 314 codes, dont les 300
-# valeurs observées. Un code futur absent du référentiel reste signalé
-# explicitement par nomenclatures.resoudre_categorie, jamais approximé.
-# Les 274 lignes initiales ne sont pas modifiées : TRE_R66 en renomme 24 et
-# date différemment la fermeture de 17 (cf. docs/08_SOURCES_DONNEES.md).
+#   Consultée le 2026-09-29 ; SHA-256 du fichier .tabs :
+#   8e6356d5547996b7878cee60caf8f99b54f9be5f720cb3704f11316d6795dabd
+#   libelle = colonne « Libellé long », verbatim ; date_fermeture = « Date fin »
+#   (AAAA-MM-JJ) ; statut = "fermee" si cette date est atteinte au jour de la
+#   consultation, "ouverte" sinon.
+#
+# Historique : 274 lignes venaient des PDF DREES/DMSI de 2021 (data.gouv.fr
+# « FINESS - Extraction des principales nomenclatures », OOM-12), 40 de
+# TRE_R66 (OOM-117). Depuis OOM-118, toutes les lignes présentes dans TRE_R66
+# en portent le libellé et les dates. Aucun code n'est jamais retiré : un code
+# du référentiel absent de la source garde sa ligne, son origine en colonne
+# `source` (0 ligne(s) dans ce cas). Couverture : 322 codes.
+# Un code observé hors référentiel reste signalé par
+# nomenclatures.resoudre_categorie, jamais approximé (D6).
 #
 # Colonnes :
 #   code            code catégorie FINESS, tel qu'émis par la source (aucun
 #                   remplissage de zéros, aucune transformation).
 #   libelle         libellé long officiel de la catégorie.
-#   statut          "ouverte" si la catégorie est utilisable pour une nouvelle
-#                   création à la date de la source, "fermee" sinon. Une
-#                   catégorie fermée peut néanmoins subsister sur des
-#                   établissements existants non encore requalifiés.
-#   date_fermeture  date de fermeture de la catégorie (AAAA-MM-JJ), renseignée
-#                   uniquement pour les catégories fermées.
-code;libelle;statut;date_fermeture
-001;Autres lits de m.R.;fermee;1999-09-15
-002;Autres places de l-f.;fermee;1999-09-15
-003;Autres lits de l-s;fermee;1999-09-15
-101;Centre Hospitalier Régional (C.H.R.);ouverte;
-106;Centre hospitalier, ex Hôpital local;ouverte;
-108;Etablissement de Convalescence et de Repos;fermee;2013-06-25
-109;Etablissement de santé privé autorisé en SSR;ouverte;
-112;Centre de Convalescence Cure ou Réadaptation;fermee;1999-09-15
-114;Hôpital des armées;ouverte;
-115;Etablissement de Soins du Service de Santé des Armées;ouverte;
-119;Maison de Régime;fermee;2013-06-25
-122;Etablissement Soins Obstétriques Chirurgico-Gynécologiques;ouverte;
-124;Centre de Santé;ouverte;
-125;Centre de Santé Dentaire;fermee;2013-12-19
-126;Etablissement Thermal;ouverte;
-127;Hospitalisation à Domicile;ouverte;
-128;Etablissement de Soins Chirurgicaux;ouverte;
-129;Etablissement de Soins Médicaux;ouverte;
-130;Centre de Soins Médicaux;fermee;2013-12-19
-131;Centre de Lutte Contre Cancer;ouverte;
-132;Etablissement de Transfusion Sanguine;ouverte;
-135;Etablissement Réadaptation Fonctionnelle;fermee;2013-06-25
-136;Banque de Sperme;fermee;1999-09-15
-137;Banque d'Organes;fermee;1999-09-15
-138;Centre de Dialyse Périodique;fermee;2002-02-18
-139;Centre de Dialyse et d'entraînement à la Dialyse;fermee;2002-02-18
-140;Centre d'Entraînement à la Dialyse;fermee;2002-02-18
-141;Centre de dialyse;ouverte;
-142;Dispensaire Antituberculeux;ouverte;
-143;Centre de Vaccination BCG;ouverte;
-144;Etablissement de Lutte Contre la Tuberculose;fermee;2013-06-25
-146;Structure d'Alternative à la dialyse en centre;ouverte;
-156;Centre Médico-Psychologique (C.M.P.);ouverte;
-157;Centre de Postcure;fermee;1994-09-19
-159;Centre parental;ouverte;
-160;Centre de Soins Spécifiques pour Toxicomanes (C.S.S.T.);fermee;2012-12-31
-161;Maison de Santé pour Maladies Mentales;ouverte;
-162;Centre de Cure Ambulatoire en Alcoologie (C.C.A.A.);fermee;2012-12-31
-163;Maison d'Enfants à Caractère Sanitaire Temporaire;fermee;2013-06-25
-164;Etablissements Expérimentaux Accueil de la Petite Enfance;fermee;2014-03-31
-165;Appartement de Coordination Thérapeutique (A.C.T.);ouverte;
-166;Etablissement d'Accueil Mère-Enfant;ouverte;
-167;Crèche Collective;fermee;2014-03-31
-168;Service Accueil Familial pour la Petite Enfance;fermee;2014-03-31
-169;Crèche Multi Accueil Collectif et Familial;fermee;2014-03-31
-170;Halte Garderie;fermee;2014-03-31
-171;Garderie et Jardin d'Enfants;fermee;2014-03-31
-172;Pouponnière à Caractère Social;ouverte;
-173;Pouponnière à Caractère Sanitaire;fermee;2013-06-25
-174;Etablissement d'Accueil Collectif Régulier et Occasionnel;fermee;2014-03-31
-175;Foyer de l'Enfance;ouverte;
-176;Village d'Enfants;ouverte;
-177;Maison d'Enfants à Caractère Social;ouverte;
-178;Ctre.Accueil/ Accomp.Réduc.Risq.Usag. Drogues (C.A.A.R.U.D.);ouverte;
-179;Maison d'Enfants à Caractère Sanitaire Permanente;fermee;2013-06-25
-180;Lits Halte Soins Santé (L.H.S.S.);ouverte;
-181;Maison Familiale de Vacances;fermee;2016-01-06
-182;Service d'Éducation Spéciale et de Soins à Domicile;ouverte;
-183;Institut Médico-Educatif (I.M.E.);ouverte;
-184;Institut Médico-Pédagogique (I.M.P.);fermee;2005-07-06
-185;Institut Médico-Professionnel (I.M.Pro.);fermee;2005-07-06
-186;Institut Thérapeutique Éducatif et Pédagogique (I.T.E.P.);ouverte;
-188;Etablissement pour Enfants ou Adolescents Polyhandicapés;ouverte;
-189;Centre Médico-Psycho-Pédagogique (C.M.P.P.);ouverte;
-190;Centre Action Médico-Sociale Précoce (C.A.M.S.P.);ouverte;
-191;Etablissement pour Déficients Moteurs Cérébraux;fermee;2005-07-06
-192;Institut d'éducation motrice;ouverte;
-193;Etablissement pour Déficients Moteurs et Moteurs Cérébraux;fermee;2005-07-06
-194;Institut pour Déficients Visuels;ouverte;
-195;Institut pour Déficients Auditifs;ouverte;
-196;Institut d'Education Sensorielle Sourd/Aveugle;ouverte;
-197;Centre soins accompagnement prévention addictologie (CSAPA);ouverte;
-198;Etablissement et Service de Préorientation;ouverte;
-199;Hospice;fermee;2015-01-05
-200;Maison de Retraite;fermee;2015-01-01
-202;Résidences autonomie;ouverte;
-205;Foyer Club Restaurant;fermee;2020-10-01
-207;Centre de Jour pour Personnes Agées;ouverte;
-208;Service d'Aide Ménagère à Domicile;fermee;2018-03-07
-209;Service Polyvalent Aide et Soins A Domicile (S.P.A.S.A.D.);ouverte;
-212;Alarme Médico-Sociale;fermee;2018-03-07
-213;Lits d'Accueil Médicalisés (L.A.M.);ouverte;
-214;Centre Hébergement & Réinsertion Sociale (C.H.R.S.);ouverte;
-215;Maison Relai;fermee;2008-06-26
-216;Résidence Hôtelière à Vocation Sociale (R.H.V.S.);ouverte;
-217;Cité de Transit;fermee;2001-07-31
-218;Aire Station Nomades;fermee;2026-03-30
-219;Autre Centre d'Accueil;ouverte;
-220;Centre Social;fermee;2026-03-30
-221;Bureau d'Aide Psychologique Universitaire (B.A.P.U.);ouverte;
-223;Protection Maternelle et Infantile (P.M.I.);ouverte;
-224;Etablissement de Consultation Pré et Post-natale;ouverte;
-225;Consultations de Nourrissons;fermee;1994-09-19
-228;Centre Planification ou Education Familiale;ouverte;
-229;Consultation Problèmes naissance;fermee;1994-09-19
-230;Etablissement Consultation Protection Infantile;ouverte;
-231;Etablissement Information Consultation Conseil Familial;ouverte;
-233;Lactarium;fermee;2015-03-04
-236;Centre Placement Familial Socio-Educatif (C.P.F.S.E.);ouverte;
-237;Centre de Placement Familial Spécialisé;fermee;2005-07-06
-238;Centre d'Accueil Familial Spécialisé;ouverte;
-241;Foyer d'Action Educative (F.A.E.);ouverte;
-242;Service d’Activité de Jour;ouverte;
-246;Etablissement et Service d'Aide par le Travail (E.S.A.T.);ouverte;
-247;Entreprise adaptée;ouverte;
-249;Etablissement et Service de Réadaptation Professionnelle;ouverte;
-250;Centre Réentrainement au travail;fermee;1994-09-19
-251;Maison Vacances pour Handicapés;fermee;1994-09-19
-252;Foyer Hébergement Adultes Handicapés;ouverte;
-253;Foyer d'Accueil Polyvalent pour Adultes Handicapés;ouverte;
-255;Maison d'Accueil Spécialisée (M.A.S.);ouverte;
-256;Foyer Travailleurs Migrants non transformé en Résidence Soc.;ouverte;
-257;Foyer de Jeunes Travailleurs (résidence sociale ou non);ouverte;
-258;Maisons Relais - Pensions de Famille;ouverte;
-259;Autres résidences sociales;ouverte;
-261;D.D.A.S.S.;fermee;1999-09-15
-262;Etablissement Régional d'Enseignement Adapté;fermee;2005-06-09
-265;Section Education Spéciale Classe Atelier;fermee;2005-06-09
-266;Dispensaire Antivénérien;ouverte;
-267;Dispensaire Antihansénien;ouverte;
-268;Centre Médico-Scolaire;ouverte;
-269;Centre de Médecine Universitaire;ouverte;
-270;Centre de Médecine Sportive;ouverte;
-271;Maisons d'accueil hospitalières (M.A.H.);ouverte;
-272;Ecole d'ambulanciers;fermee;2005-11-14
-273;Institut de formation en soins infirmiers (I.F.S.I.);fermee;2005-11-14
-274;Ecole de sages_femmes;fermee;2005-11-14
-275;Ecole de masseurs-kinésithérapeutes;fermee;2005-11-14
-276;Ecole de laborantins d'analyses médicales;fermee;2005-11-14
-277;Ecole de péricultrices;fermee;2005-11-14
-278;Etablissement de formation polyvalent;fermee;2005-11-14
-279;Ecole de service social;fermee;2005-11-14
-280;Ecole d'éducateurs spécialisés;fermee;2005-11-14
-281;Centre de formation d'aides soignants;fermee;2005-11-14
-282;Ecole de pédicures-podologues;fermee;2005-11-14
-283;Ecole de manipulateurs d'électro-radiologie;fermee;2005-11-14
-284;Ecole de travailleuses familiales;fermee;2005-11-14
-285;Centres de Loisirs sans Hébergement;fermee;2016-01-06
-286;Club Equipe de Prévention;ouverte;
-289;Centre de Soins Infirmiers;fermee;2013-12-19
-292;Centre Hospitalier Spécialisé lutte Maladies Mentales;ouverte;
-294;Centre de Consultations Cancer;ouverte;
-295;Services AEMO et AED;ouverte;
-297;Dispensaire Polyvalent;fermee;1992-01-01
-300;Ecoles Formant aux Professions Sanitaires;ouverte;
-303;Ecole de conseillers en économie sociale et familiale;fermee;2005-11-14
-304;Ecole d'ergothérapeutes;fermee;2005-11-14
-305;Ecole de psycho-motriciens;fermee;2005-11-14
-306;Ecole d'infirmiers anesthésistes;fermee;2005-11-14
-307;Ecole d'infirmiers de bloc opératoire;fermee;2005-11-14
-308;Centre de formation professionnelle de secteur psychiatrique;fermee;2005-11-14
-309;Ecole de cadres infirmiers;fermee;2005-11-14
-310;Ecole de cadres de secteur psychiatrique;fermee;2005-11-14
-311;Ecole de cadres de masseurs-kinésithérapeutes;fermee;2005-11-14
-312;Ecole de cadres de manipulateurs d'électro-radiologie;fermee;2005-11-14
-313;Ecole d'éducateurs de jeunes enfants;fermee;2005-11-14
-314;Ecole d'éducateurs techniques spécialisés;fermee;2005-11-14
-315;Ecole de moniteurs-éducateurs;fermee;2005-11-14
-316;Ecole d'aides médico-psychologiques;fermee;2005-11-14
-317;Ecole d'animateurs socio-éducatifs;fermee;2005-11-14
-319;Inst. régional de formation des travailleurs sociaux;fermee;2005-11-14
-320;S.A.M.U. et Centre 15;fermee;1999-09-15
-321;Unité Mobile Hospitalière;fermee;1999-09-15
-322;Centre Rég.Informatiq.Hospit.;fermee;1999-09-15
-324;Logement Foyer non Spécialisé;fermee;2026-03-30
-326;Ecole de cadres;fermee;2005-11-14
-327;Service d'Ambulances;fermee;2019-04-22
-328;Centre Consultation Soins Dentaire;fermee;1994-09-19
-329;Sectorisation Psychiatrique;fermee;1994-09-19
-330;Ecoles Formant aux Professions Sociales;ouverte;
-340;Service mandataire judiciaire à la protection des majeurs;ouverte;
-341;Service dédié mesures d'accompagnement social personnalisé;ouverte;
-342;Service d'information et de soutien aux tuteurs familiaux;ouverte;
-343;Equipe Préparation et Suite Reclassement (EPSR);fermee;2005-06-09
-344;Service délégué aux prestations familiales;ouverte;
-345;Service Tutelle Prestation Sociale;fermee;2026-03-30
-346;Service de Travailleuses Familiales;fermee;2018-03-07
-347;Centre d'Examens de Santé;ouverte;
-349;Ecole de cadres de sages-femmes;fermee;2005-11-14
-350;Centre de formation d'auxiliaires de puériculture;fermee;2005-11-14
-352;Centre de Psychothérapie;fermee;1994-09-19
-353;Hôpital de Jour Spécialités Médicales;fermee;1994-09-19
-354;Service de Soins Infirmiers A Domicile (S.S.I.A.D);ouverte;
-355;Centre Hospitalier (C.H.);ouverte;
-357;Association Aide aux Insuffisants Respiratoires;fermee;1999-09-15
-359;Centre Circonscription Sanitaire et Sociale;fermee;2026-03-30
-361;Centre de Cure Médicale;fermee;1999-09-15
-362;Etablissement de Soins Longue Durée;ouverte;
-363;Centre moyen et long séjour;fermee;1999-09-15
-365;Etablissement de Soins Pluridisciplinaire;ouverte;
-366;Atelier Thérapeutique;ouverte;
-367;Maison d'Enfants non Conventionnée ni Habilitée;fermee;2014-03-31
-368;Service de Repas à Domicile;fermee;2018-03-07
-369;Centre Adaptation Vie Active (C.A.V.A.);fermee;2001-07-31
-370;Etablissement Expérimental pour personnes handicapées;ouverte;
-371;Service Action Socio-Educative pour Familles en difficulté;fermee;2001-07-31
-373;Centre de formation supérieure des travailleurs sociaux;fermee;2005-11-14
-374;Ecole des Hautes Etudes en Santé Publique (E.H.E.S.P.);ouverte;
-375;Classe d'Adaptation;fermee;1994-09-19
-376;Classe Spéciale Ecole Primaire;fermee;2005-06-09
-377;Etablissement Expérimental pour Enfance Handicapée;ouverte;
-378;Etablissement Expérimental Enfance Protégée;ouverte;
-379;Etablissement Expérimental pour Adultes Handicapés;ouverte;
-380;Etablissement Expérimental Autres Adultes;ouverte;
-381;Etablissement Expérimental pour Personnes Agées;ouverte;
-382;Foyer de Vie pour Adultes Handicapés;ouverte;
-386;Ecole Secondaire Spéciale;fermee;1994-09-19
-390;Etablissement d'Accueil Temporaire d'Enfants Handicapés;ouverte;
-393;Autre résidence But lucratif pr personnes Âgées;fermee;1994-09-19
-394;Etablissement d'Accueil Temporaire pour Personnes Agées;fermee;2015-01-01
-395;Etablissement d'Accueil Temporaire pour Adultes Handicapés;ouverte;
-396;Foyer Hébergement Enfants et Adolescents Handicapés;ouverte;
-397;Service Auxiliaire de Vie pour Handicapés;fermee;2005-07-06
-398;Crèche Parentale;fermee;2014-03-31
-399;Halte Garderie Parentale;fermee;2014-03-31
-400;Centre de Services pour Associations;fermee;2026-03-30
-401;D.R.A.S.S.;fermee;1999-09-15
-402;Jardin d'Enfants Spécialisé;ouverte;
-403;Service Social Spécialisé ou Polyvalent de Catégorie;fermee;2026-03-30
-404;Etablissement Acc.Collect.Parental Régulier & Occasionnel;fermee;2014-03-31
-405;Service Social Polyvalent de Secteur;fermee;2026-03-30
-411;Intermédiaire de Placement Social;ouverte;
-412;Appartement Thérapeutique;ouverte;
-413;C.E.C.O.S;fermee;1999-09-15
-414;Centre Anti Poison;fermee;1999-09-15
-415;Service Médico-Psychologique Régional (S.M.P.R.);ouverte;
-418;Service d'Enquêtes Sociales (S.E.S.);ouverte;
-419;Centre d'Accueil Toxicomanes;fermee;1999-09-15
-420;Entreprise d'Insertion;fermee;2001-07-31
-421;Centre d'enseignement aux secours d'urgence;fermee;2005-11-14
-422;Traitements Spécialisés à Domicile;ouverte;
-423;Ecole des cadres de laborantins d'analyses médicales;fermee;2005-11-14
-425;Centre d'Accueil Thérapeutique à temps partiel (C.A.T.T.P.);ouverte;
-426;Syndicat Inter Hospitalier (S.I.H.);ouverte;
-427;Service Educatif Auprès des Tribunaux (S.E.A.T.);ouverte;
-430;Centre Postcure Malades Mentaux;ouverte;
-431;Centre Postcure pour Alcooliques;fermee;2013-06-25
-432;Centre Postcure pour Toxicomanes;fermee;1999-09-15
-433;Etablissement Sanitaire des Prisons;ouverte;
-434;Classe Spéciale en Ecole Maternelle;fermee;2005-06-09
-435;Centre de formation d'aide à domicile;fermee;2005-11-14
-436;Ecoles Formant aux Professions Sanitaires et Sociales;ouverte;
-437;Foyer d'Accueil Médicalisé pour Adultes Handicapés (F.A.M.);ouverte;
-438;Centre de Médecine collective;ouverte;
-439;Centre Santé Polyvalent;fermee;2013-12-19
-440;Service Investigation Orientation Educative (S.I.O.E.);ouverte;
-441;Centre d'Action Educative (C.A.E.);ouverte;
-442;Centre Provisoire Hébergement (C.P.H.);ouverte;
-443;Centre Accueil Demandeurs Asile (C.A.D.A.);ouverte;
-444;Centre Crise Accueil Permanent;ouverte;
-445;Service d'accompagnement médico-social adultes handicapés;ouverte;
-446;Service d'Accompagnement à la Vie Sociale (S.A.V.S.);ouverte;
-447;Entreprise Intérim Insertion;fermee;2001-07-31
-448;Etab.Acc.Médicalisé en tout ou partie personnes handicapées;ouverte;
-449;Etab.Accueil Non Médicalisé pour personnes handicapées;ouverte;
-450;Service d'Aide aux Personnes Agées;fermee;2018-06-29
-451;Service d'Aide aux Familles en Difficulté;fermee;2018-06-29
-452;Régie de Quartier;fermee;2001-07-31
-453;Service de Réparation Pénale;ouverte;
-460;Service d'Aide et d'Accompagnement à Domicile (S.A.A.D.);ouverte;
-461;Centres de Ressources S.A.I. (Sans Aucune Indication);ouverte;
-462;Lieux de vie;ouverte;
-463;Centres Locaux Information Coordination P.A .(C.L.I.C.);ouverte;
-464;Unités Evaluation Réentraînement et d'Orient. Soc. et Pro.;ouverte;
-500;Etablissement d'hébergement pour personnes âgées dépendantes;ouverte;
-501;EHPA percevant des crédits d'assurance maladie;ouverte;
-502;EHPA ne percevant pas des crédits d'assurance maladie;ouverte;
-601;Cabinet Libéral Médical;fermee;1999-09-15
-602;Cabinet de Groupe;fermee;1999-09-15
-603;Maison de santé (L.6223-3);ouverte;
-604;Communautés professionnelles territoriales de santé (CPTS);ouverte;
-605;Cabinet d'Auxiliaires Médicaux;fermee;1999-09-15
-606;Dispositif d'appui à la coordination (DAC);ouverte;
-607;Groupement Régional d'Appui au Développement de la e-Santé (GRADeS);ouverte;
-608;Equipe mobile médico-sociale précarité (EMMSP);ouverte;
-609;Maison Départementale pour Personnes Handicapées (MDPH);ouverte;
-610;Laboratoire d'Analyses;ouverte;
-611;Laboratoire de Biologie Médicale;ouverte;
-612;Autre Laboratoire de Biologie Médicale sans FSE;ouverte;
-614;Dispositif Spécifique Régional du Cancer (DSRC);ouverte;
-616;Services de Prévention et de Santé au Travail (SPST);ouverte;
-617;Lieu de soins non programmés;ouverte;
-620;Pharmacie d'Officine;ouverte;
-621;Lunetterie Médicale;fermee;1999-09-15
-622;Centre d'Appareillage & Prothèse;fermee;1999-09-15
-624;Laboratoire pharmaceutique préparant délivrant allergènes;ouverte;
-627;Propharmacie;ouverte;
-628;Pharmacie Minière;ouverte;
-629;Pharmacie Mutualiste;ouverte;
-630;Installation autonome de chirurgie esthétique;ouverte;
-631;Maison de naissance;ouverte;
-632;Structure Dispensatrice à domicile d'Oxygène à usage médical;ouverte;
-633;Structure Expérimentale en Santé;ouverte;
-636;Centre de soins et de prévention;ouverte;
-637;Centre de Lutte Antituberculeuse (CLAT);ouverte;
-638;Centre gratuit d'information de dépistage et de diagnostic (CeGIDD);ouverte;
-639;Sociétés de téléconsultation (STLC);ouverte;
-640;Service d'aide et d'accompagnement à domicile aux familles (SAADF);ouverte;
-641;Antenne de Pharmacie d'officine;ouverte;
-642;Services départementaux d'incendie et de secours;ouverte;
-643;Serv. d'éval de la minorité de l'isolement pour les pers. se déclarant mineures;ouverte;
-644;Etab. de mise à l'abri pour les pers. se déclarant mineures non accompagnées;ouverte;
-645;Centre de Vaccination;ouverte;
-646;Centre de Vaccination Internationale;ouverte;
-647;Equipe de Soins Spécialisés;ouverte;
-648;Structure qui contribue au Service d'Accès aux Soins;ouverte;
-649;Centre de santé et de médiation en santé sexuelle;ouverte;
-650;Dispositifs Spécifiques Régionaux en périnatalité;ouverte;
-690;Etablissement de Fabrication Annexe à une Officine;ouverte;
-695;Groupement de coopération sanitaire de moyens - Exploitant;ouverte;
-696;Groupement de coopération sanitaire de moyens;ouverte;
-697;Groupement de coopération sanitaire - Etablissement de santé;ouverte;
-698;Autre Etablissement Loi Hospitalière;ouverte;
-699;Entité Ayant Autorisation;ouverte;
+#   statut          "ouverte" ou "fermee" (voir ci-dessus). Une catégorie
+#                   fermée peut subsister sur des établissements existants
+#                   non encore requalifiés.
+#   date_fermeture  « Date fin » de la source, vide si elle n'en donne pas.
+#   source          ANS_TRE_R66 pour une ligne tirée de la source qui fait
+#                   foi ; sinon l'origine de la ligne conservée.
+code;libelle;statut;date_fermeture;source
+001;Autres lits de m.R.;fermee;1999-09-15;ANS_TRE_R66
+002;Autres places de l-f.;fermee;1999-09-15;ANS_TRE_R66
+003;Autres lits de l-s;fermee;1999-09-15;ANS_TRE_R66
+101;Centre Hospitalier Régional (C.H.R.);ouverte;;ANS_TRE_R66
+106;Centre hospitalier, ex Hôpital local;ouverte;;ANS_TRE_R66
+108;Etablissement de Convalescence et de Repos;fermee;2013-06-25;ANS_TRE_R66
+109;Etablissement de santé privé autorisé en SSR;ouverte;;ANS_TRE_R66
+112;Centre de Convalescence Cure ou Réadaptation;fermee;1999-09-15;ANS_TRE_R66
+114;Hôpital des armées;ouverte;;ANS_TRE_R66
+115;Etablissement de Soins du Service de Santé des Armées;ouverte;;ANS_TRE_R66
+119;Maison de Régime;fermee;2013-06-25;ANS_TRE_R66
+122;Etablissement Soins Obstétriques Chirurgico-Gynécologiques;ouverte;;ANS_TRE_R66
+124;Centre de Santé;ouverte;;ANS_TRE_R66
+125;Centre de Santé Dentaire;fermee;2013-12-19;ANS_TRE_R66
+126;Etablissement Thermal;ouverte;;ANS_TRE_R66
+127;Hospitalisation à Domicile;ouverte;;ANS_TRE_R66
+128;Etablissement de Soins Chirurgicaux;ouverte;;ANS_TRE_R66
+129;Etablissement de Soins Médicaux;ouverte;;ANS_TRE_R66
+130;Centre de Soins Médicaux;fermee;2013-12-19;ANS_TRE_R66
+131;Centre de Lutte Contre Cancer;ouverte;;ANS_TRE_R66
+132;Etablissement de Transfusion Sanguine;ouverte;;ANS_TRE_R66
+135;Etablissement Réadaptation Fonctionnelle;fermee;2013-06-25;ANS_TRE_R66
+136;Banque de Sperme;fermee;1999-09-15;ANS_TRE_R66
+137;Banque d'Organes;fermee;1999-09-15;ANS_TRE_R66
+138;Centre de Dialyse Périodique;fermee;2002-02-18;ANS_TRE_R66
+139;Centre de Dialyse et d'entraînement à la Dialyse;fermee;2002-02-18;ANS_TRE_R66
+140;Centre d'Entraînement à la Dialyse;fermee;2002-02-18;ANS_TRE_R66
+141;Centre de dialyse;ouverte;;ANS_TRE_R66
+142;Dispensaire Antituberculeux;ouverte;;ANS_TRE_R66
+143;Centre de Vaccination BCG;ouverte;;ANS_TRE_R66
+144;Etablissement de Lutte Contre la Tuberculose;fermee;2013-06-25;ANS_TRE_R66
+146;Structure d'Alternative à la dialyse en centre;ouverte;;ANS_TRE_R66
+156;Centre Médico-Psychologique (C.M.P.);ouverte;;ANS_TRE_R66
+157;Centre de Postcure;fermee;1994-09-19;ANS_TRE_R66
+159;Centre Parental;fermee;2016-05-05;ANS_TRE_R66
+160;Centre de Soins Spécifiques pour Toxicomanes (C.S.S.T.);fermee;2012-12-31;ANS_TRE_R66
+161;Maison de Santé pour Maladies Mentales;ouverte;;ANS_TRE_R66
+162;Centre de Cure Ambulatoire en Alcoologie (C.C.A.A.);fermee;2012-12-31;ANS_TRE_R66
+163;Maison d'Enfants à Caractère Sanitaire Temporaire;fermee;2013-06-25;ANS_TRE_R66
+164;Etablissements Expérimentaux Accueil de la Petite Enfance;fermee;2014-03-31;ANS_TRE_R66
+165;Appartement de Coordination Thérapeutique (A.C.T.);ouverte;;ANS_TRE_R66
+166;Centre Parents-Enfants de moins de 3 ans;ouverte;;ANS_TRE_R66
+167;Crèche Collective;fermee;2014-03-31;ANS_TRE_R66
+168;Service Accueil Familial pour la Petite Enfance;fermee;2014-03-31;ANS_TRE_R66
+169;Crèche Multi Accueil Collectif et Familial;fermee;2014-03-31;ANS_TRE_R66
+170;Halte Garderie;fermee;2014-03-31;ANS_TRE_R66
+171;Garderie et Jardin d'Enfants;fermee;2014-03-31;ANS_TRE_R66
+172;Pouponnière à Caractère Social;ouverte;;ANS_TRE_R66
+173;Pouponnière à Caractère Sanitaire;fermee;2013-06-25;ANS_TRE_R66
+174;Etablissement d'Accueil Collectif Régulier et Occasionnel;fermee;2014-03-31;ANS_TRE_R66
+175;Foyer de l'Enfance;ouverte;;ANS_TRE_R66
+176;Village d'Enfants;ouverte;;ANS_TRE_R66
+177;Maison d'Enfants à Caractère Social;ouverte;;ANS_TRE_R66
+178;Ctre.Accueil- Accomp.Réduc.Risq.Usag. Drogues (C.A.A.R.U.D.);ouverte;;ANS_TRE_R66
+179;Maison d'Enfants à Caractère Sanitaire Permanente;fermee;2013-06-25;ANS_TRE_R66
+180;Lits Halte Soins Santé (L.H.S.S.);ouverte;;ANS_TRE_R66
+181;Maison Familiale de Vacances;fermee;2016-01-06;ANS_TRE_R66
+182;Service d'Éducation Spéciale et de Soins à Domicile;ouverte;;ANS_TRE_R66
+183;Institut Médico-Educatif (I.M.E.);ouverte;;ANS_TRE_R66
+184;Institut Médico-Pédagogique (I.M.P.);fermee;2005-07-06;ANS_TRE_R66
+185;Institut Médico-Professionnel (I.M.Pro.);fermee;2005-07-06;ANS_TRE_R66
+186;Institut Thérapeutique Éducatif et Pédagogique (I.T.E.P.);ouverte;;ANS_TRE_R66
+188;Etablissement pour Enfants ou Adolescents Polyhandicapés;ouverte;;ANS_TRE_R66
+189;Centre Médico-Psycho-Pédagogique (C.M.P.P.);ouverte;;ANS_TRE_R66
+190;Centre Action Médico-Sociale Précoce (C.A.M.S.P.);ouverte;;ANS_TRE_R66
+191;Etablissement pour Déficients Moteurs Cérébraux;fermee;2005-07-06;ANS_TRE_R66
+192;Institut d'éducation motrice;ouverte;;ANS_TRE_R66
+193;Etablissement pour Déficients Moteurs et Moteurs Cérébraux;fermee;2005-07-06;ANS_TRE_R66
+194;Institut pour Déficients Visuels;ouverte;;ANS_TRE_R66
+195;Institut pour Déficients Auditifs;ouverte;;ANS_TRE_R66
+196;Institut d'Education Sensorielle Sourd-Aveugle;ouverte;;ANS_TRE_R66
+197;Centre soins accompagnement prévention addictologie (CSAPA);ouverte;;ANS_TRE_R66
+198;Établissement et Service de Préorientation;ouverte;;ANS_TRE_R66
+199;Hospice;fermee;2015-01-05;ANS_TRE_R66
+200;Maison de Retraite;fermee;2015-01-01;ANS_TRE_R66
+202;Résidences autonomie;ouverte;;ANS_TRE_R66
+205;Foyer Club Restaurant;fermee;2020-10-30;ANS_TRE_R66
+207;Centre de Jour pour Personnes Agées;ouverte;;ANS_TRE_R66
+208;Service d'Aide Ménagère à Domicile;fermee;2018-06-29;ANS_TRE_R66
+209;Service autonomie aide et soins (SAAS);ouverte;;ANS_TRE_R66
+212;Alarme Médico-Sociale;fermee;2018-06-29;ANS_TRE_R66
+213;Lits d'Accueil Médicalisés (L.A.M.);ouverte;;ANS_TRE_R66
+214;Centre Hébergement & Réinsertion Sociale (C.H.R.S.);ouverte;;ANS_TRE_R66
+215;Maison Relai;fermee;2008-06-26;ANS_TRE_R66
+216;Résidence Hôtelière à Vocation Sociale (R.H.V.S);ouverte;;ANS_TRE_R66
+217;Cité de Transit;fermee;2001-07-31;ANS_TRE_R66
+218;Aire Station Nomades;fermee;2026-03-30;ANS_TRE_R66
+219;Autre Centre d'Accueil;ouverte;;ANS_TRE_R66
+220;Centre Social;fermee;2026-03-30;ANS_TRE_R66
+221;Bureau d'Aide Psychologique Universitaire (B.A.P.U.);ouverte;;ANS_TRE_R66
+223;Protection Maternelle et Infantile (P.M.I.);ouverte;;ANS_TRE_R66
+224;Etablissement de Consultation Pré et Post-natale;ouverte;;ANS_TRE_R66
+225;Consultations de Nourrissons;fermee;1994-09-19;ANS_TRE_R66
+228;Centre de Santé Sexuelle;ouverte;;ANS_TRE_R66
+229;Consultation Problèmes naissance;fermee;1994-09-19;ANS_TRE_R66
+230;Etablissement Consultation Protection Infantile;ouverte;;ANS_TRE_R66
+231;Espaces de vie affective, relationnelle et sexuelle (EVARS);ouverte;;ANS_TRE_R66
+233;Lactarium;fermee;2015-03-04;ANS_TRE_R66
+236;Service de placement familial;ouverte;;ANS_TRE_R66
+237;Centre de Placement Familial Spécialisé;fermee;2005-07-06;ANS_TRE_R66
+238;Centre d'Accueil Familial Spécialisé;ouverte;;ANS_TRE_R66
+241;Établissement de Placement;ouverte;;ANS_TRE_R66
+242;Service d’Activité de Jour;ouverte;;ANS_TRE_R66
+246;Etablissement et Service d'Aide par le Travail (E.S.A.T.);ouverte;;ANS_TRE_R66
+247;Entreprise adaptée;ouverte;;ANS_TRE_R66
+249;Établissement et Service de Réadaptation Professionnelle;ouverte;;ANS_TRE_R66
+250;Centre Réentrainement au travail;fermee;1994-09-19;ANS_TRE_R66
+251;Maison Vacances pour Handicapés;fermee;1994-09-19;ANS_TRE_R66
+252;Foyer Hébergement Adultes Handicapés;fermee;2018-10-26;ANS_TRE_R66
+253;Foyer d'Accueil Polyvalent pour Adultes Handicapés;fermee;2018-10-26;ANS_TRE_R66
+255;Maison d'Accueil Spécialisée (M.A.S.);ouverte;;ANS_TRE_R66
+256;Foyer Travailleurs Migrants non transformé en Résidence Soc.;ouverte;;ANS_TRE_R66
+257;Foyers de jeunes travailleurs;ouverte;;ANS_TRE_R66
+258;Maisons Relais - Pensions de Famille;ouverte;;ANS_TRE_R66
+259;Autres résidences sociales;ouverte;;ANS_TRE_R66
+261;D.D.A.S.S.;fermee;1999-09-15;ANS_TRE_R66
+262;Etablissement Régional d'Enseignement Adapté;fermee;2005-06-09;ANS_TRE_R66
+265;Section Education Spéciale Classe Atelier;fermee;2005-06-09;ANS_TRE_R66
+266;Dispensaire Antivénérien;ouverte;;ANS_TRE_R66
+267;Dispensaire Antihansénien;ouverte;;ANS_TRE_R66
+268;Centre Médico-Scolaire;ouverte;;ANS_TRE_R66
+269;Centre de Médecine Universitaire;ouverte;;ANS_TRE_R66
+270;Centre de Médecine Sportive;ouverte;;ANS_TRE_R66
+271;Maison d'accueil Hospitalière;ouverte;;ANS_TRE_R66
+272;Ecole d'ambulanciers;fermee;2005-11-14;ANS_TRE_R66
+273;Institut de formation en soins infirmiers (I.F.S.I.);fermee;2005-11-14;ANS_TRE_R66
+274;Ecole de sages_femmes;fermee;2005-11-14;ANS_TRE_R66
+275;Ecole de masseurs-kinésithérapeutes;fermee;2005-11-14;ANS_TRE_R66
+276;Ecole de laborantins d'analyses médicales;fermee;2005-11-14;ANS_TRE_R66
+277;Ecole de péricultrices;fermee;2005-11-14;ANS_TRE_R66
+278;Etablissement de formation polyvalent;fermee;2005-11-14;ANS_TRE_R66
+279;Ecole de service social;fermee;2005-11-14;ANS_TRE_R66
+280;Ecole d'éducateurs spécialisés;fermee;2005-11-14;ANS_TRE_R66
+281;Centre de formation d'aides soignants;fermee;2005-11-14;ANS_TRE_R66
+282;Ecole de pédicures-podologues;fermee;2005-11-14;ANS_TRE_R66
+283;Ecole de manipulateurs d'électro-radiologie;fermee;2005-11-14;ANS_TRE_R66
+284;Ecole de travailleuses familiales;fermee;2005-11-14;ANS_TRE_R66
+285;Centres de Loisirs sans Hébergement;fermee;2016-01-06;ANS_TRE_R66
+286;Service de prévention spécialisée;ouverte;;ANS_TRE_R66
+289;Centre de Soins Infirmiers;fermee;2013-12-19;ANS_TRE_R66
+292;Centre Hospitalier Spécialisé lutte Maladies Mentales;ouverte;;ANS_TRE_R66
+294;Centre de Consultations Cancer;ouverte;;ANS_TRE_R66
+295;Service AEMO et AED;ouverte;;ANS_TRE_R66
+297;Dispensaire Polyvalent;fermee;1992-01-01;ANS_TRE_R66
+300;Ecoles Formant aux Professions Sanitaires;ouverte;;ANS_TRE_R66
+303;Ecole de conseillers en économie sociale et familiale;fermee;2005-11-14;ANS_TRE_R66
+304;Ecole d'ergothérapeutes;fermee;2005-11-14;ANS_TRE_R66
+305;Ecole de psycho-motriciens;fermee;2005-11-14;ANS_TRE_R66
+306;Ecole d'infirmiers anesthésistes;fermee;2005-11-14;ANS_TRE_R66
+307;Ecole d'infirmiers de bloc opératoire;fermee;2005-11-14;ANS_TRE_R66
+308;Centre de formation professionnelle de secteur psychiatrique;fermee;2005-11-14;ANS_TRE_R66
+309;Ecole de cadres infirmiers;fermee;2005-11-14;ANS_TRE_R66
+310;Ecole de cadres de secteur psychiatrique;fermee;2005-11-14;ANS_TRE_R66
+311;Ecole de cadres de masseurs-kinésithérapeutes;fermee;2005-11-14;ANS_TRE_R66
+312;Ecole de cadres de manipulateurs d'électro-radiologie;fermee;2005-11-14;ANS_TRE_R66
+313;Ecole d'éducateurs de jeunes enfants;fermee;2005-11-14;ANS_TRE_R66
+314;Ecole d'éducateurs techniques spécialisés;fermee;2005-11-14;ANS_TRE_R66
+315;Ecole de moniteurs-éducateurs;fermee;2005-11-14;ANS_TRE_R66
+316;Ecole d'aides médico-psychologiques;fermee;2005-11-14;ANS_TRE_R66
+317;Ecole d'animateurs socio-éducatifs;fermee;2005-11-14;ANS_TRE_R66
+319;Inst. régional de formation des travailleurs sociaux;fermee;2005-11-14;ANS_TRE_R66
+320;S.A.M.U. et Centre 15;fermee;1999-09-15;ANS_TRE_R66
+321;Unité Mobile Hospitalière;fermee;1999-09-15;ANS_TRE_R66
+322;Centre Rég.Informatiq.Hospit.;fermee;1999-09-15;ANS_TRE_R66
+324;Logement Foyer non Spécialisé;fermee;2026-03-30;ANS_TRE_R66
+326;Ecole de cadres;fermee;2005-11-14;ANS_TRE_R66
+327;Service d'Ambulances;fermee;2019-04-26;ANS_TRE_R66
+328;Centre Consultation Soins Dentaire;fermee;1994-09-19;ANS_TRE_R66
+329;Sectorisation Psychiatrique;fermee;1994-09-19;ANS_TRE_R66
+330;Ecoles Formant aux Professions Sociales;ouverte;;ANS_TRE_R66
+340;Service mandataire judiciaire à la protection des majeurs;ouverte;;ANS_TRE_R66
+341;Service dédié mesures d'accompagnement social personnalisé;ouverte;;ANS_TRE_R66
+342;Service d'information et de soutien aux tuteurs familiaux;ouverte;;ANS_TRE_R66
+343;Equipe Préparation et Suite Reclassement (EPSR);fermee;2005-06-09;ANS_TRE_R66
+344;Service délégué aux prestations familiales;ouverte;;ANS_TRE_R66
+345;Service Tutelle Prestation Sociale;fermee;2026-03-30;ANS_TRE_R66
+346;Service de Travailleuses Familiales;fermee;2018-06-29;ANS_TRE_R66
+347;Centre d'Examens de Santé;ouverte;;ANS_TRE_R66
+349;Ecole de cadres de sages-femmes;fermee;2005-11-14;ANS_TRE_R66
+350;Centre de formation d'auxiliaires de puériculture;fermee;2005-11-14;ANS_TRE_R66
+352;Centre de Psychothérapie;fermee;1994-09-19;ANS_TRE_R66
+353;Hôpital de Jour Spécialités Médicales;fermee;1994-09-19;ANS_TRE_R66
+354;Service de Soins Infirmiers A Domicile (S.S.I.A.D);ouverte;;ANS_TRE_R66
+355;Centre Hospitalier (C.H.);ouverte;;ANS_TRE_R66
+357;Association Aide aux Insuffisants Respiratoires;fermee;1999-09-15;ANS_TRE_R66
+359;Centre Circonscription Sanitaire et Sociale;fermee;2026-03-30;ANS_TRE_R66
+361;Centre de Cure Médicale;fermee;1999-09-15;ANS_TRE_R66
+362;Etablissement de Soins Longue Durée;ouverte;;ANS_TRE_R66
+363;Centre moyen et long séjour;fermee;1999-09-15;ANS_TRE_R66
+365;Etablissement de Soins Pluridisciplinaire;ouverte;;ANS_TRE_R66
+366;Atelier Thérapeutique;ouverte;;ANS_TRE_R66
+367;Maison d'Enfants non Conventionnée ni Habilitée;fermee;2014-03-31;ANS_TRE_R66
+368;Service de Repas à Domicile;fermee;2018-06-29;ANS_TRE_R66
+369;Centre Adaptation Vie Active (C.A.V.A.);fermee;2001-07-31;ANS_TRE_R66
+370;Etablissement Expérimental pour personnes handicapées;ouverte;;ANS_TRE_R66
+371;Service Action Socio-Educative pour Familles en difficulté;fermee;2001-07-31;ANS_TRE_R66
+373;Centre de formation supérieure des travailleurs sociaux;fermee;2005-11-14;ANS_TRE_R66
+374;Ecole Nationale Santé Publique (E.N.S.P.);ouverte;;ANS_TRE_R66
+375;Classe d'Adaptation;fermee;1994-09-19;ANS_TRE_R66
+376;Classe Spéciale Ecole Primaire;fermee;2005-06-09;ANS_TRE_R66
+377;Etablissement Expérimental pour Enfance Handicapée;fermee;2018-10-26;ANS_TRE_R66
+378;Etablissement Expérimental Enfance Protégée;ouverte;;ANS_TRE_R66
+379;Etablissement Expérimental pour Adultes Handicapés;fermee;2018-10-26;ANS_TRE_R66
+380;Etablissement Expérimental Autres Adultes;ouverte;;ANS_TRE_R66
+381;Etablissement Expérimental pour Personnes Agées;ouverte;;ANS_TRE_R66
+382;Foyer de Vie pour Adultes Handicapés;fermee;2018-10-26;ANS_TRE_R66
+386;Ecole Secondaire Spéciale;fermee;1994-09-19;ANS_TRE_R66
+390;Etablissement d'Accueil Temporaire d'Enfants Handicapés;ouverte;;ANS_TRE_R66
+393;Autre résidence But lucratif pr personnes Âgées;fermee;1994-09-19;ANS_TRE_R66
+394;Etablissement d'Accueil Temporaire pour Personnes Agées;fermee;2015-01-01;ANS_TRE_R66
+395;Etablissement d'Accueil Temporaire pour Adultes Handicapés;ouverte;;ANS_TRE_R66
+396;Foyer Hébergement Enfants et Adolescents Handicapés;ouverte;;ANS_TRE_R66
+397;Service Auxiliaire de Vie pour Handicapés;fermee;2005-07-06;ANS_TRE_R66
+398;Crèche Parentale;fermee;2014-03-31;ANS_TRE_R66
+399;Halte Garderie Parentale;fermee;2014-03-31;ANS_TRE_R66
+400;Centre de Services pour Associations;fermee;2026-03-30;ANS_TRE_R66
+401;D.R.A.S.S.;fermee;1999-09-15;ANS_TRE_R66
+402;Jardin d'Enfants Spécialisé;ouverte;;ANS_TRE_R66
+403;Service Social Spécialisé ou Polyvalent de Catégorie;fermee;2026-03-30;ANS_TRE_R66
+404;Etablissement Acc.Collect.Parental Régulier & Occasionnel;fermee;2014-03-31;ANS_TRE_R66
+405;Service Social Polyvalent de Secteur;fermee;2026-03-30;ANS_TRE_R66
+411;Intermédiaire de Placement Social;ouverte;;ANS_TRE_R66
+412;Appartement Thérapeutique;ouverte;;ANS_TRE_R66
+413;C.E.C.O.S;fermee;1999-09-15;ANS_TRE_R66
+414;Centre Anti Poison;fermee;1999-09-15;ANS_TRE_R66
+415;Service Médico-Psychologique Régional (S.M.P.R.);ouverte;;ANS_TRE_R66
+418;Service d'Enquêtes Sociales (S.E.S.);fermee;2024-10-25;ANS_TRE_R66
+419;Centre d'Accueil Toxicomanes;fermee;1999-09-15;ANS_TRE_R66
+420;Entreprise d'Insertion;fermee;2001-07-31;ANS_TRE_R66
+421;Centre d'enseignement aux secours d'urgence;fermee;2005-11-14;ANS_TRE_R66
+422;Traitements Spécialisés à Domicile;ouverte;;ANS_TRE_R66
+423;Ecole des cadres de laborantins d'analyses médicales;fermee;2005-11-14;ANS_TRE_R66
+425;Centre d'Accueil Thérapeutique à temps partiel (C.A.T.T.P.);ouverte;;ANS_TRE_R66
+426;Syndicat Inter Hospitalier (S.I.H.);ouverte;;ANS_TRE_R66
+427;Service Educatif Auprès des Tribunaux (S.E.A.T.);fermee;2024-10-25;ANS_TRE_R66
+430;Centre Postcure Malades Mentaux;ouverte;;ANS_TRE_R66
+431;Centre Postcure pour Alcooliques;fermee;2013-06-25;ANS_TRE_R66
+432;Centre Postcure pour Toxicomanes;fermee;1999-09-15;ANS_TRE_R66
+433;Etablissement Sanitaire des Prisons;ouverte;;ANS_TRE_R66
+434;Classe Spéciale en Ecole Maternelle;fermee;2005-06-09;ANS_TRE_R66
+435;Centre de formation d'aide à domicile;fermee;2005-11-14;ANS_TRE_R66
+436;Ecoles Formant aux Professions Sanitaires et Sociales;ouverte;;ANS_TRE_R66
+437;Foyer d'Accueil Médicalisé pour Adultes Handicapés (F.A.M.);fermee;2018-10-26;ANS_TRE_R66
+438;Centre de Médecine collective;ouverte;;ANS_TRE_R66
+439;Centre Santé Polyvalent;fermee;2013-12-19;ANS_TRE_R66
+440;Service d’Investigation Educative;ouverte;;ANS_TRE_R66
+441;Service d’Intervention Educative en Milieu Ouvert;ouverte;;ANS_TRE_R66
+442;Centre Provisoire Hébergement (C.P.H.);ouverte;;ANS_TRE_R66
+443;Centre Accueil Demandeurs Asile (C.A.D.A.);ouverte;;ANS_TRE_R66
+444;Centre Crise Accueil Permanent;ouverte;;ANS_TRE_R66
+445;Service d'accompagnement médico-social adultes handicapés;ouverte;;ANS_TRE_R66
+446;Service d'Accompagnement à la Vie Sociale (S.A.V.S.);ouverte;;ANS_TRE_R66
+447;Entreprise Intérim Insertion;fermee;2001-07-31;ANS_TRE_R66
+448;Etab.Acc.Médicalisé en tout ou partie personnes handicapées;ouverte;;ANS_TRE_R66
+449;Etab.Accueil Non Médicalisé pour personnes handicapées;ouverte;;ANS_TRE_R66
+450;Service d'Aide aux Personnes Agées;fermee;2018-06-29;ANS_TRE_R66
+451;Service d'Aide aux Familles en Difficulté;fermee;2018-06-29;ANS_TRE_R66
+452;Régie de Quartier;fermee;2001-07-31;ANS_TRE_R66
+453;Service de Réparation Pénale;fermee;2024-10-25;ANS_TRE_R66
+460;Service autonomie aide (SAA);ouverte;;ANS_TRE_R66
+461;Centres de Ressources S.A.I. (Sans Aucune Indication);ouverte;;ANS_TRE_R66
+462;Lieux de Vie et d’Accueil;ouverte;;ANS_TRE_R66
+463;Centres Locaux Information Coordination P.A.(C.L.I.C.);ouverte;;ANS_TRE_R66
+464;Unités Evaluation Réentraînement et d'Orient. Soc. et Pro.;ouverte;;ANS_TRE_R66
+500;Etablissement d'hébergement pour personnes âgées dépendantes;ouverte;;ANS_TRE_R66
+501;EHPA percevant des crédits d'assurance maladie;ouverte;;ANS_TRE_R66
+502;EHPA ne percevant pas des crédits d'assurance maladie;ouverte;;ANS_TRE_R66
+601;Cabinet Libéral Médical;fermee;1999-09-15;ANS_TRE_R66
+602;Cabinet de Groupe;fermee;1999-09-15;ANS_TRE_R66
+603;Maison de santé (L.6223-3);ouverte;;ANS_TRE_R66
+604;Communauté Professionnelle Territoriale de Santé (CPTS);ouverte;;ANS_TRE_R66
+605;Cabinet d'Auxiliaires Médicaux;fermee;1999-09-15;ANS_TRE_R66
+606;Dispositif d'appui à la coordination (DAC);ouverte;;ANS_TRE_R66
+607;Groupement Régional d'Appui au Développement de la e-Santé (GRADeS);ouverte;;ANS_TRE_R66
+608;Equipe mobile médico-sociale précarité (EMMSP);ouverte;;ANS_TRE_R66
+609;Maison Départementale pour Personnes Handicapées (MDPH);ouverte;;ANS_TRE_R66
+610;Laboratoire d'Analyses;ouverte;;ANS_TRE_R66
+611;Laboratoire de Biologie Médicale;ouverte;;ANS_TRE_R66
+612;Autre Laboratoire de Biologie Médicale sans FSE;ouverte;;ANS_TRE_R66
+614;Dispositif Spécifique Régional du Cancer (DSRC);ouverte;;ANS_TRE_R66
+616;Services de Prévention et de Santé au Travail (SPST);ouverte;;ANS_TRE_R66
+617;Lieu de soins non programmés;ouverte;;ANS_TRE_R66
+618;Autre structure de soins non programmés (SNP);ouverte;;ANS_TRE_R66
+620;Pharmacie d'Officine;ouverte;;ANS_TRE_R66
+621;Lunetterie Médicale;fermee;1999-09-15;ANS_TRE_R66
+622;Centre d'Appareillage & Prothèse;fermee;1999-09-15;ANS_TRE_R66
+623;Herboristerie;fermee;1999-09-15;ANS_TRE_R66
+624;Laboratoire pharmaceutique préparant délivrant allergènes;ouverte;;ANS_TRE_R66
+627;Propharmacie;ouverte;;ANS_TRE_R66
+628;Pharmacie Minière;ouverte;;ANS_TRE_R66
+629;Pharmacie Mutualiste;ouverte;;ANS_TRE_R66
+630;Installation autonome de chirurgie esthétique;ouverte;;ANS_TRE_R66
+631;Maisons de naissance;ouverte;;ANS_TRE_R66
+632;Structure Dispensatrice à domicile d'Oxygène à usage médical;ouverte;;ANS_TRE_R66
+633;Structure Expérimentale en Santé;ouverte;;ANS_TRE_R66
+636;Centre de soins et de prévention;ouverte;;ANS_TRE_R66
+637;Centre de Lutte Antituberculeuse (CLAT);ouverte;;ANS_TRE_R66
+638;Centre gratuit d'information de dépistage et de diagnostic (CeGIDD);ouverte;;ANS_TRE_R66
+639;Sociétés de téléconsultation (STLC);ouverte;;ANS_TRE_R66
+640;Service d'aide et d'accompagnement à domicile aux familles (SAADF);ouverte;;ANS_TRE_R66
+641;Antenne de Pharmacie d'officine;ouverte;;ANS_TRE_R66
+642;Services départementaux d'incendie et de secours;ouverte;;ANS_TRE_R66
+643;Serv. d'éval de la minorité de l'isolement pour les pers. se déclarant mineures;ouverte;;ANS_TRE_R66
+644;Etab. de mise à l'abri pour les pers. se déclarant mineures non accompagnées;ouverte;;ANS_TRE_R66
+645;Centre de Vaccination;ouverte;;ANS_TRE_R66
+646;Centre de Vaccination Internationale;ouverte;;ANS_TRE_R66
+647;Equipe de Soins Spécialisés;ouverte;;ANS_TRE_R66
+648;Structure qui contribue au Service d'Accès aux Soins;ouverte;;ANS_TRE_R66
+649;Centre de santé et de médiation en santé sexuelle;ouverte;;ANS_TRE_R66
+650;Dispositifs Spécifiques Régionaux en périnatalité;ouverte;;ANS_TRE_R66
+690;Etablissement de Fabrication Annexe à une Officine;fermee;2024-02-23;ANS_TRE_R66
+695;Groupement de coopération sanitaire de moyens - Exploitant;ouverte;;ANS_TRE_R66
+696;Groupement de coopération sanitaire de moyens;ouverte;;ANS_TRE_R66
+697;Groupement de coopération sanitaire - Etablissement de santé;ouverte;;ANS_TRE_R66
+698;Autre Etablissement Loi Hospitalière;ouverte;;ANS_TRE_R66
+699;Entité Ayant Autorisation;ouverte;;ANS_TRE_R66
+700;Maison sport-santé;ouverte;;ANS_TRE_R66
+701;Maison des adolescents (MDA);ouverte;;ANS_TRE_R66
+702;Point Accueil Ecoute Jeunes (PAEJ);ouverte;;ANS_TRE_R66
+703;Espace Santé Jeunes (ESJ);ouverte;;ANS_TRE_R66
+704;Autre service territorial;ouverte;;ANS_TRE_R66
+705;Groupe d’Entraide Mutuelle (GEM);ouverte;;ANS_TRE_R66
