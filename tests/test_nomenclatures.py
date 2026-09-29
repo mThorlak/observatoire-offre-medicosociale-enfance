@@ -16,8 +16,8 @@ def verifier(intitule, condition, detail=""):
 print("1. Le référentiel par défaut se charge et respecte sa propre provenance")
 categories = n.charger_categories()
 verifier("référentiel non vide", len(categories) > 0, len(categories))
-verifier("274 codes, comme annoncé en en-tête du CSV",
-         len(categories) == 274, len(categories))
+verifier("314 codes, comme annoncé en en-tête du CSV (274 + 40 d'OOM-117)",
+         len(categories) == 314, len(categories))
 verifier("aucun libellé vide", all(lib.strip() for lib in categories.values()))
 verifier("aucun code vide", all(code.strip() for code in categories))
 
@@ -62,16 +62,21 @@ except Exception as erreur:  # tout autre type serait un échec non contrôlé
 verifier("CodeCategorieInconnu hérite de ErreurNomenclature",
          issubclass(n.CodeCategorieInconnu, n.ErreurNomenclature))
 
-# Un code réellement observé dans l'extrait 202607 mais non couvert par ce
-# référentiel partiel (série 60x apparue après la date de la source) doit
-# être signalé exactement de la même façon : le mécanisme ne dépend pas de
-# la raison de l'absence.
-try:
-    n.resoudre_categorie("601")
-    verifier("code réel non couvert (601) signalé, pas ignoré", False,
-             "aucune exception levée")
-except n.CodeCategorieInconnu:
-    verifier("code réel non couvert (601) signalé, pas ignoré", True)
+
+print("4 bis. Codes ajoutés par OOM-117 (ANS, NOS TRE_R66, version 20260505)")
+# Ces codes, observés dans les extraits 202607 et 202609, manquaient aux
+# documents DREES/DMSI de 2021. Les libellés sont le « Libellé long » de
+# TRE_R66 (cf. en-tête de referentiels/nomenclature_categorie_finess.csv).
+ajoutes = {
+    "259": "Autres résidences sociales",
+    "601": "Cabinet Libéral Médical",
+    "640": "Service d'aide et d'accompagnement à domicile aux familles (SAADF)",
+    "650": "Dispositifs Spécifiques Régionaux en périnatalité",
+}
+for code, libelle_attendu in ajoutes.items():
+    obtenu = n.resoudre_categorie(code)
+    verifier(f"code {code} -> {libelle_attendu!r}", obtenu == libelle_attendu,
+             f"obtenu {obtenu!r}")
 
 
 print("5. Un référentiel explicite peut être injecté (appel en masse, tests)")

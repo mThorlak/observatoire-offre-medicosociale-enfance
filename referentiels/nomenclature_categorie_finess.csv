@@ -14,17 +14,29 @@
 #       https://static.data.gouv.fr/resources/finess-extraction-des-principales-nomenclatures/20210625-130947/categories-fermees.pdf
 # Date d'extraction dans ce dépôt : 2026-08-18.
 #
-# Couverture : 274 codes (151 catégories ouvertes + 123 catégories fermées),
-# sur les 300 valeurs distinctes de code_categorie observées dans un extrait
-# réel FINESS-Structures (millésime 202607 ; cf.
+# Couverture initiale (OOM-12) : 274 codes (151 catégories ouvertes + 123
+# catégories fermées) tirés des deux documents ci-dessus, sur les 300 valeurs
+# distinctes de code_categorie observées dans un extrait réel
+# FINESS-Structures (millésime 202607 ; cf.
 # artefacts/01_INVENTAIRE_CODES_202607.csv, domaine categorie_etablissement).
-# Les 40 codes non couverts (ex. la série 60x-65x apparue après 2021) ne sont
-# pas devinés : ils restent absents du référentiel et sont donc signalés
-# explicitement par nomenclatures.resoudre_categorie, jamais approximés.
-# Le code 259 est volontairement omis : son libellé est tronqué en plein mot
-# dans le document source ("...Pension de Fami"), à la différence des autres
-# libellés de 60 caractères qui se terminent tous sur une frontière de mot ;
-# faute de pouvoir vérifier la fin exacte, il n'est pas complété par hypothèse.
+#
+# Complément (OOM-117) : les 40 codes observés mais absents des documents de
+# 2021 (dont la série 60x-65x créée après 2021, et 259 dont le libellé y était
+# tronqué) sont ajoutés depuis la nomenclature officielle de l'ANS :
+#   Agence du Numérique en Santé, NOS (Nomenclatures des Objets de Santé),
+#   TRE_R66-CategorieEtablissement, OID 1.2.250.1.213.1.6.1.8,
+#   version 20260505120000 (count 322 codes) :
+#   https://mos.esante.gouv.fr/NOS/TRE_R66-CategorieEtablissement/TRE_R66-CategorieEtablissement.tabs
+#   Consultée le 2026-09-29.
+#   libelle = colonne « Libellé long » ; statut = "fermee" et date_fermeture =
+#   « Date fin » (AAAA-MM-JJ) quand la source en donne une, "ouverte" sinon.
+# Liste des codes absents recalculée sur l'extrait FINESS-Structures
+# journalier du 2026-09-29 (millésime 202609) : les mêmes 40 codes qu'en
+# 202607, tous documentés par TRE_R66. Couverture : 314 codes, dont les 300
+# valeurs observées. Un code futur absent du référentiel reste signalé
+# explicitement par nomenclatures.resoudre_categorie, jamais approximé.
+# Les 274 lignes initiales ne sont pas modifiées : TRE_R66 en renomme 24 et
+# date différemment la fermeture de 17 (cf. docs/08_SOURCES_DONNEES.md).
 #
 # Colonnes :
 #   code            code catégorie FINESS, tel qu'émis par la source (aucun
@@ -123,7 +135,9 @@ code;libelle;statut;date_fermeture
 215;Maison Relai;fermee;2008-06-26
 216;Résidence Hôtelière à Vocation Sociale (R.H.V.S.);ouverte;
 217;Cité de Transit;fermee;2001-07-31
+218;Aire Station Nomades;fermee;2026-03-30
 219;Autre Centre d'Accueil;ouverte;
+220;Centre Social;fermee;2026-03-30
 221;Bureau d'Aide Psychologique Universitaire (B.A.P.U.);ouverte;
 223;Protection Maternelle et Infantile (P.M.I.);ouverte;
 224;Etablissement de Consultation Pré et Post-natale;ouverte;
@@ -137,6 +151,7 @@ code;libelle;statut;date_fermeture
 237;Centre de Placement Familial Spécialisé;fermee;2005-07-06
 238;Centre d'Accueil Familial Spécialisé;ouverte;
 241;Foyer d'Action Educative (F.A.E.);ouverte;
+242;Service d’Activité de Jour;ouverte;
 246;Etablissement et Service d'Aide par le Travail (E.S.A.T.);ouverte;
 247;Entreprise adaptée;ouverte;
 249;Etablissement et Service de Réadaptation Professionnelle;ouverte;
@@ -148,6 +163,7 @@ code;libelle;statut;date_fermeture
 256;Foyer Travailleurs Migrants non transformé en Résidence Soc.;ouverte;
 257;Foyer de Jeunes Travailleurs (résidence sociale ou non);ouverte;
 258;Maisons Relais - Pensions de Famille;ouverte;
+259;Autres résidences sociales;ouverte;
 261;D.D.A.S.S.;fermee;1999-09-15
 262;Etablissement Régional d'Enseignement Adapté;fermee;2005-06-09
 265;Section Education Spéciale Classe Atelier;fermee;2005-06-09
@@ -197,6 +213,7 @@ code;libelle;statut;date_fermeture
 320;S.A.M.U. et Centre 15;fermee;1999-09-15
 321;Unité Mobile Hospitalière;fermee;1999-09-15
 322;Centre Rég.Informatiq.Hospit.;fermee;1999-09-15
+324;Logement Foyer non Spécialisé;fermee;2026-03-30
 326;Ecole de cadres;fermee;2005-11-14
 327;Service d'Ambulances;fermee;2019-04-22
 328;Centre Consultation Soins Dentaire;fermee;1994-09-19
@@ -207,6 +224,7 @@ code;libelle;statut;date_fermeture
 342;Service d'information et de soutien aux tuteurs familiaux;ouverte;
 343;Equipe Préparation et Suite Reclassement (EPSR);fermee;2005-06-09
 344;Service délégué aux prestations familiales;ouverte;
+345;Service Tutelle Prestation Sociale;fermee;2026-03-30
 346;Service de Travailleuses Familiales;fermee;2018-03-07
 347;Centre d'Examens de Santé;ouverte;
 349;Ecole de cadres de sages-femmes;fermee;2005-11-14
@@ -216,6 +234,7 @@ code;libelle;statut;date_fermeture
 354;Service de Soins Infirmiers A Domicile (S.S.I.A.D);ouverte;
 355;Centre Hospitalier (C.H.);ouverte;
 357;Association Aide aux Insuffisants Respiratoires;fermee;1999-09-15
+359;Centre Circonscription Sanitaire et Sociale;fermee;2026-03-30
 361;Centre de Cure Médicale;fermee;1999-09-15
 362;Etablissement de Soins Longue Durée;ouverte;
 363;Centre moyen et long séjour;fermee;1999-09-15
@@ -245,9 +264,12 @@ code;libelle;statut;date_fermeture
 397;Service Auxiliaire de Vie pour Handicapés;fermee;2005-07-06
 398;Crèche Parentale;fermee;2014-03-31
 399;Halte Garderie Parentale;fermee;2014-03-31
+400;Centre de Services pour Associations;fermee;2026-03-30
 401;D.R.A.S.S.;fermee;1999-09-15
 402;Jardin d'Enfants Spécialisé;ouverte;
+403;Service Social Spécialisé ou Polyvalent de Catégorie;fermee;2026-03-30
 404;Etablissement Acc.Collect.Parental Régulier & Occasionnel;fermee;2014-03-31
+405;Service Social Polyvalent de Secteur;fermee;2026-03-30
 411;Intermédiaire de Placement Social;ouverte;
 412;Appartement Thérapeutique;ouverte;
 413;C.E.C.O.S;fermee;1999-09-15
@@ -279,8 +301,12 @@ code;libelle;statut;date_fermeture
 444;Centre Crise Accueil Permanent;ouverte;
 445;Service d'accompagnement médico-social adultes handicapés;ouverte;
 446;Service d'Accompagnement à la Vie Sociale (S.A.V.S.);ouverte;
+447;Entreprise Intérim Insertion;fermee;2001-07-31
 448;Etab.Acc.Médicalisé en tout ou partie personnes handicapées;ouverte;
 449;Etab.Accueil Non Médicalisé pour personnes handicapées;ouverte;
+450;Service d'Aide aux Personnes Agées;fermee;2018-06-29
+451;Service d'Aide aux Familles en Difficulté;fermee;2018-06-29
+452;Régie de Quartier;fermee;2001-07-31
 453;Service de Réparation Pénale;ouverte;
 460;Service d'Aide et d'Accompagnement à Domicile (S.A.A.D.);ouverte;
 461;Centres de Ressources S.A.I. (Sans Aucune Indication);ouverte;
@@ -290,12 +316,24 @@ code;libelle;statut;date_fermeture
 500;Etablissement d'hébergement pour personnes âgées dépendantes;ouverte;
 501;EHPA percevant des crédits d'assurance maladie;ouverte;
 502;EHPA ne percevant pas des crédits d'assurance maladie;ouverte;
+601;Cabinet Libéral Médical;fermee;1999-09-15
+602;Cabinet de Groupe;fermee;1999-09-15
 603;Maison de santé (L.6223-3);ouverte;
 604;Communautés professionnelles territoriales de santé (CPTS);ouverte;
+605;Cabinet d'Auxiliaires Médicaux;fermee;1999-09-15
+606;Dispositif d'appui à la coordination (DAC);ouverte;
+607;Groupement Régional d'Appui au Développement de la e-Santé (GRADeS);ouverte;
+608;Equipe mobile médico-sociale précarité (EMMSP);ouverte;
+609;Maison Départementale pour Personnes Handicapées (MDPH);ouverte;
 610;Laboratoire d'Analyses;ouverte;
 611;Laboratoire de Biologie Médicale;ouverte;
 612;Autre Laboratoire de Biologie Médicale sans FSE;ouverte;
+614;Dispositif Spécifique Régional du Cancer (DSRC);ouverte;
+616;Services de Prévention et de Santé au Travail (SPST);ouverte;
+617;Lieu de soins non programmés;ouverte;
 620;Pharmacie d'Officine;ouverte;
+621;Lunetterie Médicale;fermee;1999-09-15
+622;Centre d'Appareillage & Prothèse;fermee;1999-09-15
 624;Laboratoire pharmaceutique préparant délivrant allergènes;ouverte;
 627;Propharmacie;ouverte;
 628;Pharmacie Minière;ouverte;
@@ -305,6 +343,20 @@ code;libelle;statut;date_fermeture
 632;Structure Dispensatrice à domicile d'Oxygène à usage médical;ouverte;
 633;Structure Expérimentale en Santé;ouverte;
 636;Centre de soins et de prévention;ouverte;
+637;Centre de Lutte Antituberculeuse (CLAT);ouverte;
+638;Centre gratuit d'information de dépistage et de diagnostic (CeGIDD);ouverte;
+639;Sociétés de téléconsultation (STLC);ouverte;
+640;Service d'aide et d'accompagnement à domicile aux familles (SAADF);ouverte;
+641;Antenne de Pharmacie d'officine;ouverte;
+642;Services départementaux d'incendie et de secours;ouverte;
+643;Serv. d'éval de la minorité de l'isolement pour les pers. se déclarant mineures;ouverte;
+644;Etab. de mise à l'abri pour les pers. se déclarant mineures non accompagnées;ouverte;
+645;Centre de Vaccination;ouverte;
+646;Centre de Vaccination Internationale;ouverte;
+647;Equipe de Soins Spécialisés;ouverte;
+648;Structure qui contribue au Service d'Accès aux Soins;ouverte;
+649;Centre de santé et de médiation en santé sexuelle;ouverte;
+650;Dispositifs Spécifiques Régionaux en périnatalité;ouverte;
 690;Etablissement de Fabrication Annexe à une Officine;ouverte;
 695;Groupement de coopération sanitaire de moyens - Exploitant;ouverte;
 696;Groupement de coopération sanitaire de moyens;ouverte;

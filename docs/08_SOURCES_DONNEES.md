@@ -83,6 +83,35 @@ Elle permet notamment de décrire :
 - informations parfois déclaratives ;
 - présence d'établissements inactifs.
 
+### Nomenclature des catégories d'établissement
+
+Référentiel versionné : `referentiels/nomenclature_categorie_finess.csv` (D4), lu par
+`nomenclatures.charger_categories`. Deux sources officielles, consignées dans son en-tête :
+
+| Lignes | Source | Consultée le |
+| --- | --- | --- |
+| 274 codes (OOM-12) | DREES/DMSI, data.gouv.fr « FINESS - Extraction des principales nomenclatures » : catégories ouvertes (01-06-2021) et fermées (08-06-2021), PDF | 2026-08-18 |
+| 40 codes (OOM-117) | ANS, NOS [`TRE_R66-CategorieEtablissement`](https://mos.esante.gouv.fr/NOS/TRE_R66-CategorieEtablissement/), OID 1.2.250.1.213.1.6.1.8, version `20260505120000` (322 codes), fichier `.tabs`, colonne « Libellé long » | 2026-09-29 |
+
+Les 40 codes ajoutés sont ceux que l'extrait FINESS-Structures journalier du 2026-09-29
+(millésime 202609) porte sans que les PDF de 2021 les documentent — les mêmes qu'en 202607 :
+218, 220, 242, 259, 324, 345, 359, 400, 403, 405, 447, 450, 451, 452, 601, 602, 605–609, 614,
+616, 617, 621, 622, 637–650. Tous figurent dans TRE_R66 : **aucun code observé ne reste non
+résolu**. 17 sont des catégories fermées (`statut` = `fermee`, `date_fermeture` = « Date fin »
+de TRE_R66), qui subsistent sur des établissements existants — par exemple 220 « Centre
+Social » et 405 « Service Social Polyvalent de Secteur », fermées le 2026-03-30, ou 602
+« Cabinet de Groupe », fermée le 1999-09-15. Le code 259, écarté en OOM-12 parce que son
+libellé PDF était tronqué, est repris avec le libellé complet de TRE_R66. Un code qui
+apparaîtrait demain hors référentiel reste signalé (`CodeCategorieInconnu`, compteur
+« catégorie(s) non résolue(s) » d'`export_html`), jamais approximé (D6).
+
+**Écart connu, non traité.** Les 274 lignes d'origine n'ont pas été modifiées (OOM-117 ne fait
+qu'ajouter). Or TRE_R66 2026 renomme 24 de ces catégories (ex. 209 « Service autonomie aide et
+soins (SAAS) » au lieu de « S.P.A.S.A.D. », 460 « Service autonomie aide (SAA) » au lieu de
+« S.A.A.D. », 228 « Centre de Santé Sexuelle ») ; pour 17 d'entre elles, la date de fin de TRE_R66 diffère de celle du PDF de 2021
+ou existe là où le PDF n'en donnait aucune (ex. 159, 252, 418). Réaligner ces lignes sur TRE_R66 est
+une décision distincte (quelle source fait foi, quel libellé pour une catégorie renommée).
+
 ### Statut
 
 🟢 Intégré
