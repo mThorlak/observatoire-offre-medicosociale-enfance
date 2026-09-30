@@ -85,6 +85,33 @@ leur nombre ; `None` si aucun n'est localisé. C'est sur ce rectangle
 qu'`export_html` cadre la carte d'un département : le cadrage suit les
 données publiées, sans référentiel géographique supplémentaire.
 
+COUVERTURE (OOM-112) — bandeau de couverture des cartes
+-----------------------------------------------------------------
+    couverture(entrepot, departements) -> {"national": {…},
+                                           "par_departement": {dep: {…}}}
+
+Même parcours qu'`emprises` (même requête, même rattachement, mêmes
+exclusions qu'`exporter`), mais tous les établissements comptent, localisés
+ou non. Chaque entrée, nationale ou départementale (une par code de
+`departements` puis `PAGE_INDETERMINEE`, même vide), porte :
+
+    total                  int         établissements du périmètre
+    localises              int         dont placés sur la carte
+    non_localises          int         dont exclus = sans_coordonnees
+                                       + coordonnees_invalides
+    sans_coordonnees       int         mêmes définitions qu'`exporter`
+    coordonnees_invalides  int
+    part_localises         float|None  localises / total en pour cent, au
+                                       dixième ; `None` si total = 0. Jamais
+                                       100,0 s'il en manque un, jamais 0,0
+                                       s'il y en a un (l'arrondi ne ment pas)
+
+et, par département seulement, `emprise` (celle d'`emprises`). Invariants
+bloquants (D6), `ErreurExportGeo` sinon : localises + non_localises = total
+dans chaque entrée, somme des départements (indéterminé compris) = national,
+national = nombre de lignes d'`etablissement`. C'est de là que viennent les
+chiffres du bandeau des cartes : `export_html` les rend, sans les recalculer.
+
 Aucune dépendance tierce. Compatible Python 3.9+.
 """
 
@@ -103,7 +130,7 @@ from export_html import (LIGNES_PAR_SOUS_PAGE, PAGE_INDETERMINEE, ErreurExportHt
 from indicateurs import etat_objet_actif
 from territoires import ErreurTerritoires, charger_departements, departement_depuis_cog
 
-__all__ = ["exporter", "emprises", "ErreurExportGeo", "ETAT_ACTIF", "ETAT_FERME"]
+__all__ = ["exporter", "emprises", "couverture", "ErreurExportGeo", "ETAT_ACTIF", "ETAT_FERME"]
 
 ETAT_ACTIF = "actif"
 ETAT_FERME = "fermé"
@@ -181,24 +208,48 @@ def _score(texte: Optional[str]) -> Union[float, str, None]:
     return valeur if math.isfinite(valeur) else texte
 
 
-def emprises(entrepot: Entrepot,
-             departements: Mapping[str, str]) -> Dict[str, Dict[str, object]]:
-    """Rectangle englobant et nombre des points localisés de chaque page
-    départementale — voir EMPRISES en tête de module. Lecture par curseur :
-    seuls quatre bornes et un compteur par département sont tenus (D1)."""
+def _part(localises: int, total: int) -> Optional[float]:
+    """Part des localisés en pour cent, au dixième — voir COUVERTURE."""
+    if not total:
+        return None
+    part = round(100 * localises / total, 1)
+    if part == 100.0 and localises < total:
+        return 99.9
+    if part == 0.0 and localises:
+        return 0.1
+    return part
+
+
+def _entree_couverture() -> Dict[str, object]:
+    return {"total": 0, "localises": 0, "non_localises": 0, "sans_coordonnees": 0,
+            "coordonnees_invalides": 0, "part_localises": None}
+
+
+def couverture(entrepot: Entrepot,
+               departements: Mapping[str, str]) -> Dict[str, object]:
+    """Compteurs de localisation, national et par page départementale, et
+    emprise des points de chaque département — voir COUVERTURE en tête de
+    module. Lecture par curseur : seuls des compteurs et quatre bornes par
+    département sont tenus (D1)."""
     if entrepot.connexion is None:
         raise ErreurExportGeo("entrepôt non ouvert")
-    resultat: Dict[str, Dict[str, object]] = {
-        code: {"localises": 0, "emprise": None}
+    national = _entree_couverture()
+    par_departement: Dict[str, Dict[str, object]] = {
+        code: dict(_entree_couverture(), emprise=None)
         for code in list(departements) + [PAGE_INDETERMINEE]}
+    cles = {"sans": "sans_coordonnees", "invalide": "coordonnees_invalides", "ok": "localises"}
     curseur = entrepot.connexion.execute(
         _REQUETE, (USAGE_ADRESSE_PRINCIPALE, USAGE_ADRESSE_PRINCIPALE))
     for (_finess, _court, _long, _categorie, _etat, cog_commune, x, y, _score_ban) in curseur:
-        _statut, position = _position(x, y)
+        statut, position = _position(x, y)
+        entree = par_departement[page_de(_departement(cog_commune), departements)]
+        for compteur in (national, entree):
+            compteur["total"] += 1
+            compteur[cles[statut]] += 1
+            if position is None:
+                compteur["non_localises"] += 1
         if position is None:
             continue
-        entree = resultat[page_de(_departement(cog_commune), departements)]
-        entree["localises"] += 1
         longitude, latitude = position
         emprise = entree["emprise"]
         if emprise is None:
@@ -208,7 +259,34 @@ def emprises(entrepot: Entrepot,
             emprise[1] = min(emprise[1], latitude)
             emprise[2] = max(emprise[2], longitude)
             emprise[3] = max(emprise[3], latitude)
-    return resultat
+
+    attendu = entrepot.connexion.execute("SELECT COUNT(*) FROM etablissement").fetchone()[0]
+    for nom, entree in [("national", national)] + list(par_departement.items()):
+        if entree["localises"] + entree["non_localises"] != entree["total"]:
+            raise ErreurExportGeo(
+                f"couverture incohérente ({nom}) : {entree['localises']} localisé(s) + "
+                f"{entree['non_localises']} non localisé(s) pour {entree['total']}")
+        entree["part_localises"] = _part(entree["localises"], entree["total"])
+    for cle in ("total", "localises", "sans_coordonnees", "coordonnees_invalides"):
+        reparti = sum(entree[cle] for entree in par_departement.values())
+        if reparti != national[cle]:
+            raise ErreurExportGeo(
+                f"couverture incohérente : {reparti} ({cle}) répartis par département pour "
+                f"{national[cle]} au national")
+    if national["total"] != attendu:
+        raise ErreurExportGeo(
+            f"couverture incohérente : {national['total']} établissement(s) lus pour "
+            f"{attendu} dans la table etablissement")
+    return {"national": national, "par_departement": par_departement}
+
+
+def emprises(entrepot: Entrepot,
+             departements: Mapping[str, str]) -> Dict[str, Dict[str, object]]:
+    """Rectangle englobant et nombre des points localisés de chaque page
+    départementale — voir EMPRISES en tête de module ; extrait de
+    `couverture`, qui fait le parcours."""
+    return {code: {"localises": entree["localises"], "emprise": entree["emprise"]}
+            for code, entree in couverture(entrepot, departements)["par_departement"].items()}
 
 
 def exporter(entrepot: Entrepot, chemin_sortie: Path,

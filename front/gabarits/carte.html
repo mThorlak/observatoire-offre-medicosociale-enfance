@@ -16,6 +16,12 @@
   décide rien (D7) — le choix entre les explications nationale,
   départementale ou sans point localisé, et entre les deux blocs de listes,
   est fait en Python. Pas de « $ » littéral dans les blocs : l'écrire « $$ ».
+  Bandeau de couverture (OOM-112) : $couverture, rendu avant le cadre de la
+  carte et visible sans JavaScript (D10). Ses chiffres sont ceux
+  d'export_geo.couverture pour le périmètre de la carte, déjà mis en forme
+  par le module ; le choix du bandeau (vide ou non) et l'ajout des phrases
+  sur les coordonnées invalides et les établissements sans département sont
+  faits en Python (D7).
 -->
 
 <!-- BLOC titre -->Carte des établissements — $intitule<!-- FIN titre -->
@@ -26,6 +32,7 @@
 
 <!-- BLOC contenu -->
 <p class="perimetre" id="perimetre"><strong>Comptage brut : tous les établissements du répertoire FINESS, toutes catégories confondues — la qualification enfance/adolescents n'est pas encore appliquée.</strong> <a href="${racine}index.html#perimetre">Lire la mention de périmètre</a>.</p>
+$couverture
 $explication
 <p class="attribution-fond" id="attribution-fond">Fond de carte : <a href="$lien_fond">$attribution_fond</a>, sous <a href="$lien_licence_fond">$licence_fond</a>. Seul le fond est chargé depuis la Géoplateforme de l'IGN ; les établissements viennent de l'archive du site.</p>
 <noscript><p class="alerte">La carte interactive demande JavaScript. Sans elle, les établissements restent consultables dans les listes ci-dessous.</p></noscript>
@@ -35,11 +42,19 @@ $explication
 $listes
 <!-- FIN contenu -->
 
-<!-- BLOC explication_nationale --><p>Établissements FINESS localisés, placés à l'adresse principale de chaque établissement, quel que soit leur état : $localises_carte sur $nombre_carte. Les établissements sans coordonnées ne sont pas placés sur la carte, jamais à une position par défaut ; ils figurent dans les listes. Un clic sur un point ouvre sa fiche.</p><!-- FIN explication_nationale -->
+<!-- BLOC explication_nationale --><p>Établissements FINESS localisés, placés à l'adresse principale de chaque établissement, quel que soit leur état. Les établissements non localisés ne sont pas placés sur la carte, jamais à une position par défaut ; ils figurent dans les listes. Un clic sur un point ouvre sa fiche.</p><!-- FIN explication_nationale -->
 
-<!-- BLOC explication --><p>Établissements FINESS localisés dont l'adresse principale est située dans le département $libelle_departement (code INSEE $code_departement), quel que soit leur état : $localises_carte sur $nombre_carte. Les établissements sans coordonnées ne sont pas placés sur la carte ; ils figurent dans les listes du département. Un clic sur un point ouvre sa fiche.</p><!-- FIN explication -->
+<!-- BLOC explication --><p>Établissements FINESS localisés dont l'adresse principale est située dans le département $libelle_departement (code INSEE $code_departement), quel que soit leur état. Les établissements non localisés ne sont pas placés sur la carte ; ils figurent dans les listes du département. Un clic sur un point ouvre sa fiche.</p><!-- FIN explication -->
 
 <!-- BLOC explication_sans_point --><p>Aucun des $nombre_carte établissement(s) FINESS du département $libelle_departement (code INSEE $code_departement) n'est localisé : la carte n'y place aucun point et s'ouvre sur la France métropolitaine. Les fiches restent dans les listes du département.</p><!-- FIN explication_sans_point -->
+
+<!-- BLOC couverture --><section class="couverture" id="couverture" aria-labelledby="couverture-titre"><h2 id="couverture-titre">Couverture de cette carte</h2><p><strong>$part_localises des établissements $perimetre sont placés sur la carte : $localises sur $total.</strong> $non_localises n'y figurent pas : $sans_coordonnees sans coordonnées dans FINESS, $coordonnees_invalides aux coordonnées invalides.$invalides$indetermines</p><p>Tous les établissements, localisés ou non, sont listés depuis <a href="$lien_couverture">$cible_couverture</a>.</p></section><!-- FIN couverture -->
+
+<!-- BLOC couverture_invalides --> Les coordonnées invalides sont publiées par FINESS hors du domaine WGS84, le plus souvent interverties avec les coordonnées Lambert 93 de la même adresse : elles ne sont pas placées.<!-- FIN couverture_invalides -->
+
+<!-- BLOC couverture_indetermines --> Enfin, <a href="$lien_indetermine">$total_indetermine établissement(s) sans département déterminé</a>, dont $localises_indetermine localisé(s), sont comptés sur cette carte nationale et sur aucune carte départementale.<!-- FIN couverture_indetermines -->
+
+<!-- BLOC couverture_vide --><section class="couverture" id="couverture" aria-labelledby="couverture-titre"><h2 id="couverture-titre">Couverture de cette carte</h2><p><strong>Aucun établissement FINESS $perimetre : la carte n'en place aucun.</strong> Voir <a href="$lien_couverture">$cible_couverture</a>.</p></section><!-- FIN couverture_vide -->
 
 <!-- BLOC listes -->
 <nav class="carte-listes" id="listes"><a href="$lien_departement">Page du département $intitule</a><a href="$lien_sous_page">Liste de ses établissements</a><a href="$lien_nationale">Carte de la France entière</a></nav>
