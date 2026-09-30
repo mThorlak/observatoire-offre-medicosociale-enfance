@@ -8,10 +8,10 @@ et les points de coordination.
 - **Linear** : équipe `OOMS` (clé `OOM`), projet `OOMS`
 - **Épopées créées** : OOM-93, OOM-94, OOM-95, OOM-96 — 17 issues au départ, plus deux nées en cours
   de route : OOM-114 (dérive de source) et OOM-115 (découpage sous D9)
-- **État au 30/09/2026** : vagues 0 à 8 fusionnées. **Site en ligne** sur
-  https://mthorlak.github.io/observatoire-offre-medicosociale-enfance/, mensuel figé, catégories
-  ANS. **Carte en ligne** (`carte.html`, `carte/<code>.html`). Vague 9 (OOM-112, bandeau de
-  couverture) en cours ; voir section 10
+- **État au 30/09/2026** : **plan terminé**, vagues 0 à 9 fusionnées. Site en ligne sur
+  https://mthorlak.github.io/observatoire-offre-medicosociale-enfance/ (mensuel figé, catégories ANS),
+  carte en ligne avec son bandeau de couverture (`carte.html`, `carte/<code>.html`). Seule OOM-120 reste
+  ouverte, en Backlog sur décision de l'utilisateur (voir section 10)
 
 ---
 
@@ -298,7 +298,7 @@ vague 9, sans demander d'arbitrage — sauf condition d'arrêt ci-dessous.
 | OOM-54, OOM-117, OOM-118 | Fusionnées (`main` = `8807683`) : site sur le mensuel figé 202608, catégories alignées sur l'ANS TRE_R66 | — |
 | OOM-119, OOM-110 | Fusionnées (vague 7) : concurrence par référence, `export_geo.py` (contrat C) | — |
 | OOM-111, OOM-113 | Fusionnées (vague 8, `main` = `680bd54`) : archive PMTiles en CI, pages carte, MapLibre à la demande, fond IGN | — |
-| OOM-112 | En cours (vague 9) : bandeau de couverture | Contrôler, fusionner, republier |
+| OOM-112 | Fusionnée (vague 9, `main` = `4064aeb`) : bandeau de couverture, 55,7 % au national sur 202608 | — |
 | OOM-120 | Backlog, **ne pas lancer sans demande** : récupérer 23 315 coordonnées permutées | Sur décision de l'utilisateur |
 
 **Plan carte, 30/09/2026** (plan approuvé par l'utilisateur) : fond de carte **IGN Géoplateforme**,

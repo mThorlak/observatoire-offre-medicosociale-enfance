@@ -58,7 +58,8 @@ GeoJSON des établissements, entrée de tippecanoe (couche 6, OOM-110, contrat C
 versionné ni publié (D8) ; établissements sans coordonnées ou hors WGS84 comptés et exclus ; `lien`
 calculé par `export_html.page_de`/`numero_sous_page`, jamais une règle recopiée. `export_geo.emprises`
 (OOM-113) donne, par département, le rectangle englobant de ces mêmes points : c'est le cadrage des
-cartes départementales.
+cartes départementales. `export_geo.couverture` (OOM-112) donne, national et par département, les
+compteurs du bandeau de couverture et l'emprise ; `emprises` en est un extrait.
 
 **Tests** — pas de pytest, pas d'assert : chaque `tests/test_*.py` est un script autonome qui
 s'exécute directement, incrémente un compteur local `ok`/`ko` via une fonction `verifier(...)`, et se
@@ -177,6 +178,16 @@ ouvre une fenêtre (nom, libellé de catégorie, lien `lien` vers la fiche, ancr
 sur chaque ligne de sous-page). `front/vendor/` absent, ou un script vendorisé manquant, lève
 `ErreurExportHtml` avant toute écriture. Pas de carte en découpage national (les `lien` visent les
 sous-pages départementales) ni pour la page indéterminée (ses points localisés sont sur la nationale).
+**Bandeau de couverture (OOM-112).** Chaque carte porte, dans son HTML initial et avant le cadre
+(D10), la part des établissements **de son propre périmètre** qui y sont placés, le nombre de
+non-localisés décomposé en « sans coordonnées » / « coordonnées invalides », et un lien vers la page qui
+les liste tous (page du département, accueil pour la nationale). La nationale annonce en plus les
+établissements sans département déterminé, qui ne sont sur aucune carte départementale. Les chiffres
+viennent d'`export_geo.couverture` (invariants D6 bloquants, part au dixième qui n'arrondit jamais à
+100,0 ni à 0,0 à tort) et `export_html` ne fait que les mettre en forme ; le total de chaque bandeau est
+vérifié égal à l'effectif rendu du même périmètre (`ErreurExportHtml` sinon). Les coordonnées
+invalides sont, sur 202608, des coordonnées interverties dans la source (OOM-120, Backlog) : le
+bandeau le dit sans promettre de correction.
 Rendu du site, puis mesure du budget D9 (`mesures/poids_site.py`, code de retour 1 si une page
 dépasse 500 Ko ; rapport versionné `mesures/poids_site.md`) :
 ```bash
