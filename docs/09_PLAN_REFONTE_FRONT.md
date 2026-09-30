@@ -8,10 +8,10 @@ et les points de coordination.
 - **Linear** : équipe `OOMS` (clé `OOM`), projet `OOMS`
 - **Épopées créées** : OOM-93, OOM-94, OOM-95, OOM-96 — 17 issues au départ, plus deux nées en cours
   de route : OOM-114 (dérive de source) et OOM-115 (découpage sous D9)
-- **État au 29/09/2026** : vagues 0 à 6 fusionnées. **Site en ligne** sur
-  https://mthorlak.github.io/observatoire-offre-medicosociale-enfance/ (OOM-55, OOM-116).
-  Publication fiabilisée : mensuel figé et citable (OOM-54), catégories complètes (OOM-117,
-  OOM-118). Prochaine étape : OOM-119, puis vagues 7 à 9 (voir section 10)
+- **État au 30/09/2026** : vagues 0 à 8 fusionnées. **Site en ligne** sur
+  https://mthorlak.github.io/observatoire-offre-medicosociale-enfance/, mensuel figé, catégories
+  ANS. **Carte en ligne** (`carte.html`, `carte/<code>.html`). Vague 9 (OOM-112, bandeau de
+  couverture) en cours ; voir section 10
 
 ---
 
@@ -289,16 +289,24 @@ python tests/tout.py
 La stratégie A étant arbitrée (section 6), Orca déroule le plan seul, de la vague 0 à la
 vague 9, sans demander d'arbitrage — sauf condition d'arrêt ci-dessous.
 
-### État au 29/09/2026
+### État au 30/09/2026
 
 | Issue | État | Action |
 | --- | --- | --- |
 | OOM-97 à OOM-109, OOM-114, OOM-115 | Fusionnées | — |
 | OOM-55, OOM-116 | Fusionnées (`main` = `c870f33`) : site public en ligne | — |
 | OOM-54, OOM-117, OOM-118 | Fusionnées (`main` = `8807683`) : site sur le mensuel figé 202608, catégories alignées sur l'ANS TRE_R66 | — |
-| OOM-119 | Backlog : concurrence de `pages.yml` par référence | **À faire avant la vague 7** (beaucoup de runs de branche) |
-| OOM-110 | Backlog, débloquée par OOM-115 | Vague 7, après OOM-119 |
-| OOM-111 à OOM-113 | Backlog | Selon la boucle |
+| OOM-119, OOM-110 | Fusionnées (vague 7) : concurrence par référence, `export_geo.py` (contrat C) | — |
+| OOM-111, OOM-113 | Fusionnées (vague 8, `main` = `680bd54`) : archive PMTiles en CI, pages carte, MapLibre à la demande, fond IGN | — |
+| OOM-112 | En cours (vague 9) : bandeau de couverture | Contrôler, fusionner, republier |
+| OOM-120 | Backlog, **ne pas lancer sans demande** : récupérer 23 315 coordonnées permutées | Sur décision de l'utilisateur |
+
+**Plan carte, 30/09/2026** (plan approuvé par l'utilisateur) : fond de carte **IGN Géoplateforme**,
+MapLibre chargé **à la demande** (D9 inchangé), contrat C posé par OOM-110 (`export_geo.exporter`,
+GeoJSON hors de `site/`, archive `tuiles/etablissements.pmtiles`, couche `etablissements`). L'ordre a
+changé par rapport à la section 4 : 119 ∥ 110, puis 111 ∥ 113, puis 112, qui vient après 113 parce
+que les deux écrivent dans `carte.html`. Le contrôle `Range` en ligne est fait (206,
+`application/octet-stream`, voir le commentaire d'OOM-111).
 
 **Mise en ligne, 29/09/2026.** Priorité choisie par l'utilisateur : publier vite. Pages est
 passé en `build_type=workflow` et `PAGES_ACTIVE=true` ; le site est construit par

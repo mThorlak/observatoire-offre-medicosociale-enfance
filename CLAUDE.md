@@ -269,6 +269,15 @@ longitude = `coordonnee_x`, latitude = `coordonnee_y` — **jamais** les `direct
 des degrés ni dans l'ordre que leur nom annonce. Les six colonnes issues de `coordonneesGeographique`
 sont nulles ou renseignées ensemble.
 
+**Ce tableau ne vaut pas pour toutes les lignes.** Sur l'extrait complet 202608 (mesure d'OOM-111), il
+est vrai pour 97 347 établissements. Pour **23 315 autres** (13,4 %, dont 381 outre-mer), les deux blocs
+sont **permutés dans la source** : les degrés WGS84 sont dans les `direction_*` et la projection dans
+les `coordonnee_*`. 53 959 n'ont aucune coordonnée. `export_geo` n'utilise que `coordonnee_*` et
+exclut les lignes hors de la plage WGS84, qu'il compte dans `coordonnees_invalides`, sans jamais les
+« réparer ». Les récupérer (seulement si une reprojection prouve la permutation, ligne par ligne,
+correction à la lecture, D3) relève d'**OOM-120**, écrite mais laissée en Backlog par décision de
+l'utilisateur (30/09/2026). Ne pas la lancer sans demande.
+
 **Charnière d'extensibilité** : `identifiant_externe` (entité pivot, système externe, valeur, méthode
 d'appariement, confiance) est le point d'accroche unique pour toute source future (INSEE, ROR, CNSA,
 IGN, OSM) — le test de validité de l'architecture est qu'ajouter une source ne coûte qu'un connecteur
