@@ -22,7 +22,9 @@
   l'îlot actifs/filtres.js n'ajoute que le filtrage, qui ne porte que sur la
   sous-page affichée — ce que la page dit en clair. Le rappel de périmètre de
   l'accueil tient ici en une ligne, en tête de contenu. Pas de « $ » littéral
-  dans les blocs : l'écrire « $$ ».
+  dans les blocs : l'écrire « $$ ». Chaque ligne porte l'ancre
+  id="et-<finess>" (OOM-113) : le lien d'un point de la carte (propriété
+  `lien` du contrat C) mène à sa fiche.
 -->
 
 <!-- BLOC titre -->$libelle_departement ($code_departement) — sous-page $numero sur $nombre_sous_pages<!-- FIN titre -->
@@ -75,7 +77,7 @@ $lignes
 <!-- BLOC option --><option value="$valeur">$valeur</option><!-- FIN option -->
 
 <!-- BLOC ligne -->
-<tr data-cat="$libelle_categorie" data-etat="$code_etat"><td>$num_finess</td><td>$nom</td><td>$categorie <span class="code-brut">($code_categorie)</span></td><td>$departement</td><td>$code_postal</td><td><span class="etat $classe_etat">$etat</span></td><td>$activites</td></tr>
+<tr id="$ancre" data-cat="$libelle_categorie" data-etat="$code_etat"><td>$num_finess</td><td>$nom</td><td>$categorie <span class="code-brut">($code_categorie)</span></td><td>$departement</td><td>$code_postal</td><td><span class="etat $classe_etat">$etat</span></td><td>$activites</td></tr>
 <!-- FIN ligne -->
 
 <!-- BLOC activites_aucune --><span class="code-brut">aucune</span><!-- FIN activites_aucune -->

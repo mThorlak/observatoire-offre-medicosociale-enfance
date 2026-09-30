@@ -73,6 +73,18 @@ localisés ou non, puisque tous ont leur ligne dans les sous-pages.
 D1 — lecture par curseur et écriture en flux : ni la table ni la collection
 ne sont tenues en mémoire, seuls les compteurs par département le sont.
 
+EMPRISES (OOM-113) — cadrage des cartes départementales
+-----------------------------------------------------------------
+    emprises(entrepot, departements) -> {dep: {"localises": int,
+                                               "emprise": [ouest, sud, est, nord] | None}}
+
+Une entrée par code de `departements` puis `PAGE_INDETERMINEE`, même vide :
+le rectangle englobant, en degrés WGS84, des points que `exporter` placerait
+dans ce département (même requête, même rattachement, mêmes exclusions), et
+leur nombre ; `None` si aucun n'est localisé. C'est sur ce rectangle
+qu'`export_html` cadre la carte d'un département : le cadrage suit les
+données publiées, sans référentiel géographique supplémentaire.
+
 Aucune dépendance tierce. Compatible Python 3.9+.
 """
 
@@ -82,7 +94,7 @@ import json
 import math
 import os
 from pathlib import Path
-from typing import Dict, Optional, Tuple, Union
+from typing import Dict, Mapping, Optional, Tuple, Union
 
 from entrepot import Entrepot
 from export_front import USAGE_ADRESSE_PRINCIPALE
@@ -91,7 +103,7 @@ from export_html import (LIGNES_PAR_SOUS_PAGE, PAGE_INDETERMINEE, ErreurExportHt
 from indicateurs import etat_objet_actif
 from territoires import ErreurTerritoires, charger_departements, departement_depuis_cog
 
-__all__ = ["exporter", "ErreurExportGeo", "ETAT_ACTIF", "ETAT_FERME"]
+__all__ = ["exporter", "emprises", "ErreurExportGeo", "ETAT_ACTIF", "ETAT_FERME"]
 
 ETAT_ACTIF = "actif"
 ETAT_FERME = "fermé"
@@ -167,6 +179,36 @@ def _score(texte: Optional[str]) -> Union[float, str, None]:
     except ValueError:
         return texte
     return valeur if math.isfinite(valeur) else texte
+
+
+def emprises(entrepot: Entrepot,
+             departements: Mapping[str, str]) -> Dict[str, Dict[str, object]]:
+    """Rectangle englobant et nombre des points localisés de chaque page
+    départementale — voir EMPRISES en tête de module. Lecture par curseur :
+    seuls quatre bornes et un compteur par département sont tenus (D1)."""
+    if entrepot.connexion is None:
+        raise ErreurExportGeo("entrepôt non ouvert")
+    resultat: Dict[str, Dict[str, object]] = {
+        code: {"localises": 0, "emprise": None}
+        for code in list(departements) + [PAGE_INDETERMINEE]}
+    curseur = entrepot.connexion.execute(
+        _REQUETE, (USAGE_ADRESSE_PRINCIPALE, USAGE_ADRESSE_PRINCIPALE))
+    for (_finess, _court, _long, _categorie, _etat, cog_commune, x, y, _score_ban) in curseur:
+        _statut, position = _position(x, y)
+        if position is None:
+            continue
+        entree = resultat[page_de(_departement(cog_commune), departements)]
+        entree["localises"] += 1
+        longitude, latitude = position
+        emprise = entree["emprise"]
+        if emprise is None:
+            entree["emprise"] = [longitude, latitude, longitude, latitude]
+        else:
+            emprise[0] = min(emprise[0], longitude)
+            emprise[1] = min(emprise[1], latitude)
+            emprise[2] = max(emprise[2], longitude)
+            emprise[3] = max(emprise[3], latitude)
+    return resultat
 
 
 def exporter(entrepot: Entrepot, chemin_sortie: Path,

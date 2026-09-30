@@ -27,6 +27,9 @@ Produit les pages du site depuis `front/gabarits/`, selon un découpage :
   fragment JSON par sous-page, chargé à la demande au premier clic sur un
   `<details>` (OOM-107) — voir contrat B, PAGINATION et FRAGMENTS
   D'ACTIVITÉS ;
+- découpage `"departement"` toujours : `carte.html` (France entière) et une
+  `carte/<code>.html` par département du référentiel (gabarit `carte.html`,
+  OOM-113) — voir CARTES ;
 - découpage `"national"` : `liste.html` — tous les établissements sur une
   seule page (même lecture qu'`export_front.etablissements_bruts` et
   `activites_par_etablissement`). Conservé pour consultation locale : à
@@ -103,6 +106,13 @@ le modèle d'`export_front.exporter` :
                                       = activites_total (vérifié)
     actifs_copies          list[str]  fichiers de `actifs/` copiés (OOM-102)
     octets_actifs          dict       {fichier: taille en octets}
+    pages_carte            dict       {code: points localisés de sa carte},
+                                      `""` pour la carte nationale (OOM-113) ;
+                                      vide en national
+    vendor_copies          list[str]  fichiers de `vendor/` copiés, chemins
+                                      relatifs au site (OOM-113) ; vide en
+                                      national
+    octets_vendor          dict       {fichier: taille en octets}
 
 CONTRAT B — chemins du site, posé par OOM-106, révisé par OOM-115
 -----------------------------------------------------------------
@@ -133,6 +143,15 @@ Relatifs à `dossier_sortie` (`site/` par défaut) :
                                     mêmes `<code>` et `<n>`, un par sous-page
                                     (OOM-107, OOM-115) — voir ci-dessous
     actifs/                         feuille de style et îlots JS (OOM-102)
+    carte.html                      carte de la France entière (OOM-113)
+    carte/<code>.html               carte d'un département du référentiel ;
+                                    aucune pour la page indéterminée, dont les
+                                    points localisés sont sur la nationale
+    vendor/                         MapLibre GL JS et pmtiles, avec leurs
+                                    licences — chargés au clic, jamais au
+                                    chargement initial (OOM-113)
+    tuiles/etablissements.pmtiles   archive des points (contrat C), écrite par
+                                    la publication (OOM-111), pas par ce module
 
 Tous les liens entre pages sont relatifs (le site est servi sous un
 sous-chemin GitHub Pages) : une page de `departement/` ou d'`indicateur/`
@@ -177,6 +196,25 @@ d'un panneau (une seule fois par page), puis remplit le panneau ; un échec de
 `fetch` s'affiche dans le panneau (D6). Un établissement sans activité porte
 « aucune » dans le HTML, sans panneau ni requête. Sans JavaScript, la page
 garde toutes ses fiches et un lien `<noscript>` vers le fragment (D10).
+
+CARTES (OOM-113) — MapLibre à la demande, fond IGN
+-----------------------------------------------------------------
+Une carte est une page comme les autres : son contenu utile est en HTML
+(périmètre, attribution du fond IGN, liens vers la page du département et
+ses listes, ou vers chaque carte départementale), et son chargement initial
+se limite à la feuille de style et à l'îlot `actifs/carte.js` — sous le
+budget D9. MapLibre (~1 Mo) ne l'est pas : `carte.js` injecte MapLibre et
+pmtiles depuis `vendor/` au clic sur « Afficher la carte » seulement. Tout
+ce dont l'îlot a besoin est écrit par ce module en attributs `data-*` :
+chemins relatifs des dépendances et de l'archive, couche, style du fond
+(`FOND_CARTE`, seul appel externe du site), attribution, filtre `dep`,
+cadrage (emprise des points du département, `export_geo.emprises` ; la
+métropole, `EMPRISE_METROPOLE`, pour la nationale ou un département sans
+point) et libellés des catégories présentes. Le dossier `vendor/` voisin de
+`dossier_gabarits` est recopié tel quel dans `dossier_sortie/vendor/` ; son
+absence, ou celle d'un script que `carte.js` chargera, est une erreur levée
+avant toute écriture. Chaque ligne de sous-page porte l'ancre
+`id="et-<finess>"` que vise la propriété `lien` des points.
 
 ACTIFS (OOM-102) — le dossier `actifs/` voisin de `dossier_gabarits` (feuille
 de style commune, îlots JS) est recopié tel quel dans `dossier_sortie/actifs/`
@@ -247,7 +285,9 @@ __all__ = ["rendre", "ErreurExportHtml", "GABARIT_BASE", "PAGES", "DOSSIER_GABAR
            "chemin_indicateur_departement", "DOSSIER_ACTIVITES", "chemin_fragment_activites",
            "LIGNES_PAR_SOUS_PAGE", "BUDGET_PAGE", "PAGES_NON_BORNEES", "decouper",
            "page_de", "numero_sous_page", "ancre_etablissement",
-           "DEPOT", "MENTIONS_PIED"]
+           "DEPOT", "MENTIONS_PIED", "GABARIT_CARTE", "PAGE_CARTE", "DOSSIER_CARTE",
+           "chemin_carte_departement", "DOSSIER_VENDOR", "VENDOR_CARTE", "ARCHIVE_TUILES",
+           "COUCHE_TUILES", "FOND_CARTE", "MENTIONS_FOND", "EMPRISE_METROPOLE"]
 
 GABARIT_BASE = "base.html"
 # Pages du découpage national (historique OOM-100).
@@ -269,6 +309,39 @@ RACINE_DEPARTEMENT = "../"
 RACINE_SOUS_PAGE = "../../"
 PAGE_INDETERMINEE = "indetermine"
 DOSSIER_ACTIVITES = "donnees/activites"
+
+# Cartes (OOM-113), en découpage départemental seulement : les points de
+# l'archive renvoient vers les sous-pages départementales (contrat C).
+GABARIT_CARTE = "carte.html"
+PAGE_CARTE = "carte.html"
+DOSSIER_CARTE = "carte"
+# Dépendances JS vendorisées (front/vendor/, recopié tel quel dans
+# site/vendor/) : chargées par actifs/carte.js au clic sur « Afficher la
+# carte », jamais par le HTML initial (D9). Chemins relatifs à la racine.
+DOSSIER_VENDOR = "vendor"
+VENDOR_CARTE = {
+    "maplibre": "vendor/maplibre-gl/maplibre-gl.js",
+    "maplibre_css": "vendor/maplibre-gl/maplibre-gl.css",
+    "pmtiles": "vendor/pmtiles/pmtiles.js",
+}
+# Archive des établissements (contrat C, produite par OOM-111) et sa couche.
+ARCHIVE_TUILES = "tuiles/etablissements.pmtiles"
+COUCHE_TUILES = "etablissements"
+# Fond de carte : style vectoriel Plan IGN de la Géoplateforme, gratuit, sans
+# clé, sous Licence Ouverte — le seul appel externe du site, qui ne porte que
+# le fond (décision du 30/09/2026). Attribution obligatoire, écrite dans la
+# page et passée à MapLibre.
+FOND_CARTE = "https://data.geopf.fr/annexes/ressources/vectorTiles/styles/PLAN.IGN/standard.json"
+MENTIONS_FOND = {
+    "attribution_fond": "© IGN – Plan IGN, Géoplateforme",
+    "lien_fond": "https://geoservices.ign.fr/services-geoplateforme-diffusion",
+    "licence_fond": "Licence Ouverte 2.0",
+    "lien_licence_fond": "https://www.etalab.gouv.fr/licence-ouverte-open-licence/",
+}
+# Cadrage de la carte nationale, et de repli d'un département sans point
+# localisé : la France métropolitaine, [ouest, sud, est, nord] en degrés WGS84.
+# Les départements d'outre-mer ont leur propre carte, cadrée sur leurs points.
+EMPRISE_METROPOLE = (-5.2, 41.3, 9.6, 51.1)
 
 # D9 (OOM-115) : aucune page au-delà de 500 Ko bruts au chargement initial.
 BUDGET_PAGE = 500 * 1024
@@ -350,6 +423,11 @@ def chemin_fragment_activites(code: str, numero: int) -> str:
     """Chemin relatif (contrat B) du fragment d'activités de la sous-page
     `chemin_sous_page(code, numero)` — mêmes `code` et `numero`."""
     return f"{DOSSIER_ACTIVITES}/{code}/{numero}.json"
+
+
+def chemin_carte_departement(code: str) -> str:
+    """Chemin relatif (contrat B) de la carte d'un département (OOM-113)."""
+    return f"{DOSSIER_CARTE}/{code}.html"
 
 
 def chemin_indicateur_departement(code: str) -> str:
@@ -550,6 +628,7 @@ def _lignes_etablissements(gabarit: Gabarit, etablissements: List[Dict[str, obje
                else (lambda e, a: _activites(gabarit, a)))
     return gabarit.repeter("ligne", ({
         "num_finess": _e(e["num_finess_et"]),
+        "ancre": _e(ancre_etablissement(e["num_finess_et"])),
         "nom": _e(e["nom"]),
         "code_categorie": _e(e["code_categorie"]),
         "libelle_categorie": _e(e["libelle_categorie"]),
@@ -756,6 +835,10 @@ def _page_departement(gabarit: Gabarit, donnees: _Donnees, code: str,
     valeurs["lignes_par_sous_page"] = borne
     valeurs["explication"] = gabarit.remplir(
         "explication_indeterminee" if code == PAGE_INDETERMINEE else "explication", valeurs)
+    valeurs["lien_carte"] = gabarit.remplir(
+        "carte_nationale" if code == PAGE_INDETERMINEE else "carte", {
+            "lien": _e(RACINE_DEPARTEMENT + (PAGE_CARTE if code == PAGE_INDETERMINEE
+                                             else chemin_carte_departement(code)))})
     valeurs["sous_pages"] = gabarit.repeter("sous_page", (
         {"lien": _e(f"{code}/{numero}.html"), "numero": numero, "effectif": len(tranche),
          "actifs": _actifs_parmi(tranche),
@@ -836,6 +919,78 @@ def _verifier_fragments(fragments: Mapping[str, bytes], donnees: _Donnees,
             f"{orphelines} orpheline(s) pour {compteurs['activites_total']} au total")
 
 
+def _emprise(valeurs: Iterable[float]) -> str:
+    """[ouest, sud, est, nord] en JSON compact, arrondi au millionième de
+    degré (~10 cm, la précision des coordonnées FINESS)."""
+    return json.dumps([round(v, 6) for v in valeurs], separators=(",", ":"))
+
+
+def _page_carte(gabarit: Gabarit, donnees: _Donnees, code: Optional[str],
+                localisation: Mapping[str, Mapping[str, object]], racine: str,
+                compteurs: Dict[str, object]) -> Dict[str, object]:
+    """Carte nationale (`code` None) ou d'un département (OOM-113).
+
+    La page porte son contenu en HTML — périmètre, attribution du fond, liens
+    vers la page du département et ses listes, ou vers chaque carte
+    départementale — et, en attributs `data-*` de `#carte`, tout ce dont
+    l'îlot `carte.js` a besoin : chemins relatifs de MapLibre, de `pmtiles` et
+    de l'archive, style du fond, filtre `dep`, cadrage et libellés des
+    catégories présentes. Aucune de ces valeurs n'est calculée dans le
+    gabarit ni dans le JS (D7) ; aucun `<script src>` vers `vendor/` (D9)."""
+    if code is None:
+        etablissements = donnees.etablissements()
+        localises = sum(e["localises"] for e in localisation.values())
+        emprise = EMPRISE_METROPOLE
+    else:
+        etablissements = [e for e in donnees.etablissements() if donnees.page_de(e) == code]
+        localises = localisation[code]["localises"]
+        emprise = localisation[code]["emprise"] or EMPRISE_METROPOLE
+    categories = {e["code_categorie"]: e["libelle_categorie"] for e in etablissements
+                  if e["code_categorie"] and e["libelle_categorie"]}
+    valeurs = dict(compteurs)
+    valeurs.update({cle: _e(v) for cle, v in MENTIONS_FOND.items()})
+    valeurs.update({
+        "code_departement": _e(code or ""),
+        "libelle_departement": _e(donnees.departements[code]) if code else "",
+        "nombre_carte": len(etablissements),
+        "localises_carte": localises,
+        "racine_carte": _e(racine),
+        "archive": _e(racine + ARCHIVE_TUILES),
+        "couche": _e(COUCHE_TUILES),
+        "fond": _e(FOND_CARTE),
+        "dep": _e(code or ""),
+        "emprise": _e(_emprise(emprise)),
+        "categories": _e(json.dumps(dict(sorted(categories.items())), ensure_ascii=False,
+                                    separators=(",", ":"))),
+        "maplibre": _e(racine + VENDOR_CARTE["maplibre"]),
+        "maplibre_css": _e(racine + VENDOR_CARTE["maplibre_css"]),
+        "pmtiles": _e(racine + VENDOR_CARTE["pmtiles"]),
+    })
+    if code is None:
+        valeurs["intitule"] = "France entière"
+        valeurs["explication"] = gabarit.remplir("explication_nationale", valeurs)
+        valeurs["listes"] = gabarit.remplir("listes_nationales", {
+            "lien_departements": "index.html#par-departement",
+            "cartes": gabarit.repeter("carte_departement", (
+                {"lien": _e(chemin_carte_departement(c)), "code_departement": _e(c),
+                 "libelle_departement": _e(libelle)}
+                for c, libelle in donnees.departements.items()), "\n")})
+    else:
+        valeurs["intitule"] = f"{valeurs['libelle_departement']} ({valeurs['code_departement']})"
+        valeurs["explication"] = gabarit.remplir(
+            "explication" if localisation[code]["emprise"] else "explication_sans_point",
+            valeurs)
+        valeurs["listes"] = gabarit.remplir("listes", {
+            "lien_departement": _e(racine + chemin_page_departement(code)),
+            "lien_sous_page": _e(racine + chemin_sous_page(code, 1)),
+            "lien_nationale": _e(racine + PAGE_CARTE),
+            "intitule": valeurs["intitule"]})
+    page = PAGE_CARTE if code is None else chemin_carte_departement(code)
+    compteurs["lignes_rendues"][page] = localises
+    compteurs["pages_carte"][code or ""] = localises
+    return valeurs
+
+
 _CONSTRUCTEURS = {"index.html": _page_accueil, "liste.html": _page_liste,
                   "indicateur.html": _page_indicateur}
 
@@ -850,6 +1005,31 @@ def _actifs(dossier_gabarits: Path) -> List[Path]:
     if not dossier.is_dir():
         raise ErreurExportHtml(f"dossier d'actifs manquant : {dossier}")
     return sorted(chemin for chemin in dossier.iterdir() if chemin.is_file())
+
+
+def _vendor(dossier_gabarits: Path) -> List[Path]:
+    """Fichiers du dossier `vendor/` voisin des gabarits (OOM-113), triés ;
+    son absence, ou celle d'un fichier que `carte.js` chargera, est une
+    erreur levée avant toute écriture — jamais une carte qui échouerait au
+    clic sur un 404."""
+    dossier = dossier_gabarits.parent / DOSSIER_VENDOR
+    if not dossier.is_dir():
+        raise ErreurExportHtml(f"dossier des dépendances vendorisées manquant : {dossier}")
+    for relatif in VENDOR_CARTE.values():
+        chemin = dossier_gabarits.parent / relatif
+        if not chemin.is_file():
+            raise ErreurExportHtml(f"dépendance vendorisée manquante : {chemin}")
+    return sorted(chemin for chemin in dossier.rglob("*") if chemin.is_file())
+
+
+def _copier_vendor(vendor: List[Path], dossier_gabarits: Path, dossier_sortie: Path,
+                   compteurs: Dict[str, object]) -> None:
+    for chemin in vendor:
+        relatif = chemin.relative_to(dossier_gabarits.parent).as_posix()
+        (dossier_sortie / relatif).parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(chemin, dossier_sortie / relatif)
+        compteurs["vendor_copies"].append(relatif)
+        compteurs["octets_vendor"][relatif] = chemin.stat().st_size
 
 
 def _copier_actifs(actifs: List[Path], dossier_sortie: Path, compteurs: Dict[str, object]) -> None:
@@ -920,9 +1100,11 @@ def rendre(entrepot: Entrepot, dossier_gabarits: Path, dossier_sortie: Path,
     if decoupage == "departement":
         gabarits[GABARIT_DEPARTEMENT] = Gabarit(dossier_gabarits / GABARIT_DEPARTEMENT)
         gabarits[GABARIT_SOUS_PAGE] = Gabarit(dossier_gabarits / GABARIT_SOUS_PAGE)
+        gabarits[GABARIT_CARTE] = Gabarit(dossier_gabarits / GABARIT_CARTE)
     for gabarit in gabarits.values():
         gabarit.exiger(BLOCS_PAGE)
     actifs = _actifs(dossier_gabarits)
+    vendor = _vendor(dossier_gabarits) if decoupage == "departement" else []
     base_modele = Template(base.chemin.read_text(encoding="utf-8"))
 
     donnees = _Donnees(entrepot)
@@ -947,6 +1129,9 @@ def rendre(entrepot: Entrepot, dossier_gabarits: Path, dossier_sortie: Path,
         "octets_fragments": {},
         "activites_fragments": 0,
         "activites_orphelines": 0,
+        "pages_carte": {},
+        "vendor_copies": [],
+        "octets_vendor": {},
     }
     _compter_etablissements(donnees, compteurs)
     millesime = _e(compteurs["millesime"])
@@ -1011,6 +1196,21 @@ def rendre(entrepot: Entrepot, dossier_gabarits: Path, dossier_sortie: Path,
             raise ErreurExportHtml(f"sous-page(s) au-delà de {lignes_par_sous_page} lignes : {trop}")
         _verifier_fragments(fragments, donnees, compteurs)
 
+        # Cartes (OOM-113) : la nationale, puis une par département du
+        # référentiel. Les points localisés sans département déterminé ne
+        # figurent que sur la nationale (leur filtre `dep` serait
+        # `indetermine`, sans territoire sur quoi cadrer).
+        from export_geo import emprises  # export_geo importe ce module
+        localisation = emprises(entrepot, donnees.departements)
+        gabarit = gabarits[GABARIT_CARTE]
+        rendus[PAGE_CARTE] = habiller(PAGE_CARTE, gabarit, _page_carte(
+            gabarit, donnees, None, localisation, "", compteurs), "")
+        for code in donnees.departements:
+            page = chemin_carte_departement(code)
+            rendus[page] = habiller(page, gabarit, _page_carte(
+                gabarit, donnees, code, localisation, RACINE_DEPARTEMENT, compteurs),
+                RACINE_DEPARTEMENT)
+
     encodes = {page: contenu.encode("utf-8") for page, contenu in rendus.items()}
     _verifier_budget(encodes, sum(chemin.stat().st_size for chemin in actifs))
 
@@ -1025,6 +1225,7 @@ def rendre(entrepot: Entrepot, dossier_gabarits: Path, dossier_sortie: Path,
         compteurs["fragments_ecrits"].append(fragment)
         compteurs["octets_fragments"][fragment] = len(contenu_fragment)
     _copier_actifs(actifs, dossier_sortie, compteurs)
+    _copier_vendor(vendor, dossier_gabarits, dossier_sortie, compteurs)
     return compteurs
 
 
@@ -1055,7 +1256,7 @@ if __name__ == "__main__":
         sys.exit(f"export_html : {erreur}")
     print(f"Site écrit dans {arguments.sortie} — millésime {bilan['millesime']}, "
           f"découpage {bilan['decoupage']}")
-    dossiers = (DOSSIER_DEPARTEMENT + "/", DOSSIER_INDICATEUR + "/")
+    dossiers = (DOSSIER_DEPARTEMENT + "/", DOSSIER_INDICATEUR + "/", DOSSIER_CARTE + "/")
     for page in bilan["pages_ecrites"]:
         if not page.startswith(dossiers):
             print(f"    {page:<18}{bilan['lignes_rendues'][page]:>7} ligne(s)"
@@ -1084,6 +1285,14 @@ if __name__ == "__main__":
               f"{bilan['activites_orphelines']} orpheline(s) sans établissement rendu ; "
               f"le plus lourd {lourd} ({bilan['octets_fragments'][lourd] / 1024:.1f} Ko), "
               f"chargé à la demande")
+    if bilan["pages_carte"]:
+        cartes = [p for p in bilan["pages_ecrites"] if p.startswith(DOSSIER_CARTE + "/")]
+        lourde = max(cartes, key=lambda p: bilan["octets"][p])
+        vides = sum(1 for c, n in bilan["pages_carte"].items() if c and n == 0)
+        print(f"    {DOSSIER_CARTE}/ : {len(cartes)} carte(s) départementale(s), dont {vides} sans "
+              f"point localisé ; la plus lourde {lourde} ({bilan['octets'][lourde] / 1024:.1f} Ko) ; "
+              f"MapLibre chargé au clic depuis {DOSSIER_VENDOR}/ "
+              f"({sum(bilan['octets_vendor'].values()) / 1024:.1f} Ko, hors chargement initial)")
     for actif in bilan["actifs_copies"]:
         print(f"    {'actifs/' + actif:<34}{bilan['octets_actifs'][actif] / 1024:>10.1f} Ko")
     print(f"    {bilan['nombre_etablissements']} établissement(s), "

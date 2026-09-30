@@ -30,13 +30,26 @@ Vérifie `export_html.rendre` (contrats A et B) :
    page indéterminée, Corse en `2A.html` (D4, D6) ;
 3. un gabarit manquant : échec bruyant, chemin dans le message, rien d'écrit.
 
+1 quater. les cartes (OOM-113) : `carte.html` et une `carte/<code>.html` par
+   département, aucun `<script src>` ni `<link href>` vers `vendor/` au
+   chargement initial, chemins en data-* qui résolvent vers des fichiers
+   écrits, filtre `dep` et cadrage sur l'emprise des points du GeoJSON
+   d'`export_geo`, attribution IGN, liens sans JS, ancre `et-<finess>` de
+   chaque point présente dans la sous-page que vise son `lien`, dépendances
+   vendorisées copiées à l'identique (empreintes de front/vendor/README.md) ;
+   puis `carte.js` exécuté sous Node (harnais `tests/js/harnais_carte.js`,
+   doublures de MapLibre, pmtiles et fetch) : rien de chargé avant le clic,
+   MapLibre chargé au clic, message visible en cas d'échec de MapLibre, du
+   fond, de l'archive ou de WebGL ; et les vrais scripts vendorisés évalués
+   pour vérifier qu'ils exposent l'API qu'emploie `carte.js`.
+
 OOM-55 : le pied de page commun (lien vers le dépôt, statut non officiel,
 source, licence du code EUPL 1.2) sur chaque type de page, valeurs fournies
 par le module (`MENTIONS_PIED`), et le paragraphe « Méthode et
 reproductibilité » de l'accueil.
 """
 from __future__ import annotations
-import functools, html, http.server, json, re, shutil, subprocess, sys, tempfile, threading
+import functools, hashlib, html, http.server, json, re, shutil, subprocess, sys, tempfile, threading
 from pathlib import Path
 from urllib.parse import urljoin
 from urllib.request import urlopen
@@ -53,6 +66,7 @@ from finess_structures import SourceFinessStructures
 from indicateurs import indicateur_departement_categorie
 from nomenclatures import CodeCategorieInconnu, resoudre_categorie
 from territoires import charger_departements
+import export_geo
 import export_html as eh
 
 ECHANTILLON = Path(__file__).resolve().parent / "echantillon"
@@ -60,6 +74,7 @@ S = ECHANTILLON / "finess-structures-mensuel-202607-echantillon_json.gz"
 A = ECHANTILLON / "finess-activites-mensuel-202607-echantillon_json.gz"
 GABARITS = eh.DOSSIER_GABARITS
 ACTIFS = GABARITS.parent / "actifs"
+VENDOR = GABARITS.parent / "vendor"
 
 # Un `$` suivi d'un identifiant ou d'une accolade : trou de gabarit non rempli.
 _TROU = re.compile(r"\$[A-Za-z_{]")
@@ -73,7 +88,7 @@ PAGES_DEP = [eh.chemin_page_departement(c) for c in CODES]
 # Loire-Atlantique (44), 131 dans l'Ain (01) — plusieurs sous-pages.
 BORNE = 100
 # Une ligne d'établissement d'une sous-page (ses <td> suivent).
-_LIGNE = re.compile(r'<tr data-cat="[^"]*" data-etat="[^"]*"><td>([^<]*)</td>')
+_LIGNE = re.compile(r'<tr id="et-[^"]*" data-cat="[^"]*" data-etat="[^"]*"><td>([^<]*)</td>')
 
 ok = ko = 0
 
@@ -280,6 +295,290 @@ def _executer_ilot(site, base, fragments, page):
              n[5] == n[4] + 1 and o[5]["alerte"] and "Échec du chargement" in o[5]["alerte"], n)
 
 
+def _donnees_carte(contenu):
+    """Attributs data-* de `#carte`, tels que les lit `dataset` (camelCase,
+    entités décodées)."""
+    div = re.search(r'<div class="carte" id="carte"[^>]*>', contenu)
+    if not div:
+        return {}
+    return {re.sub(r"-(\w)", lambda m: m.group(1).upper(), cle): html.unescape(valeur)
+            for cle, valeur in re.findall(r'data-([\w-]+)="([^"]*)"', div.group(0))}
+
+
+def _hors_noscript(contenu):
+    return re.sub(r"<noscript>.*?</noscript>", "", contenu, flags=re.DOTALL)
+
+
+def verifier_cartes(site, bilan, geo, chemin_geo, etablissements, sous_pages):
+    print("\n1 quater. Cartes (OOM-113) : îlot MapLibre à la demande")
+    points = json.loads(chemin_geo.read_text(encoding="utf-8"))["features"]
+    cartes = {p: lire(site, p) for p in bilan["pages_ecrites"]
+              if p == eh.PAGE_CARTE or p.startswith(eh.DOSSIER_CARTE + "/")}
+    verifier("une carte nationale et une par département du référentiel (101), aucune "
+             "pour la page indéterminée",
+             sorted(cartes) == sorted([eh.PAGE_CARTE] + [eh.chemin_carte_departement(c)
+                                                         for c in DEPARTEMENTS])
+             and not (site / eh.DOSSIER_CARTE / "indetermine.html").exists(), len(cartes))
+
+    # D9 : rien de vendor/ au chargement initial, sur aucune page du site.
+    vers_vendor = [p for p in bilan["pages_ecrites"]
+                   if any("vendor/" in r for r in _sous_ressources(lire(site, p)))
+                   or re.search(r'src="[^"]*vendor', lire(site, p))]
+    verifier("aucune page ne charge vendor/ au chargement initial (<script src>, <link href>)",
+             not vers_vendor, vers_vendor[:3])
+    verifier("carte.html : chargement initial = feuille de style + carte.js, rien d'autre",
+             _sous_ressources(cartes[eh.PAGE_CARTE]) == ["actifs/ooms.css", "actifs/carte.js"],
+             _sous_ressources(cartes[eh.PAGE_CARTE]))
+    verifier("carte/44.html : idem, en relatif (../)",
+             _sous_ressources(cartes["carte/44.html"]) == ["../actifs/ooms.css",
+                                                          "../actifs/carte.js"])
+    source_js = (ACTIFS / "carte.js").read_text(encoding="utf-8")
+    code_js = re.sub(r"/\*.*?\*/", "", source_js, flags=re.DOTALL)
+    verifier("carte.js : aucune URL écrite en dur (chemins, fond et archive viennent de la page)",
+             "http" not in code_js and "vendor/" not in code_js and "tuiles/" not in code_js
+             and code_js.count("://") == 1 and '"pmtiles://" + archive' in code_js)
+    cdn = [f for d in (GABARITS, ACTIFS) for f in d.iterdir()
+           if re.search(r"https://.*cdn", f.read_text(encoding="utf-8"))]
+    verifier("aucun CDN dans front/gabarits/ ni front/actifs/", not cdn, cdn)
+
+    # Attributs data-* : chemins qui résolvent, archive et couche du contrat C.
+    defauts = {}
+    for page, contenu in cartes.items():
+        d = _donnees_carte(contenu)
+        racine = "" if page == eh.PAGE_CARTE else "../"
+        dossier = (site / page).parent
+        if d.get("racine") != racine: defauts[page] = f"racine {d.get('racine')!r}"
+        elif d.get("archive") != racine + eh.ARCHIVE_TUILES: defauts[page] = "archive"
+        elif d.get("couche") != eh.COUCHE_TUILES: defauts[page] = "couche"
+        elif d.get("fond") != eh.FOND_CARTE: defauts[page] = "fond"
+        elif not all((dossier / d.get(c, "?")).resolve().is_file()
+                     for c in ("maplibre", "maplibreCss", "pmtiles")):
+            defauts[page] = "dépendance vendorisée introuvable depuis la page"
+        elif 'id="carte" hidden' not in contenu or 'id="carte-commande" hidden' not in contenu:
+            defauts[page] = "carte ou bouton visible sans JS"
+        elif eh.MENTIONS_FOND["attribution_fond"] not in contenu \
+                or eh.MENTIONS_FOND["licence_fond"] not in contenu:
+            defauts[page] = "attribution IGN absente"
+    verifier("chaque carte : racine, archive tuiles/etablissements.pmtiles, couche, style IGN, "
+             "MapLibre/pmtiles résolus vers site/vendor/, carte et bouton cachés sans JS, "
+             "attribution IGN écrite", not defauts, list(defauts.items())[:3])
+    verifier("attribution IGN transmise à MapLibre (data-attribution)",
+             _donnees_carte(cartes["carte/44.html"])["attribution"]
+             == eh.MENTIONS_FOND["attribution_fond"] == "© IGN – Plan IGN, Géoplateforme")
+
+    # Filtre et cadrage : contre le GeoJSON d'export_geo, calculé à part.
+    par_dep = {}
+    for point in points:
+        par_dep.setdefault(point["properties"]["dep"], []).append(point)
+    decalages = []
+    for code in DEPARTEMENTS:
+        d = _donnees_carte(cartes[eh.chemin_carte_departement(code)])
+        dedans = par_dep.get(code, [])
+        if dedans:
+            xs = [p["geometry"]["coordinates"][0] for p in dedans]
+            ys = [p["geometry"]["coordinates"][1] for p in dedans]
+            attendu = [round(min(xs), 6), round(min(ys), 6), round(max(xs), 6), round(max(ys), 6)]
+        else:
+            attendu = list(eh.EMPRISE_METROPOLE)
+        if d["dep"] != code or json.loads(d["emprise"]) != attendu \
+                or bilan["pages_carte"][code] != len(dedans):
+            decalages.append((code, d["dep"], d["emprise"], attendu))
+    verifier("carte départementale : filtre dep = code, cadrage = emprise de ses points dans "
+             "le GeoJSON (métropole s'il n'en a aucun), points comptés",
+             not decalages, decalages[:2])
+    d_nat = _donnees_carte(cartes[eh.PAGE_CARTE])
+    verifier("carte nationale : sans filtre, cadrée sur la métropole, tous les points comptés",
+             d_nat["dep"] == "" and json.loads(d_nat["emprise"]) == list(eh.EMPRISE_METROPOLE)
+             and bilan["pages_carte"][""] == len(points) == geo["localises"],
+             (d_nat["dep"], bilan["pages_carte"].get("")))
+    verifier("carte/44.html : « N sur M » localisés écrit dans la page",
+             f"{len(par_dep['44'])} sur {sum(1 for x in etablissements if x['code_departement'] == '44')}"
+             in cartes["carte/44.html"])
+    vides = [c for c in DEPARTEMENTS if c not in par_dep]
+    verifier("département sans point localisé : explication explicite, jamais une carte muette",
+             vides and all("n'est localisé" in cartes[eh.chemin_carte_departement(c)]
+                           for c in vides), vides[:3])
+    libelles = {x["code_categorie"]: x["libelle_categorie"] for x in etablissements}
+    manquants = [c for c in DEPARTEMENTS for p in par_dep.get(c, [])
+                 if p["properties"]["categorie"] and libelles.get(p["properties"]["categorie"])
+                 and json.loads(_donnees_carte(cartes[eh.chemin_carte_departement(c)])
+                                ["categories"]).get(p["properties"]["categorie"])
+                 != libelles[p["properties"]["categorie"]]]
+    verifier("libellés de catégorie : ceux de chaque point de la carte, depuis le référentiel",
+             not manquants, manquants[:3])
+
+    # Sans JS (D10) : liens vers la page du département et sa liste.
+    page_44 = _hors_noscript(cartes["carte/44.html"])
+    verifier("sans JS, carte/44.html renvoie vers la page du département et sa liste",
+             'href="../departement/44.html"' in page_44 and 'href="../departement/44/1.html"' in page_44
+             and "<noscript>" in cartes["carte/44.html"])
+    verifier("sans JS, carte.html liste chaque carte départementale et les listes par département",
+             all(f'href="{eh.chemin_carte_departement(c)}"' in cartes[eh.PAGE_CARTE]
+                 for c in DEPARTEMENTS) and 'href="index.html#par-departement"'
+             in _hors_noscript(cartes[eh.PAGE_CARTE]))
+    verifier("accès aux cartes : accueil -> carte.html, département -> sa carte, indéterminé -> "
+             "carte nationale",
+             'href="carte.html"' in lire(site, "index.html")
+             and 'href="../carte/44.html"' in lire(site, "departement/44.html")
+             and 'href="../carte.html"' in lire(site, "departement/indetermine.html"))
+
+    # Le lien de chaque point mène à une fiche réelle : ancre sur la sous-page.
+    ancres = {p: set(re.findall(r'<tr id="(et-[^"]+)"', c)) for p, c in sous_pages.items()}
+    verifier("chaque ligne de sous-page porte l'ancre et-<finess> de sa fiche",
+             all(len(a) == len(_LIGNE.findall(sous_pages[p])) for p, a in ancres.items())
+             and all(f'<tr id="et-{n}" ' in c for p, c in sous_pages.items()
+                     for n in _LIGNE.findall(c)))
+    casses = []
+    for point in points:
+        page, _, ancre = point["properties"]["lien"].partition("#")
+        if ancre != f"et-{point['properties']['finess']}" or ancre not in ancres.get(page, ()):
+            casses.append(point["properties"]["lien"])
+    verifier(f"lien de chacun des {len(points)} points -> sous-page écrite portant son ancre",
+             points and not casses, casses[:3])
+
+    # Dépendances vendorisées : copiées à l'identique, empreintes documentées.
+    readme = (VENDOR / "README.md").read_text(encoding="utf-8")
+    empreintes = {rel: hashlib.sha256((VENDOR.parent / rel).read_bytes()).hexdigest()
+                  for rel in eh.VENDOR_CARTE.values()}
+    verifier("vendor/ : MapLibre, pmtiles et leurs licences copiés à l'identique",
+             all((site / r).read_bytes() == (VENDOR.parent / r).read_bytes()
+                 for r in bilan["vendor_copies"])
+             and {"vendor/maplibre-gl/LICENSE.txt", "vendor/pmtiles/LICENSE"}
+             <= set(bilan["vendor_copies"]), bilan["vendor_copies"])
+    verifier("vendor/ : empreintes SHA-256 = celles de front/vendor/README.md",
+             all(h in readme for h in empreintes.values()), empreintes)
+    octets = {p: len(c.encode("utf-8")) for p, c in cartes.items()}
+    verifier("D9 : la carte la plus lourde, avec tous les actifs, sous 500 Ko (MapLibre exclu, "
+             "chargé au clic)", max(octets.values()) + sum(
+                 p.stat().st_size for p in ACTIFS.iterdir() if p.is_file()) <= eh.BUDGET_PAGE,
+             max(octets.values()))
+
+    node = shutil.which("node")
+    if node is None:
+        print("  IGNORÉ carte.js et scripts vendorisés sous Node : node absent du PATH")
+        return
+    js = Path(__file__).resolve().parent / "js"
+    fini = subprocess.run([node, str(js / "verifier_vendor.js"),
+                           str(VENDOR.parent / eh.VENDOR_CARTE["maplibre"]),
+                           str(VENDOR.parent / eh.VENDOR_CARTE["pmtiles"])],
+                          capture_output=True, text=True, encoding="utf-8", timeout=120)
+    api = json.loads(fini.stdout) if fini.returncode == 0 else {}
+    verifier("scripts vendorisés évalués : MapLibre 5.24.0 et pmtiles exposent l'API de carte.js",
+             api.get("maplibre_version") == "5.24.0"
+             and api.get("maplibre") == ["Map", "Popup", "AttributionControl",
+                                         "NavigationControl", "addProtocol"]
+             and "Protocol" in api.get("pmtiles", []) and api.get("protocole_tile") == "function",
+             api or fini.stderr[-400:])
+
+    point_44 = par_dep["44"][0]
+
+    def executer(page, **scenario):
+        d = _donnees_carte(cartes[page])
+        scenario = {"dataset": d, "base": f"http://site.test/{page}", "fond": {"statut": 200},
+                    "clic_point": {"properties": point_44["properties"],
+                                   "coordinates": point_44["geometry"]["coordinates"]},
+                    **scenario}
+        chemin = site.parent / "scenario_carte.json"
+        chemin.write_text(json.dumps(scenario), encoding="utf-8")
+        fini = subprocess.run([node, str(js / "harnais_carte.js"), str(ACTIFS / "carte.js"),
+                               str(chemin)], capture_output=True, text=True, encoding="utf-8",
+                              timeout=60)
+        if fini.returncode != 0:
+            verifier(f"carte.js sous Node ({page}) : exécution", False, fini.stderr[-500:])
+            return None
+        return json.loads(fini.stdout)
+
+    d44 = _donnees_carte(cartes["carte/44.html"])
+    r = executer("carte/44.html")
+    if r:
+        avant, apres = r["avant_clic_attente"], r["apres_clics"][0]
+        verifier("Node : avant le clic, aucune requête, rien d'injecté, MapLibre non chargé, "
+                 "bouton montré, carte cachée",
+                 avant["requetes"] == [] and avant["injectes"] == [] and not avant["maplibre_charge"]
+                 and not avant["commande_cachee"] and avant["carte_cachee"]
+                 and r["avant_clic"]["injectes"] == [], avant)
+        verifier("Node : au clic, feuille de style et scripts de vendor/ injectés, style IGN demandé",
+                 apres["injectes"] == [
+                     {"type": "link", "href": d44["maplibreCss"], "rel": "stylesheet"},
+                     {"type": "script", "src": d44["maplibre"]},
+                     {"type": "script", "src": d44["pmtiles"]}]
+                 and apres["requetes"] == [eh.FOND_CARTE] and apres["maplibre_charge"], apres)
+        carte = r["recu"]["cartes"][0] if r["recu"]["cartes"] else {}
+        verifier("Node : carte construite dans #carte, cadrée sur l'emprise du département, "
+                 "carte visible, aucun message",
+                 carte.get("conteneur") and carte.get("bounds") == json.loads(d44["emprise"])
+                 and carte.get("style") == {"version": 8, "sources": {}, "layers": []}
+                 and not apres["carte_cachee"] and apres["etat_cache"], carte)
+        verifier("Node : attribution IGN passée à MapLibre",
+                 {"type": "attribution", "options": {
+                     "compact": False, "customAttribution": d44["attribution"]}}
+                 in r["recu"]["controles"], r["recu"]["controles"])
+        verifier("Node : protocole pmtiles, source = archive en URL absolue, couche du contrat C",
+                 r["recu"]["protocoles"] == [{"nom": "pmtiles", "fonction": "function"}]
+                 and r["recu"]["sources"] == [{
+                     "id": "etablissements", "type": "vector",
+                     "url": "pmtiles://http://site.test/tuiles/etablissements.pmtiles"}]
+                 and r["recu"]["calques"][0]["source-layer"] == eh.COUCHE_TUILES,
+                 r["recu"]["sources"])
+        verifier("Node : carte départementale filtrée sur dep",
+                 r["recu"]["calques"][0].get("filter") == ["==", ["get", "dep"], "44"],
+                 r["recu"]["calques"][0].get("filter"))
+        fenetre = r["recu"]["fenetres"][0] if r["recu"]["fenetres"] else {}
+        pr = point_44["properties"]
+        verifier("Node : clic sur un point -> fenêtre nom, libellé de catégorie, lien vers la fiche",
+                 pr["nom"] in fenetre.get("texte", "")
+                 and libelles[pr["categorie"]] in fenetre.get("texte", "")
+                 and fenetre.get("liens") == ["../" + pr["lien"]]
+                 and (site / "carte" / fenetre["liens"][0].split("#")[0]).resolve().is_file(), fenetre)
+    r = executer(eh.PAGE_CARTE)
+    if r:
+        verifier("Node : carte nationale sans filtre, archive résolue depuis la racine",
+                 r["recu"]["calques"] and "filter" not in r["recu"]["calques"][0]
+                 and r["recu"]["sources"][0]["url"]
+                 == "pmtiles://http://site.test/tuiles/etablissements.pmtiles"
+                 and r["recu"]["fenetres"][0]["liens"] == [point_44["properties"]["lien"]],
+                 r["recu"]["calques"][:1])
+    r = executer("carte/44.html", scripts_en_echec=[d44["maplibre"]], clics_bouton=2)
+    if r:
+        un, deux = r["apres_clics"]
+        verifier("Node : MapLibre introuvable -> message visible, carte jamais montrée, bouton "
+                 "rendu pour réessayer",
+                 not un["etat_cache"] and "n'a pas pu être affichée" in un["etat_texte"]
+                 and d44["maplibre"] in un["etat_texte"] and un["carte_cachee"]
+                 and not un["commande_cachee"] and not un["bouton_desactive"]
+                 and un["cartes"] == 0, un)
+        verifier("Node : second clic -> nouvelle tentative, un seul message affiché",
+                 len(deux["injectes"]) == 6 and deux["messages"] == 1 and deux["carte_cachee"], deux)
+    r = executer("carte/44.html", fond={"statut": 503})
+    if r:
+        apres = r["apres_clics"][0]
+        verifier("Node : style IGN en échec (HTTP 503) -> fond neutre, message, points quand même",
+                 r["recu"]["cartes"] and r["recu"]["cartes"][0]["style"] == "neutre"
+                 and "Fond de carte IGN indisponible (HTTP 503)" in apres["etat_texte"]
+                 and not apres["etat_cache"] and r["recu"]["sources"], apres)
+    r = executer("carte/44.html", fond={"reseau": True})
+    if r:
+        verifier("Node : style IGN injoignable (réseau) -> fond neutre et message",
+                 "Fond de carte IGN indisponible" in r["apres_clics"][0]["etat_texte"]
+                 and r["recu"]["cartes"][0]["style"] == "neutre")
+    r = executer("carte/44.html", evenements=[
+        {"sourceId": "etablissements", "message": "HTTP 404"},
+        {"sourceId": "etablissements", "message": "HTTP 404"},
+        {"sourceId": "plan_ign", "message": "HTTP 500"}])
+    if r:
+        apres = r["apres_clics"][0]
+        verifier("Node : archive en échec -> message visible (une fois), fond en échec -> message",
+                 "n'ont pas pu être chargés depuis l'archive (HTTP 404)" in apres["etat_texte"]
+                 and "partie du fond de carte" in apres["etat_texte"]
+                 and apres["messages"] == 2 and not apres["etat_cache"], apres)
+    r = executer("carte/44.html", webgl=False)
+    if r:
+        apres = r["apres_clics"][0]
+        verifier("Node : carte impossible à construire (WebGL) -> message, cadre caché",
+                 "WebGL indisponible" in apres["etat_texte"] and apres["carte_cachee"]
+                 and not apres["etat_cache"], apres)
+
+
 with tempfile.TemporaryDirectory(prefix="test_export_html_") as temporaire:
     TMP = Path(temporaire)
 
@@ -295,6 +594,7 @@ with tempfile.TemporaryDirectory(prefix="test_export_html_") as temporaire:
         bilan = eh.rendre(e, GABARITS, site, lignes_par_sous_page=BORNE)
         bilan_defaut = eh.rendre(e, GABARITS, site_defaut)
         bilan_national = eh.rendre(e, GABARITS, site_national, decoupage="national")
+        geo = export_geo.exporter(e, TMP / "etablissements.geojson", lignes_par_sous_page=BORNE)
 
         # Références indépendantes : les couches qu'export_html dit relire.
         etablissements = etablissements_bruts(e)
@@ -323,7 +623,8 @@ with tempfile.TemporaryDirectory(prefix="test_export_html_") as temporaire:
 
     ordre = [p for c in CODES for p in [eh.chemin_page_departement(c)]
              + [eh.chemin_sous_page(c, n) for n in range(1, len(tranches[c]) + 1)]]
-    attendues = list(eh.PAGES_NATIONALES["departement"]) + PAGES_IND + ordre
+    CARTES = [eh.PAGE_CARTE] + [eh.chemin_carte_departement(c) for c in DEPARTEMENTS]
+    attendues = list(eh.PAGES_NATIONALES["departement"]) + PAGES_IND + ordre + CARTES
     verifier("millésime de l'échantillon (202607)", bilan["millesime"] == "202607", bilan["millesime"])
     verifier("découpage par défaut : departement", bilan["decoupage"] == "departement",
              bilan["decoupage"])
@@ -518,10 +819,11 @@ with tempfile.TemporaryDirectory(prefix="test_export_html_") as temporaire:
         elif "<!-- BLOC" in contenu or "<!-- FIN" in contenu: defauts[page] = "commentaire de gabarit"
         elif "ooms.css" not in contenu: defauts[page] = "feuille de style absente"
         elif _ABSOLU.search(contenu): defauts[page] = "lien absolu"
-        elif set(re.findall(r'[^"\s>]*\.json', contenu)) - propre:
+        elif {j for j in re.findall(r'[^"\s>]*\.json', contenu) if "://" not in j} - propre:
             defauts[page] = "cite un JSON autre que son propre fragment"
     verifier("toutes les pages : aucun $ non substitué, aucun commentaire de gabarit, "
-             "feuille de style liée, aucun lien absolu, aucun JSON cité hors fragment propre",
+             "feuille de style liée, aucun lien absolu, aucun JSON du site cité hors fragment "
+             "propre (le style du fond IGN est externe)",
              not defauts, list(defauts.items())[:3])
     # Pied de page commun (OOM-55) : sur chaque type de page, valeurs du
     # module (jamais écrites dans un gabarit, D7), sans script (D10).
@@ -616,6 +918,7 @@ with tempfile.TemporaryDirectory(prefix="test_export_html_") as temporaire:
                  not (TMP / "site_borne_nulle").exists())
 
     verifier_activites_a_la_demande(site, bilan, activites, attendu_par_page, fragment_de, pages)
+    verifier_cartes(site, bilan, geo, TMP / "etablissements.geojson", etablissements, pages)
 
     # -----------------------------------------------------------------------
     print("\n1 bis. Découpage national (decoupage=\"national\")")
@@ -623,6 +926,12 @@ with tempfile.TemporaryDirectory(prefix="test_export_html_") as temporaire:
              "d'indicateur (découpées aussi en national)",
              bilan_national["pages_ecrites"] == list(eh.PAGES) + PAGES_IND,
              bilan_national["pages_ecrites"][:5])
+    verifier("aucune carte en national (les liens des points visent les sous-pages "
+             "départementales), aucune dépendance vendorisée copiée",
+             not (site_national / eh.PAGE_CARTE).exists()
+             and not (site_national / eh.DOSSIER_CARTE).exists()
+             and not (site_national / eh.DOSSIER_VENDOR).exists()
+             and bilan_national["pages_carte"] == {} and bilan_national["vendor_copies"] == [])
     verifier("aucune page départementale en national",
              not (site_national / "departement").exists()
              and bilan_national["pages_departement"] == {}
@@ -757,11 +1066,13 @@ with tempfile.TemporaryDirectory(prefix="test_export_html_") as temporaire:
                                     ("indicateur.html", "departement"),
                                     (eh.GABARIT_DEPARTEMENT, "departement"),
                                     (eh.GABARIT_SOUS_PAGE, "departement"),
+                                    (eh.GABARIT_CARTE, "departement"),
                                     (eh.GABARIT_INDICATEUR_DEPARTEMENT, "national"),
                                     ("liste.html", "national")):
             gabarits = TMP / f"gabarits_sans_{manquant}" / "gabarits"
             shutil.copytree(GABARITS, gabarits)
             shutil.copytree(ACTIFS, gabarits.parent / "actifs")
+            shutil.copytree(VENDOR, gabarits.parent / "vendor")
             (gabarits / manquant).unlink()
             sortie = TMP / f"sortie_sans_{manquant}"
             try:
@@ -779,6 +1090,7 @@ with tempfile.TemporaryDirectory(prefix="test_export_html_") as temporaire:
         gabarits = TMP / "gabarits_sans_departement_site_existant" / "gabarits"
         shutil.copytree(GABARITS, gabarits)
         shutil.copytree(ACTIFS, gabarits.parent / "actifs")
+        shutil.copytree(VENDOR, gabarits.parent / "vendor")
         (gabarits / eh.GABARIT_DEPARTEMENT).unlink()
         try:
             eh.rendre(e, gabarits, site)
@@ -792,6 +1104,7 @@ with tempfile.TemporaryDirectory(prefix="test_export_html_") as temporaire:
         gabarits = TMP / "gabarits_bloc_absent" / "gabarits"
         shutil.copytree(GABARITS, gabarits)
         shutil.copytree(ACTIFS, gabarits.parent / "actifs")
+        shutil.copytree(VENDOR, gabarits.parent / "vendor")
         cible = gabarits / "indicateur.html"
         cible.write_text(re.sub(r"<!-- BLOC contenu -->.*?<!-- FIN contenu -->", "",
                                 cible.read_text(encoding="utf-8"), flags=re.DOTALL),
@@ -804,6 +1117,24 @@ with tempfile.TemporaryDirectory(prefix="test_export_html_") as temporaire:
             verifier("bloc « contenu » absent : ErreurExportHtml levée",
                      str(cible) in str(erreur) and "contenu" in str(erreur), str(erreur))
         verifier("bloc « contenu » absent : dossier de sortie non créé", not sortie.exists())
+
+        # Dépendance vendorisée absente (OOM-113) : la carte échouerait au
+        # clic sur un 404 — l'export refuse avant d'écrire.
+        for absent in ("vendor", eh.VENDOR_CARTE["maplibre"], eh.VENDOR_CARTE["pmtiles"]):
+            racine = TMP / f"vendor_absent_{absent.replace('/', '_')}"
+            gabarits = racine / "gabarits"
+            shutil.copytree(GABARITS, gabarits)
+            shutil.copytree(ACTIFS, racine / "actifs")
+            shutil.copytree(VENDOR, racine / "vendor")
+            cible = racine / absent
+            shutil.rmtree(cible) if cible.is_dir() else cible.unlink()
+            sortie = TMP / f"sortie_{racine.name}"
+            try:
+                eh.rendre(e, gabarits, sortie)
+                verifier(f"{absent} absent : ErreurExportHtml levée", False)
+            except eh.ErreurExportHtml as erreur:
+                verifier(f"{absent} absent : ErreurExportHtml, chemin cité, rien d'écrit",
+                         str(cible) in str(erreur) and not sortie.exists(), str(erreur))
 
 print(f"\n{ok} OK, {ko} ÉCHEC(s)")
 sys.exit(1 if ko else 0)

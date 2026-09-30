@@ -161,3 +161,11 @@ details .alerte { margin: .4rem 0 0; white-space: normal; }
 /* ---- pages départementales paginées (OOM-115) ------------------------- */
 .limite { font-size: .85rem; color: var(--texte-att); }
 nav.sous-pages { margin: 0 0 1rem; }
+
+/* ---- carte (OOM-113) --------------------------------------------------- */
+.carte { height: 70vh; min-height: 320px; border: 1px solid var(--bordure); border-radius: 8px; margin: 1rem 0; }
+.carte[hidden], .carte-commande[hidden], #carte-etat[hidden] { display: none; }
+.carte-commande button { font: inherit; padding: .4rem .9rem; cursor: pointer; }
+.carte-listes a { color: var(--accent); margin-right: 1rem; }
+.carte-fenetre p { margin: .3rem 0 0; }
+.cartes-departements { columns: 16rem; }
