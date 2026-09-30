@@ -12,7 +12,9 @@
   Chaque bloc BLOC nom … FIN nom est un gabarit string.Template : il
   substitue des valeurs déjà calculées et échappées par le module, il ne
   décide rien (D7) — le choix entre « explication » et
-  « explication_indeterminee » est fait en Python. Le rappel de périmètre de
+  « explication_indeterminee », comme entre « carte » (lien vers
+  carte/<code>.html, OOM-113) et « carte_nationale » (département
+  indéterminé, sans carte propre), est fait en Python. Le rappel de périmètre de
   l'accueil tient ici en une ligne, en tête de contenu. Pas de « $ »
   littéral dans les blocs : l'écrire « $$ ».
 -->
@@ -34,12 +36,17 @@ $sous_pages
 </tbody>
 <tfoot><tr><td>Total</td><td class="effectif">$nombre_departement</td><td class="effectif">$actifs_departement</td><td colspan="2"></td></tr></tfoot>
 </table>
+$lien_carte
 <p><a href="${racine}index.html#par-departement">← Tous les départements</a></p>
 <!-- FIN contenu -->
 
 <!-- BLOC explication --><p>Établissements FINESS dont l'adresse principale est située dans le département $libelle_departement (code INSEE $code_departement), quel que soit leur état : $nombre_departement fiche(s), dont $actifs_departement actif(s).</p><!-- FIN explication -->
 
 <!-- BLOC explication_indeterminee --><p>Établissements FINESS dont le département n'a pas pu être déterminé : adresse principale absente (<em>[absent]</em>), code commune non résolu (<em>[non résolu]</em>), ou code résolu mais hors du référentiel des départements, comme une collectivité d'outre-mer (<em>[hors référentiel]</em>). Ils ne sont écartés d'aucune page : les voici, $nombre_departement fiche(s), dont $actifs_departement actif(s).</p><!-- FIN explication_indeterminee -->
+
+<!-- BLOC carte --><p><a href="$lien">Carte des établissements du département</a></p><!-- FIN carte -->
+
+<!-- BLOC carte_nationale --><p>Pas de carte pour un département indéterminé : ceux de ces établissements qui sont localisés figurent sur la <a href="$lien">carte de la France entière</a>.</p><!-- FIN carte_nationale -->
 
 <!-- BLOC sous_page -->
 <tr><td><a href="$lien">Sous-page $numero</a></td><td class="effectif">$effectif</td><td class="effectif">$actifs</td><td>$premier</td><td>$dernier</td></tr>

@@ -1,0 +1,57 @@
+<!--
+  Gabarit des cartes (OOM-113), rendu par src/export_html.py en découpage
+  départemental : carte.html (France entière) et carte/<code>.html, une par
+  département du référentiel referentiels/departements.csv (contrat B). Tous
+  les liens passent par $racine, jamais par un chemin absolu.
+  La page est utile sans JavaScript (D10) : périmètre, attribution du fond,
+  liens vers la page du département et ses listes (ou vers chaque carte
+  départementale). La carte elle-même est un îlot : actifs/carte.js montre le
+  bouton « Afficher la carte » et, au clic seulement, charge MapLibre et
+  pmtiles depuis vendor/ (chemins en data-*), le style du fond IGN et
+  l'archive tuiles/etablissements.pmtiles (contrat C). Aucun <script src> ni
+  <link href> vers vendor/ ici : MapLibre pèse plus que le budget D9 d'une
+  page, il n'est jamais chargé au chargement initial.
+  Chaque bloc BLOC nom … FIN nom est un gabarit string.Template : il
+  substitue des valeurs déjà calculées et échappées par le module, il ne
+  décide rien (D7) — le choix entre les explications nationale,
+  départementale ou sans point localisé, et entre les deux blocs de listes,
+  est fait en Python. Pas de « $ » littéral dans les blocs : l'écrire « $$ ».
+-->
+
+<!-- BLOC titre -->Carte des établissements — $intitule<!-- FIN titre -->
+
+<!-- BLOC pied -->Généré le $genere_le · millésime FINESS $millesime · $localises_carte établissement(s) localisé(s) sur cette carte, pour $nombre_carte fiche(s) dans son périmètre · $nombre_etablissements sur l'ensemble du site<!-- FIN pied -->
+
+<!-- BLOC style --><!-- FIN style -->
+
+<!-- BLOC contenu -->
+<p class="perimetre" id="perimetre"><strong>Comptage brut : tous les établissements du répertoire FINESS, toutes catégories confondues — la qualification enfance/adolescents n'est pas encore appliquée.</strong> <a href="${racine}index.html#perimetre">Lire la mention de périmètre</a>.</p>
+$explication
+<p class="attribution-fond" id="attribution-fond">Fond de carte : <a href="$lien_fond">$attribution_fond</a>, sous <a href="$lien_licence_fond">$licence_fond</a>. Seul le fond est chargé depuis la Géoplateforme de l'IGN ; les établissements viennent de l'archive du site.</p>
+<noscript><p class="alerte">La carte interactive demande JavaScript. Sans elle, les établissements restent consultables dans les listes ci-dessous.</p></noscript>
+<p class="carte-commande" id="carte-commande" hidden><button type="button" id="afficher-carte">Afficher la carte</button> La carte se charge à la demande : environ 1,4 Mo (bibliothèque MapLibre, style du fond IGN), puis les tuiles affichées.</p>
+<div class="alerte" id="carte-etat" role="alert" hidden></div>
+<div class="carte" id="carte" hidden data-racine="$racine_carte" data-archive="$archive" data-couche="$couche" data-fond="$fond" data-attribution="$attribution_fond" data-dep="$dep" data-emprise="$emprise" data-maplibre="$maplibre" data-maplibre-css="$maplibre_css" data-pmtiles="$pmtiles" data-categories="$categories"></div>
+$listes
+<!-- FIN contenu -->
+
+<!-- BLOC explication_nationale --><p>Établissements FINESS localisés, placés à l'adresse principale de chaque établissement, quel que soit leur état : $localises_carte sur $nombre_carte. Les établissements sans coordonnées ne sont pas placés sur la carte, jamais à une position par défaut ; ils figurent dans les listes. Un clic sur un point ouvre sa fiche.</p><!-- FIN explication_nationale -->
+
+<!-- BLOC explication --><p>Établissements FINESS localisés dont l'adresse principale est située dans le département $libelle_departement (code INSEE $code_departement), quel que soit leur état : $localises_carte sur $nombre_carte. Les établissements sans coordonnées ne sont pas placés sur la carte ; ils figurent dans les listes du département. Un clic sur un point ouvre sa fiche.</p><!-- FIN explication -->
+
+<!-- BLOC explication_sans_point --><p>Aucun des $nombre_carte établissement(s) FINESS du département $libelle_departement (code INSEE $code_departement) n'est localisé : la carte n'y place aucun point et s'ouvre sur la France métropolitaine. Les fiches restent dans les listes du département.</p><!-- FIN explication_sans_point -->
+
+<!-- BLOC listes -->
+<nav class="carte-listes" id="listes"><a href="$lien_departement">Page du département $intitule</a><a href="$lien_sous_page">Liste de ses établissements</a><a href="$lien_nationale">Carte de la France entière</a></nav>
+<!-- FIN listes -->
+
+<!-- BLOC listes_nationales -->
+<p id="listes">Les établissements sont listés <a href="$lien_departements">par département</a>. Une carte par département :</p>
+<ul class="cartes-departements" id="cartes-departements">
+$cartes
+</ul>
+<!-- FIN listes_nationales -->
+
+<!-- BLOC carte_departement --><li><a href="$lien">$libelle_departement ($code_departement)</a></li><!-- FIN carte_departement -->
+
+<!-- BLOC script --><script src="${racine}actifs/carte.js"></script><!-- FIN script -->

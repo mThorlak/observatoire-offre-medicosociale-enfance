@@ -52,7 +52,8 @@ DEPARTEMENTS = charger_departements()
 BORNE = 100  # comme test_export_html : 44 et 01 tiennent en plusieurs sous-pages
 PROPRIETES = {"finess", "nom", "categorie", "dep", "lien", "score_ban", "etat"}
 LAMBERT = "010002285"  # coordonnee_* en Lambert 93 dans l'échantillon
-_LIGNE = re.compile(r'<tr data-cat="[^"]*" data-etat="[^"]*"><td>([^<]*)</td>')
+# Une ligne de sous-page, dont l'ancre (OOM-113) est celle de son numéro FINESS.
+_LIGNE = re.compile(r'<tr id="et-([^"]*)" data-cat="[^"]*" data-etat="[^"]*"><td>\1</td>')
 
 ok = ko = 0
 
@@ -142,6 +143,7 @@ with tempfile.TemporaryDirectory(prefix="test_export_geo_") as temporaire:
         bilan_defaut = eg.exporter(e, sortie_defaut)
         rendu = eh.rendre(e, eh.DOSSIER_GABARITS, TMP / "site", lignes_par_sous_page=BORNE)
         rendu_defaut = eh.rendre(e, eh.DOSSIER_GABARITS, TMP / "site_defaut")
+        cadres = eg.emprises(e, DEPARTEMENTS)
 
         c = e.connexion
         nb_et = c.execute("SELECT COUNT(*) FROM etablissement").fetchone()[0]
@@ -256,6 +258,20 @@ with tempfile.TemporaryDirectory(prefix="test_export_geo_") as temporaire:
     verifier("par_departement = effectif de la page départementale du rendu",
              all(v["localises"] + v["non_localises"] == rendu["pages_departement"][d]
                  for d, v in bilan["par_departement"].items()))
+
+    # Emprises (OOM-113) : mêmes points que le GeoJSON, regroupés par dep.
+    attendues = {}
+    for p in points:
+        x, y = p["geometry"]["coordinates"]
+        r = attendues.setdefault(p["properties"]["dep"], [x, y, x, y])
+        attendues[p["properties"]["dep"]] = [min(r[0], x), min(r[1], y), max(r[2], x), max(r[3], y)]
+    verifier("emprises : 101 départements + indetermine, localisés = par_departement, rectangle "
+             "englobant des points du GeoJSON, None sans point",
+             list(cadres) == list(DEPARTEMENTS) + [eh.PAGE_INDETERMINEE]
+             and all(v["localises"] == bilan["par_departement"][d]["localises"]
+                     and v["emprise"] == attendues.get(d) for d, v in cadres.items()),
+             [(d, v, attendues.get(d)) for d, v in cadres.items()
+              if v["emprise"] != attendues.get(d)][:2])
 
     # -----------------------------------------------------------------------
     print("\n3. Cas synthétiques : indéterminés, coordonnées absentes ou invalides")

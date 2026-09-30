@@ -9,6 +9,14 @@ données publiques (FINESS, à terme INSEE/CNSA/ROR/IGN/OSM). Double finalité :
 réutilisable et reproductible, et des travaux scientifiques exploitant les données produites.
 Stdlib only + `openpyxl` (restitution Excel) — pas d'ORM, pas de framework, pas de service ni d'API :
 le contexte d'exécution cible reste un poste local et Termux (téléphone). Python 3.9+ compatible.
+Côté site publié, **une seule dépendance JavaScript d'exécution, vendorisée** (OOM-113) : MapLibre GL
+JS **5.24.0** et son protocole `pmtiles` **4.5.0** (licences BSD-3-Clause, empreintes SHA-256 dans
+`front/vendor/README.md`), copiés octet pour octet (`.gitattributes` : `-text`) dans `front/vendor/`,
+jamais chargés depuis un CDN. MapLibre 5 plutôt que 6 : la 6 n'est plus publiée qu'en modules ES
+multi-fichiers, la 5.24.0 est le dernier build UMD en un fichier. **Exception « fond IGN externe »** :
+le fond des cartes (style vectoriel Plan IGN, `data.geopf.fr`, gratuit, sans clé, Licence Ouverte,
+attribution IGN obligatoire) est le seul appel externe du site ; il ne porte que le fond, nos données
+restent dans notre archive PMTiles (décision du 30/09/2026).
 
 **Deux contraintes distinctes, à ne pas confondre** :
 - **Contrainte d'exécution** (`requirements.txt`, `openpyxl` seul) : ce que `src/` a le droit
@@ -48,7 +56,9 @@ national` pour une liste unique).
 GeoJSON des établissements, entrée de tippecanoe (couche 6, OOM-110, contrat C en tête de
 `src/export_geo.py`) : `python src/export_geo.py <base.sqlite> --sortie <fichier.geojson>` — jamais
 versionné ni publié (D8) ; établissements sans coordonnées ou hors WGS84 comptés et exclus ; `lien`
-calculé par `export_html.page_de`/`numero_sous_page`, jamais une règle recopiée.
+calculé par `export_html.page_de`/`numero_sous_page`, jamais une règle recopiée. `export_geo.emprises`
+(OOM-113) donne, par département, le rectangle englobant de ces mêmes points : c'est le cadrage des
+cartes départementales.
 
 **Tests** — pas de pytest, pas d'assert : chaque `tests/test_*.py` est un script autonome qui
 s'exécute directement, incrémente un compteur local `ok`/`ko` via une fonction `verifier(...)`, et se
@@ -148,7 +158,25 @@ rendu `[non résolu]` avec son code brut, jamais un libellé inventé. La liste 
 donnée versionnée (`referentiels/departements.csv`, COG INSEE, lue par
 `territoires.charger_departements`), jamais une liste en dur. Couvert par `tests/test_export_html.py`
 (OOM-104, OOM-106, OOM-107, OOM-115 — OOM-107 sert le site par `http.server` et exécute
-`activites.js` sous Node s'il est présent, contre un DOM factice, `tests/js/harnais_activites.js`).
+`activites.js` sous Node s'il est présent, contre un DOM factice, `tests/js/harnais_activites.js` ;
+OOM-113 exécute de même `carte.js` contre des doublures de MapLibre, pmtiles et fetch,
+`tests/js/harnais_carte.js`, et évalue les vrais scripts vendorisés, `tests/js/verifier_vendor.js`).
+
+**Cartes (OOM-113, D9 et D10 par construction).** En découpage départemental, `carte.html` (France
+entière, cadrée sur la métropole) et `carte/<code>.html` (une par département du référentiel, filtrée
+sur `dep`, cadrée sur l'emprise de ses points, métropole à défaut) sont rendues par le gabarit
+`carte.html`. Leur contenu utile est en HTML — périmètre, attribution IGN, liens vers la page du
+département et sa liste, ou vers chaque carte départementale — et leur chargement initial se limite
+à `ooms.css` + l'îlot `actifs/carte.js` : **aucun `<script src>` ni `<link href>` vers `vendor/`**.
+Le bouton « Afficher la carte » (caché sans JS) injecte au clic MapLibre et pmtiles depuis `vendor/`,
+dont les chemins, comme l'archive, la couche, le style du fond, le filtre, le cadrage et les libellés
+de catégorie, sont écrits par `export_html` en `data-*` de `#carte` — le JS ne contient aucune URL.
+Un échec (script, WebGL, style IGN, archive, tuiles) s'affiche dans `#carte-etat`, jamais un cadre
+vide (D6) ; un style IGN illisible est remplacé par un fond neutre, en le disant. Le clic sur un point
+ouvre une fenêtre (nom, libellé de catégorie, lien `lien` vers la fiche, ancre `id="et-<finess>"` posée
+sur chaque ligne de sous-page). `front/vendor/` absent, ou un script vendorisé manquant, lève
+`ErreurExportHtml` avant toute écriture. Pas de carte en découpage national (les `lien` visent les
+sous-pages départementales) ni pour la page indéterminée (ses points localisés sont sur la nationale).
 Rendu du site, puis mesure du budget D9 (`mesures/poids_site.py`, code de retour 1 si une page
 dépasse 500 Ko ; rapport versionné `mesures/poids_site.md`) :
 ```bash
@@ -177,10 +205,15 @@ et les filtres JS ne portent que sur la sous-page affichée, ce que la sous-page
 | `departement/<code>/<n>.html` | sous-page `n` = 1, 2… : au plus `LIGNES_PAR_SOUS_PAGE` établissements ; au moins une par département, même vide |
 | `donnees/activites/<code>/<n>.json` | fragment d'activités de la sous-page de mêmes `<code>` et `<n>`, un par sous-page (même vide : `{}`) ; structure d'`activites.json` (`{num_finess_et: [activité]}`) restreinte à la sous-page ; **chargé à la demande** par `actifs/activites.js` (OOM-107), jamais au chargement de la page |
 | `actifs/` | feuille de style et îlots JS |
+| `carte.html` | carte de la France entière (OOM-113) : contenu HTML + îlot `carte.js`, MapLibre chargé au clic |
+| `carte/<code>.html` | carte d'un département du référentiel (101), filtrée sur `dep`, cadrée sur ses points ; aucune pour `indetermine` |
+| `vendor/` | MapLibre GL JS 5.24.0 et pmtiles 4.5.0 avec leurs licences, recopiés de `front/vendor/` ; **jamais** référencés par le HTML initial |
+| `tuiles/etablissements.pmtiles` | archive des points, couche `etablissements` (contrat C) — produite par la publication (OOM-111), pas par `export_html` ; jamais versionnée (D8) |
 
 Tous les liens entre pages sont **relatifs** (site servi sous le sous-chemin GitHub Pages
 `/observatoire-offre-medicosociale-enfance/`) : une page de `departement/` ou d'`indicateur/` rejoint
-la racine par `../`, une sous-page par `../../`. Aucune page ne charge de JSON national. Chaque page
+la racine par `../`, une sous-page par `../../` ; une carte de `carte/` par `../`. Aucune page ne
+charge de JSON national. Chaque page
 et sous-page départementale rappelle en une ligne la mention de périmètre de l'accueil. La somme des
 établissements des sous-pages départementales est vérifiée égale au total, et celle des cases des
 pages d'indicateur au nombre de cases, avant écriture (`ErreurExportHtml` sinon, D6).

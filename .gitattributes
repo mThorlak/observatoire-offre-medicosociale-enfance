@@ -1,0 +1,4 @@
+# Dépendances JS vendorisées (OOM-113) : conservées octet pour octet, telles
+# que publiées sur npm — aucune conversion de fin de ligne, pour que leur
+# empreinte SHA-256 (front/vendor/README.md) reste vérifiable sur tout poste.
+front/vendor/** -text
