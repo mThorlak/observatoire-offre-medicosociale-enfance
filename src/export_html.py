@@ -151,6 +151,12 @@ est mesurée en octets bruts, comptée avec tous les actifs du site : au-delà
 de `BUDGET_PAGE` (500 Ko, D9), `ErreurExportHtml` nomme les pages fautives et
 rien n'est écrit.
 
+La règle est exposée pour qui doit désigner la sous-page d'un établissement
+sans rendre le site (`export_geo`, contrat C, OOM-110) : `page_de` donne le
+code de sa page départementale, `numero_sous_page` le numéro de sa sous-page
+d'après son rang dans cette page, `ancre_etablissement` son ancre. `decouper`
+est écrit sur `numero_sous_page` : une seule règle, jamais recopiée.
+
 FRAGMENTS D'ACTIVITÉS (OOM-107) — chargés à la demande, jamais en bloc
 -----------------------------------------------------------------
 Chaque sous-page départementale a son fragment
@@ -240,6 +246,7 @@ __all__ = ["rendre", "ErreurExportHtml", "GABARIT_BASE", "PAGES", "DOSSIER_GABAR
            "PAGE_INDETERMINEE", "chemin_page_departement", "chemin_sous_page",
            "chemin_indicateur_departement", "DOSSIER_ACTIVITES", "chemin_fragment_activites",
            "LIGNES_PAR_SOUS_PAGE", "BUDGET_PAGE", "PAGES_NON_BORNEES", "decouper",
+           "page_de", "numero_sous_page", "ancre_etablissement",
            "DEPOT", "MENTIONS_PIED"]
 
 GABARIT_BASE = "base.html"
@@ -317,6 +324,28 @@ def chemin_sous_page(code: str, numero: int) -> str:
     return f"{DOSSIER_DEPARTEMENT}/{code}/{numero}.html"
 
 
+def ancre_etablissement(num_finess_et: str) -> str:
+    """Ancre d'un établissement dans sa sous-page (`#et-<finess>`, contrat C,
+    OOM-110 ; posée dans le HTML par OOM-113)."""
+    return f"et-{num_finess_et}"
+
+
+def page_de(code_departement: Optional[str], departements: Mapping[str, str]) -> str:
+    """Code de la page départementale d'un établissement de département
+    `code_departement` (dérivé de son `cog_commune`, `None` si absent ou non
+    résolu) : ce code s'il est au référentiel `departements`, sinon
+    `PAGE_INDETERMINEE`."""
+    return code_departement if code_departement in departements else PAGE_INDETERMINEE
+
+
+def numero_sous_page(rang: int, borne: int) -> int:
+    """Numéro (1, 2…) de la sous-page qui porte l'élément de rang `rang`
+    (0, 1…) de sa page départementale, découpée par tranches de `borne`."""
+    if borne < 1:
+        raise ErreurExportHtml(f"borne de pagination invalide : {borne}")
+    return rang // borne + 1
+
+
 def chemin_fragment_activites(code: str, numero: int) -> str:
     """Chemin relatif (contrat B) du fragment d'activités de la sous-page
     `chemin_sous_page(code, numero)` — mêmes `code` et `numero`."""
@@ -333,9 +362,13 @@ def decouper(elements: List[Dict[str, object]], borne: int) -> List[List[Dict[st
     """Tranches consécutives d'au plus `borne` éléments, dans l'ordre ; au
     moins une, même vide — un département sans établissement a une sous-page,
     comme les autres (pas de cas particulier)."""
-    if borne < 1:
-        raise ErreurExportHtml(f"borne de pagination invalide : {borne}")
-    return [elements[i:i + borne] for i in range(0, len(elements), borne)] or [[]]
+    numero_sous_page(0, borne)  # borne invalide : erreur, même sans élément
+    tranches: List[List[Dict[str, object]]] = [[]]
+    for rang, element in enumerate(elements):
+        if numero_sous_page(rang, borne) > len(tranches):
+            tranches.append([])
+        tranches[-1].append(element)
+    return tranches
 
 
 # ---------------------------------------------------------------------------
@@ -420,8 +453,7 @@ class _Donnees:
     def page_de(self, etablissement: Mapping[str, object]) -> str:
         """Code de la page départementale d'un établissement : son code
         département s'il est au référentiel, sinon `PAGE_INDETERMINEE`."""
-        code = etablissement["code_departement"]
-        return code if code in self.departements else PAGE_INDETERMINEE
+        return page_de(etablissement["code_departement"], self.departements)
 
     def par_page(self) -> Dict[str, List[Dict[str, object]]]:
         """{code: établissements}, une entrée par département du référentiel

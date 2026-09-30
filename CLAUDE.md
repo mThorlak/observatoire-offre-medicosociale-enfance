@@ -45,6 +45,10 @@ python src/cli.py restituer <base.sqlite> [--sortie restitution/]   # export CSV
 Rendu du site statique (couche 6, hors CLI) : `python src/export_html.py <base.sqlite> --sortie site/`
 (une page par département par défaut, paginée en sous-pages bornées — OOM-115 —, `--decoupage
 national` pour une liste unique).
+GeoJSON des établissements, entrée de tippecanoe (couche 6, OOM-110, contrat C en tête de
+`src/export_geo.py`) : `python src/export_geo.py <base.sqlite> --sortie <fichier.geojson>` — jamais
+versionné ni publié (D8) ; établissements sans coordonnées ou hors WGS84 comptés et exclus ; `lien`
+calculé par `export_html.page_de`/`numero_sous_page`, jamais une règle recopiée.
 
 **Tests** — pas de pytest, pas d'assert : chaque `tests/test_*.py` est un script autonome qui
 s'exécute directement, incrémente un compteur local `ok`/`ko` via une fonction `verifier(...)`, et se
