@@ -42,6 +42,14 @@ Vérifie `export_html.rendre` (contrats A et B) :
    MapLibre chargé au clic, message visible en cas d'échec de MapLibre, du
    fond, de l'archive ou de WebGL ; et les vrais scripts vendorisés évalués
    pour vérifier qu'ils exposent l'API qu'emploie `carte.js`.
+1 quinquies. le bandeau de couverture (OOM-112) : sur chaque carte, dans le
+   HTML initial, avant le cadre, la part des localisés de son propre
+   périmètre, le nombre de non-localisés décomposé (sans coordonnées,
+   invalides) et le lien vers la page qui les liste tous ; chiffres égaux aux
+   compteurs d'`export_geo`, somme des départements = national (D6), un
+   bandeau incohérent avec le site lève `ErreurExportHtml` sans rien écrire ;
+   en 2., les établissements sans département déterminé annoncés sur la
+   carte nationale.
 
 OOM-55 : le pied de page commun (lien vers le dépôt, statut non officiel,
 source, licence du code EUPL 1.2) sur chaque type de page, valeurs fournies
@@ -307,6 +315,98 @@ def _donnees_carte(contenu):
 
 def _hors_noscript(contenu):
     return re.sub(r"<noscript>.*?</noscript>", "", contenu, flags=re.DOTALL)
+
+
+def _bandeau(contenu):
+    """Le bandeau de couverture d'une carte, balisage compris, ou ''."""
+    trouve = re.search(r'<section class="couverture" id="couverture".*?</section>', contenu,
+                       re.DOTALL)
+    return trouve.group(0) if trouve else ""
+
+
+def _fr(n):
+    return f"{n:,}".replace(",", " ")
+
+
+COMPTEURS_GEO = ("total", "localises", "non_localises", "sans_coordonnees",
+                 "coordonnees_invalides")
+
+
+def verifier_couverture(site, bilan, geo):
+    print("\n1 quinquies. Bandeau de couverture des cartes (OOM-112)")
+    cartes = {p: lire(site, p) for p in bilan["pages_ecrites"]
+              if p == eh.PAGE_CARTE or p.startswith(eh.DOSSIER_CARTE + "/")}
+    bandeaux = {p: _bandeau(c) for p, c in cartes.items()}
+    verifier("chaque carte porte un bandeau de couverture", all(bandeaux.values()),
+             [p for p, b in bandeaux.items() if not b][:3])
+    mal_places = [p for p, c in cartes.items()
+                  if not (0 <= c.find('id="couverture"') < c.find('<div class="carte" id="carte"'))
+                  or 'id="couverture"' not in _hors_noscript(c)
+                  or re.search(r'<section class="couverture"[^>]*hidden', c)]
+    verifier("bandeau dans le HTML initial, hors <noscript>, jamais caché, avant le cadre de "
+             "la carte (D10)", not mal_places, mal_places[:3])
+
+    # Les chiffres : ceux d'export_geo, calculés à part (GeoJSON), sans recalcul.
+    nationale = bilan["couverture_cartes"][""]
+    verifier("bilan : couverture nationale = compteurs d'export_geo.exporter",
+             all(nationale[k] == geo[k] for k in COMPTEURS_GEO), (nationale, geo))
+    national = bandeaux[eh.PAGE_CARTE]
+    verifier("carte.html annonce 65,1 %, 1 141 sur 1 753, 612 non localisés dont 611 sans "
+             "coordonnées et 1 invalide (échantillon)",
+             "<strong>65,1 % des établissements du répertoire FINESS sont placés sur la "
+             "carte : 1 141 sur 1 753.</strong>" in national
+             and "612 n'y figurent pas : 611 sans coordonnées dans FINESS, 1 aux coordonnées "
+             "invalides." in national, national)
+    verifier("carte.html : la phrase sur les coordonnées invalides (interverties avec le "
+             "Lambert 93), sans promesse de correction",
+             "interverties avec les coordonnées Lambert 93" in national
+             and "corrig" not in national, national)
+    verifier("carte.html : lien vers l'accueil, où figurent tous les établissements",
+             'href="index.html#par-departement">l\'accueil, par département</a>' in national)
+
+    ecarts = []
+    for code in DEPARTEMENTS:
+        page = eh.chemin_carte_departement(code)
+        chiffres = bilan["couverture_cartes"][code]
+        attendu = geo["par_departement"][code]
+        b = bandeaux[page]
+        if (chiffres["localises"], chiffres["non_localises"]) \
+                != (attendu["localises"], attendu["non_localises"]) \
+                or chiffres["total"] != bilan["pages_departement"][code]:
+            ecarts.append((code, "compteurs", chiffres, attendu))
+        elif f'href="../{eh.chemin_page_departement(code)}">la page du département</a>' not in b:
+            ecarts.append((code, "lien"))
+        elif chiffres["total"] == 0:
+            if "Aucun établissement FINESS du département" not in b:
+                ecarts.append((code, "vide"))
+        elif (f"{str(chiffres['part_localises']).replace('.', ',')} % des établissements "
+              f"du département" not in b
+              or f"{_fr(chiffres['localises'])} sur {_fr(chiffres['total'])}." not in b
+              or f"{_fr(chiffres['non_localises'])} n'y figurent pas : "
+                 f"{_fr(chiffres['sans_coordonnees'])} sans coordonnées dans FINESS, "
+                 f"{_fr(chiffres['coordonnees_invalides'])} aux coordonnées invalides." not in b
+              or ("interverties" in b) != bool(chiffres["coordonnees_invalides"])):
+            ecarts.append((code, "texte", b))
+    verifier("chaque carte départementale : ses propres chiffres (= export_geo), sa propre "
+             "part, sa décomposition, lien vers la page du département", not ecarts, ecarts[:2])
+    parts = {bilan["couverture_cartes"][c]["part_localises"] for c in DEPARTEMENTS
+             if bilan["couverture_cartes"][c]["total"]}
+    verifier("parts départementales distinctes, pas une moyenne nationale (44 : 58,3 %)",
+             len(parts) > 1 and "58,3 % des établissements du département"
+             in bandeaux["carte/44.html"], sorted(parts)[:5])
+    indet = dict(geo["par_departement"][eh.PAGE_INDETERMINEE])
+    indet["total"] = indet["localises"] + indet["non_localises"]
+    sommes = {k: sum(bilan["couverture_cartes"][c][k] for c in DEPARTEMENTS)
+              for k in ("total", "localises", "non_localises")}
+    verifier("somme des bandeaux départementaux (+ indéterminés, sur aucune carte "
+             "départementale) = bandeau national (D6)",
+             all(sommes[k] + indet[k] == nationale[k] for k in sommes), (sommes, indet))
+    verifier("échantillon : aucun indéterminé, la somme des bandeaux départementaux est "
+             "exactement le national", indet["total"] == 0
+             and all(sum(bilan["couverture_cartes"][c][k] for c in DEPARTEMENTS) == nationale[k]
+                     for k in COMPTEURS_GEO), indet)
+    verifier("aucun chiffre calculé dans le gabarit ni le JS : le bandeau n'est pas touché "
+             "par carte.js", "couverture" not in (ACTIFS / "carte.js").read_text(encoding="utf-8"))
 
 
 def verifier_cartes(site, bilan, geo, chemin_geo, etablissements, sous_pages):
@@ -919,6 +1019,27 @@ with tempfile.TemporaryDirectory(prefix="test_export_html_") as temporaire:
 
     verifier_activites_a_la_demande(site, bilan, activites, attendu_par_page, fragment_de, pages)
     verifier_cartes(site, bilan, geo, TMP / "etablissements.geojson", etablissements, pages)
+    verifier_couverture(site, bilan, geo)
+
+    # D6 : un bandeau qui ne compterait pas les établissements du site lève.
+    couverture = export_geo.couverture
+
+    def couverture_faussee(entrepot, departements):
+        resultat = couverture(entrepot, departements)
+        resultat["par_departement"]["44"]["total"] += 1
+        return resultat
+
+    export_geo.couverture = couverture_faussee
+    try:
+        with Entrepot(TMP / "echantillon.db") as e:
+            eh.rendre(e, GABARITS, TMP / "site_couverture_faussee", lignes_par_sous_page=BORNE)
+        verifier("bandeau incohérent avec le site -> ErreurExportHtml", False)
+    except eh.ErreurExportHtml as erreur:
+        verifier("bandeau incohérent avec le site -> ErreurExportHtml nommant la carte, rien "
+                 "d'écrit", "couverture incohérente pour la carte 44" in str(erreur)
+                 and not (TMP / "site_couverture_faussee").exists(), str(erreur))
+    finally:
+        export_geo.couverture = couverture
 
     # -----------------------------------------------------------------------
     print("\n1 bis. Découpage national (decoupage=\"national\")")
@@ -1054,6 +1175,19 @@ with tempfile.TemporaryDirectory(prefix="test_export_html_") as temporaire:
         verifier("index.html : la ligne « indéterminé » porte l'actif de 975 et ses 3 fiches",
                  '<a href="departement/indetermine.html">Département indéterminé</a></td>'
                  '<td class="effectif">1</td><td class="fiches">3</td>' in accueil)
+        bandeau = _bandeau(lire(site_inconnu, eh.PAGE_CARTE))
+        verifier("carte.html : bandeau à 0,0 % (aucune coordonnée), les 3 sans département "
+                 "déterminé comptés et liés à la page indéterminée, sans phrase d'invalides",
+                 "0,0 % des établissements du répertoire FINESS" in bandeau
+                 and "0 sur 6." in bandeau and "6 n'y figurent pas : 6 sans coordonnées" in bandeau
+                 and '<a href="departement/indetermine.html">3 établissement(s) sans département '
+                     'déterminé</a>, dont 0 localisé(s)' in bandeau
+                 and "interverties" not in bandeau, bandeau)
+        verifier("carte départementale : pas de phrase sur les indéterminés",
+                 "sans département déterminé" not in _bandeau(lire(site_inconnu, "carte/01.html")))
+        verifier("somme des bandeaux départementaux + indéterminés = national (6)",
+                 sum(bilan_inconnu["couverture_cartes"][c]["total"] for c in DEPARTEMENTS) + 3
+                 == bilan_inconnu["couverture_cartes"][""]["total"] == 6)
         verifier("aucune page ne cite Z99 ailleurs que sur la page de son département",
                  "Z99" not in indicateur and "Z99" not in accueil
                  and all("Z99" not in c for c in pages_ind))

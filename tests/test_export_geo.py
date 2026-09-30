@@ -12,7 +12,10 @@ Vérifie `export_geo.exporter` :
    rendu réel d'`export_html` (borne réduite, plusieurs sous-pages, puis
    borne par défaut) : la sous-page désignée porte bien l'établissement ;
 2. invariants (D6) : `localises + non_localises = total`, somme de
-   `par_departement` = total ;
+   `par_departement` = total ; `couverture` (OOM-112, chiffres du bandeau des
+   cartes) : national = compteurs d'`exporter`, départements = son
+   `par_departement` décomposé, somme des départements = national, part
+   propre à chaque département, arrondi qui ne ment pas ;
 3. cas synthétiques : département hors référentiel (`975`) et commune
    illisible en `indetermine`, adresse absente, coordonnées illisibles ou hors
    WGS84, score BAN non numérique gardé brut ;
@@ -144,6 +147,7 @@ with tempfile.TemporaryDirectory(prefix="test_export_geo_") as temporaire:
         rendu = eh.rendre(e, eh.DOSSIER_GABARITS, TMP / "site", lignes_par_sous_page=BORNE)
         rendu_defaut = eh.rendre(e, eh.DOSSIER_GABARITS, TMP / "site_defaut")
         cadres = eg.emprises(e, DEPARTEMENTS)
+        cv = eg.couverture(e, DEPARTEMENTS)
 
         c = e.connexion
         nb_et = c.execute("SELECT COUNT(*) FROM etablissement").fetchone()[0]
@@ -273,6 +277,39 @@ with tempfile.TemporaryDirectory(prefix="test_export_geo_") as temporaire:
              [(d, v, attendues.get(d)) for d, v in cadres.items()
               if v["emprise"] != attendues.get(d)][:2])
 
+    # Couverture (OOM-112) : les chiffres du bandeau des cartes.
+    COMPTEURS = ("total", "localises", "non_localises", "sans_coordonnees",
+                 "coordonnees_invalides")
+    nat = cv["national"]
+    verifier("couverture nationale = compteurs d'exporter (1 753 = 1 141 + 612 : 611 sans, "
+             "1 invalide), part 65,1 %",
+             tuple(nat[k] for k in COMPTEURS) == tuple(bilan[k] for k in COMPTEURS)
+             == (1753, 1141, 612, 611, 1) and nat["part_localises"] == 65.1, nat)
+    verifier("couverture par département : 101 + indetermine, localisés / non localisés = "
+             "par_departement d'exporter, emprise = emprises",
+             list(cv["par_departement"]) == list(DEPARTEMENTS) + [eh.PAGE_INDETERMINEE]
+             and all(v["localises"] == bilan["par_departement"][d]["localises"]
+                     and v["non_localises"] == bilan["par_departement"][d]["non_localises"]
+                     and v["emprise"] == cadres[d]["emprise"]
+                     for d, v in cv["par_departement"].items()))
+    verifier("couverture : somme des départements = national, compteur par compteur (D6)",
+             all(sum(v[k] for v in cv["par_departement"].values()) == nat[k] for k in COMPTEURS))
+    verifier("couverture : chaque département a sa propre part (44 : 183/314 = 58,3 %), None "
+             "sans établissement",
+             cv["par_departement"]["44"]["part_localises"] == round(100 * 183 / 314, 1) == 58.3
+             and cv["par_departement"]["44"]["total"] == 314
+             and all(v["part_localises"] is None for v in cv["par_departement"].values()
+                     if not v["total"]))
+    dep_lambert = next(d for d, v in cv["par_departement"].items() if v["coordonnees_invalides"])
+    verifier(f"couverture : l'invalide ({LAMBERT}) compté dans son département ({dep_lambert})",
+             sum(1 for v in cv["par_departement"].values() if v["coordonnees_invalides"]) == 1
+             and cv["par_departement"][dep_lambert]["coordonnees_invalides"] == 1)
+    verifier("part : l'arrondi ne ment pas (jamais 100,0 s'il en manque, jamais 0,0 s'il y en "
+             "a), None sur un périmètre vide",
+             eg._part(1999, 2000) == 99.9 and eg._part(1, 2000) == 0.1
+             and eg._part(5, 5) == 100.0 and eg._part(0, 5) == 0.0
+             and eg._part(0, 0) is None and eg._part(97347, 174621) == 55.7)
+
     # -----------------------------------------------------------------------
     print("\n3. Cas synthétiques : indéterminés, coordonnées absentes ou invalides")
     synth = TMP / "synthetique.geojson"
@@ -297,6 +334,7 @@ with tempfile.TemporaryDirectory(prefix="test_export_geo_") as temporaire:
         inserer(c, "etablissement", **etablissement("010000009", "G9"))  # sans adresse
         inserer(c, "adresse", **adresse("G9", "01053", "5.2", "46.2", usage="04"))
         b = eg.exporter(e, synth)
+        cv_synth = eg.couverture(e, DEPARTEMENTS)
         rendu_synth = eh.rendre(e, eh.DOSSIER_GABARITS, TMP / "site_synth")
     g = {p["properties"]["finess"]: p for p in lire_geojson(synth)["features"]}
     verifier("compteurs : 9 = 5 localisés + 4 exclus (2 sans, 2 invalides)",
@@ -326,6 +364,14 @@ with tempfile.TemporaryDirectory(prefix="test_export_geo_") as temporaire:
              b["par_departement"]["indetermine"] == {"localises": 2, "non_localises": 1}
              and b["par_departement"]["01"] == {"localises": 2, "non_localises": 3},
              (b["par_departement"]["indetermine"], b["par_departement"]["01"]))
+    verifier("couverture synthétique : national 9 = 5 + 4 (2 sans, 2 invalides) ; 01 : 5 dont "
+             "2 localisés, 1 sans, 2 invalides ; indetermine : 3 dont 2 localisés",
+             tuple(cv_synth["national"][k] for k in COMPTEURS) == (9, 5, 4, 2, 2)
+             and tuple(cv_synth["par_departement"]["01"][k] for k in COMPTEURS)
+             == (5, 2, 3, 1, 2)
+             and tuple(cv_synth["par_departement"]["indetermine"][k] for k in COMPTEURS)
+             == (3, 2, 1, 1, 0),
+             (cv_synth["national"], cv_synth["par_departement"]["01"]))
     verifier("cas synthétiques : liens = sous-pages du rendu (exclus compris dans le rang)",
              all(p["properties"]["lien"].split("#")[0] in lignes_des_sous_pages(
                  TMP / "site_synth", rendu_synth)
@@ -358,6 +404,9 @@ with tempfile.TemporaryDirectory(prefix="test_export_geo_") as temporaire:
         try:
             echoue("lecture incomplète : invariant total = table etablissement",
                    lambda: eg.exporter(e, intact), "lecture incohérente")
+            echoue("couverture sur une lecture incomplète : invariant national = table "
+                   "etablissement", lambda: eg.couverture(e, DEPARTEMENTS),
+                   "couverture incohérente")
         finally:
             eg._REQUETE = requete
     verifier("après chaque échec : fichier existant intact, aucun .partiel",

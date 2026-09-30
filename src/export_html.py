@@ -109,6 +109,13 @@ le modèle d'`export_front.exporter` :
     pages_carte            dict       {code: points localisés de sa carte},
                                       `""` pour la carte nationale (OOM-113) ;
                                       vide en national
+    couverture_cartes      dict       {code: compteurs du bandeau de sa
+                                      carte}, `""` pour la nationale
+                                      (OOM-112) : total, localises,
+                                      non_localises, sans_coordonnees,
+                                      coordonnees_invalides, part_localises,
+                                      tels que `export_geo.couverture` les
+                                      donne ; vide en national
     vendor_copies          list[str]  fichiers de `vendor/` copiés, chemins
                                       relatifs au site (OOM-113) ; vide en
                                       national
@@ -215,6 +222,18 @@ point) et libellés des catégories présentes. Le dossier `vendor/` voisin de
 absence, ou celle d'un script que `carte.js` chargera, est une erreur levée
 avant toute écriture. Chaque ligne de sous-page porte l'ancre
 `id="et-<finess>"` que vise la propriété `lien` des points.
+
+BANDEAU DE COUVERTURE (OOM-112) — une carte ne laisse jamais croire qu'elle
+est complète (D6). Chaque carte porte, dans son HTML initial et avant le
+cadre de la carte (D10), la part des établissements de son propre périmètre
+qui y sont placés, le nombre de ceux qui n'y sont pas, décomposé en « sans
+coordonnées » et « coordonnées invalides », et un lien vers la page qui les
+liste tous (la page du département, l'accueil pour la nationale). Les
+chiffres viennent d'`export_geo.couverture`, qui fait aussi le cadrage : ce
+module ne fait que les mettre en forme (séparateur de milliers, virgule
+décimale) et choisir les phrases (D7). Avant écriture, le total de chaque
+bandeau est vérifié égal à l'effectif que le site rend pour le même
+périmètre (`ErreurExportHtml` sinon).
 
 ACTIFS (OOM-102) — le dossier `actifs/` voisin de `dossier_gabarits` (feuille
 de style commune, îlots JS) est recopié tel quel dans `dossier_sortie/actifs/`
@@ -925,8 +944,52 @@ def _emprise(valeurs: Iterable[float]) -> str:
     return json.dumps([round(v, 6) for v in valeurs], separators=(",", ":"))
 
 
+def _entier(n: int) -> str:
+    """Entier à la française : espace insécable entre les milliers."""
+    return f"{n:,}".replace(",", "\u00a0")
+
+
+def _pourcentage(part: float) -> str:
+    """Part déjà calculée (`export_geo`), écrite à la française : « 65,1 % »."""
+    return f"{part:.1f}".replace(".", ",") + "\u00a0%"
+
+
+def _bandeau_couverture(gabarit: Gabarit, code: Optional[str],
+                        chiffres: Mapping[str, object],
+                        indetermine: Mapping[str, object], racine: str) -> str:
+    """Bandeau de couverture d'une carte (OOM-112) : les compteurs
+    d'`export_geo.couverture` du périmètre de la carte, mis en forme ; le
+    choix des phrases est fait ici, pas dans le gabarit (D7)."""
+    if code is None:
+        lien, cible = racine + "index.html#par-departement", "l'accueil, par département"
+        perimetre = "du répertoire FINESS"
+    else:
+        lien, cible = racine + chemin_page_departement(code), "la page du département"
+        perimetre = "du département"
+    if not chiffres["total"]:
+        return gabarit.remplir("couverture_vide", {
+            "perimetre": perimetre, "lien_couverture": _e(lien), "cible_couverture": cible})
+    valeurs = {cle: _entier(chiffres[cle]) for cle in (
+        "total", "localises", "non_localises", "sans_coordonnees", "coordonnees_invalides")}
+    valeurs.update({
+        "part_localises": _pourcentage(chiffres["part_localises"]),
+        "perimetre": perimetre,
+        "lien_couverture": _e(lien),
+        "cible_couverture": cible,
+        "invalides": (gabarit.remplir("couverture_invalides", {})
+                      if chiffres["coordonnees_invalides"] else ""),
+        "indetermines": "",
+    })
+    if code is None and indetermine["total"]:
+        valeurs["indetermines"] = gabarit.remplir("couverture_indetermines", {
+            "total_indetermine": _entier(indetermine["total"]),
+            "localises_indetermine": _entier(indetermine["localises"]),
+            "lien_indetermine": _e(racine + chemin_page_departement(PAGE_INDETERMINEE))})
+    return gabarit.remplir("couverture", valeurs)
+
+
 def _page_carte(gabarit: Gabarit, donnees: _Donnees, code: Optional[str],
-                localisation: Mapping[str, Mapping[str, object]], racine: str,
+                localisation: Mapping[str, object], racine: str,
                 compteurs: Dict[str, object]) -> Dict[str, object]:
     """Carte nationale (`code` None) ou d'un département (OOM-113).
 
@@ -936,15 +999,25 @@ def _page_carte(gabarit: Gabarit, donnees: _Donnees, code: Optional[str],
     l'îlot `carte.js` a besoin : chemins relatifs de MapLibre, de `pmtiles` et
     de l'archive, style du fond, filtre `dep`, cadrage et libellés des
     catégories présentes. Aucune de ces valeurs n'est calculée dans le
-    gabarit ni dans le JS (D7) ; aucun `<script src>` vers `vendor/` (D9)."""
+    gabarit ni dans le JS (D7) ; aucun `<script src>` vers `vendor/` (D9).
+    `localisation` est le retour d'`export_geo.couverture`, qui donne aussi
+    les chiffres du bandeau de couverture (OOM-112)."""
+    par_departement = localisation["par_departement"]
     if code is None:
         etablissements = donnees.etablissements()
-        localises = sum(e["localises"] for e in localisation.values())
+        chiffres = localisation["national"]
         emprise = EMPRISE_METROPOLE
     else:
         etablissements = [e for e in donnees.etablissements() if donnees.page_de(e) == code]
-        localises = localisation[code]["localises"]
-        emprise = localisation[code]["emprise"] or EMPRISE_METROPOLE
+        chiffres = par_departement[code]
+        emprise = chiffres["emprise"] or EMPRISE_METROPOLE
+    localises = chiffres["localises"]
+    # D6 : le bandeau compte les mêmes établissements que le site.
+    if chiffres["total"] != len(etablissements):
+        raise ErreurExportHtml(
+            f"couverture incohérente pour la carte {code or 'nationale'} : "
+            f"{chiffres['total']} établissement(s) selon export_geo pour "
+            f"{len(etablissements)} rendu(s) dans son périmètre")
     categories = {e["code_categorie"]: e["libelle_categorie"] for e in etablissements
                   if e["code_categorie"] and e["libelle_categorie"]}
     valeurs = dict(compteurs)
@@ -965,6 +1038,8 @@ def _page_carte(gabarit: Gabarit, donnees: _Donnees, code: Optional[str],
         "maplibre": _e(racine + VENDOR_CARTE["maplibre"]),
         "maplibre_css": _e(racine + VENDOR_CARTE["maplibre_css"]),
         "pmtiles": _e(racine + VENDOR_CARTE["pmtiles"]),
+        "couverture": _bandeau_couverture(gabarit, code, chiffres,
+                                          par_departement[PAGE_INDETERMINEE], racine),
     })
     if code is None:
         valeurs["intitule"] = "France entière"
@@ -978,7 +1053,7 @@ def _page_carte(gabarit: Gabarit, donnees: _Donnees, code: Optional[str],
     else:
         valeurs["intitule"] = f"{valeurs['libelle_departement']} ({valeurs['code_departement']})"
         valeurs["explication"] = gabarit.remplir(
-            "explication" if localisation[code]["emprise"] else "explication_sans_point",
+            "explication" if chiffres["emprise"] else "explication_sans_point",
             valeurs)
         valeurs["listes"] = gabarit.remplir("listes", {
             "lien_departement": _e(racine + chemin_page_departement(code)),
@@ -988,6 +1063,9 @@ def _page_carte(gabarit: Gabarit, donnees: _Donnees, code: Optional[str],
     page = PAGE_CARTE if code is None else chemin_carte_departement(code)
     compteurs["lignes_rendues"][page] = localises
     compteurs["pages_carte"][code or ""] = localises
+    compteurs["couverture_cartes"][code or ""] = {
+        cle: chiffres[cle] for cle in ("total", "localises", "non_localises", "sans_coordonnees",
+                                       "coordonnees_invalides", "part_localises")}
     return valeurs
 
 
@@ -1130,6 +1208,7 @@ def rendre(entrepot: Entrepot, dossier_gabarits: Path, dossier_sortie: Path,
         "activites_fragments": 0,
         "activites_orphelines": 0,
         "pages_carte": {},
+        "couverture_cartes": {},
         "vendor_copies": [],
         "octets_vendor": {},
     }
@@ -1200,8 +1279,11 @@ def rendre(entrepot: Entrepot, dossier_gabarits: Path, dossier_sortie: Path,
         # référentiel. Les points localisés sans département déterminé ne
         # figurent que sur la nationale (leur filtre `dep` serait
         # `indetermine`, sans territoire sur quoi cadrer).
-        from export_geo import emprises  # export_geo importe ce module
-        localisation = emprises(entrepot, donnees.departements)
+        from export_geo import ErreurExportGeo, couverture  # export_geo importe ce module
+        try:
+            localisation = couverture(entrepot, donnees.departements)
+        except ErreurExportGeo as erreur:
+            raise ErreurExportHtml(f"export_geo : {erreur}") from erreur
         gabarit = gabarits[GABARIT_CARTE]
         rendus[PAGE_CARTE] = habiller(PAGE_CARTE, gabarit, _page_carte(
             gabarit, donnees, None, localisation, "", compteurs), "")
@@ -1293,6 +1375,12 @@ if __name__ == "__main__":
               f"point localisé ; la plus lourde {lourde} ({bilan['octets'][lourde] / 1024:.1f} Ko) ; "
               f"MapLibre chargé au clic depuis {DOSSIER_VENDOR}/ "
               f"({sum(bilan['octets_vendor'].values()) / 1024:.1f} Ko, hors chargement initial)")
+        nationale = bilan["couverture_cartes"][""]
+        print(f"    bandeau de couverture, carte nationale : {nationale['localises']} localisé(s) "
+              f"sur {nationale['total']} ({nationale['part_localises']} %), "
+              f"{nationale['non_localises']} non localisé(s) — "
+              f"{nationale['sans_coordonnees']} sans coordonnées, "
+              f"{nationale['coordonnees_invalides']} aux coordonnées invalides")
     for actif in bilan["actifs_copies"]:
         print(f"    {'actifs/' + actif:<34}{bilan['octets_actifs'][actif] / 1024:>10.1f} Ko")
     print(f"    {bilan['nombre_etablissements']} établissement(s), "

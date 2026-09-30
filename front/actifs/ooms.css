@@ -169,3 +169,7 @@ nav.sous-pages { margin: 0 0 1rem; }
 .carte-listes a { color: var(--accent); margin-right: 1rem; }
 .carte-fenetre p { margin: .3rem 0 0; }
 .cartes-departements { columns: 16rem; }
+/* Bandeau de couverture (OOM-112) : avant la carte, visible sans JS. */
+.couverture { background: var(--panel); border: 1px solid var(--bordure); border-left: 4px solid #d4a72c; border-radius: 8px; padding: .8rem 1rem; margin: 0 0 1rem; }
+.couverture h2 { margin: 0 0 .4rem; font-size: 1rem; }
+.couverture p { margin: .3rem 0; }
