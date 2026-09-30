@@ -32,7 +32,11 @@ name: Publication GitHub Pages
 #             `base.sqlite` en artefact à rétention courte ;
 #   rendre    récupère la base (de ce run, ou d'un run précédent via
 #             l'entrée `run_id_base` — rejoue le rendu sans recharger),
-#             `export_html.py` (découpage département), `upload-pages-artifact` ;
+#             `export_html.py` (découpage département), puis l'archive de
+#             tuiles (OOM-111) : tippecanoe épinglé, `scripts/tuiles.py
+#             generer` (GeoJSON d'`export_geo` hors de `site/`, archive
+#             contrôlée copiée dans `site/tuiles/etablissements.pmtiles`),
+#             `upload-pages-artifact` ;
 #   deployer  `deploy-pages`, seulement depuis `main` et seulement une fois
 #             Pages activé (variable de dépôt `PAGES_ACTIVE`, posée par
 #             OOM-55) ; sinon sauté, jamais en échec.
@@ -299,6 +303,72 @@ jobs:
           python3 src/export_html.py base.sqlite --sortie site/ | tee rendu.txt
           echo "| Rendre le site | $(( $(date +%s) - t )) s |" >> "$GITHUB_STEP_SUMMARY"
 
+      # Archive PMTiles des établissements (OOM-111). Tous les paramètres de
+      # génération, version de tippecanoe comprise (tag + commit), sont dans
+      # `scripts/tuiles.py`. tippecanoe est compilé depuis ce commit précis,
+      # dont l'identité est vérifiée ; le binaire est mis en cache sous une clé
+      # qui porte le commit, donc jamais réutilisé pour une autre version.
+      - name: Lire la version épinglée de tippecanoe
+        id: tippecanoe
+        run: |
+          set -euo pipefail
+          read -r version commit <<< "$(python3 scripts/tuiles.py version)"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "commit=$commit" >> "$GITHUB_OUTPUT"
+
+      - name: Cache de tippecanoe
+        id: cache-tippecanoe
+        uses: actions/cache@v4
+        with:
+          path: ~/tippecanoe/bin
+          key: tippecanoe-${{ runner.os }}-${{ runner.arch }}-${{ steps.tippecanoe.outputs.commit }}
+
+      - name: Installer tippecanoe (version épinglée)
+        env:
+          VERSION: ${{ steps.tippecanoe.outputs.version }}
+          COMMIT: ${{ steps.tippecanoe.outputs.commit }}
+          EN_CACHE: ${{ steps.cache-tippecanoe.outputs.cache-hit }}
+        run: |
+          set -euo pipefail
+          t=$(date +%s)
+          if [ "$EN_CACHE" = "true" ]; then
+            origine="cache"
+          else
+            sudo apt-get install -y -q --no-install-recommends libsqlite3-dev zlib1g-dev
+            git init -q tippecanoe-src
+            git -C tippecanoe-src fetch -q --depth 1 https://github.com/felt/tippecanoe.git "$COMMIT"
+            git -C tippecanoe-src checkout -q FETCH_HEAD
+            lu=$(git -C tippecanoe-src rev-parse HEAD)
+            if [ "$lu" != "$COMMIT" ]; then
+              echo "Commit de tippecanoe $lu, $COMMIT épinglé" >&2
+              exit 1
+            fi
+            make -C tippecanoe-src -j"$(nproc)" tippecanoe
+            mkdir -p ~/tippecanoe/bin
+            cp tippecanoe-src/tippecanoe ~/tippecanoe/bin/
+            origine="compilé depuis $COMMIT"
+          fi
+          lue=$(~/tippecanoe/bin/tippecanoe --version 2>&1)
+          case "$lue" in
+            "tippecanoe v$VERSION"|"tippecanoe v$VERSION "*) ;;
+            *) echo "Version lue « $lue », tippecanoe v$VERSION épinglé" >&2; exit 1 ;;
+          esac
+          echo "$HOME/tippecanoe/bin" >> "$GITHUB_PATH"
+          echo "| Installer tippecanoe v$VERSION ($origine) | $(( $(date +%s) - t )) s |" >> "$GITHUB_STEP_SUMMARY"
+
+      # D6 : un contrôle en échec (plafond de 100 Mo, archive tronquée, points
+      # perdus, couche ou propriété absente) sort en 1 AVANT toute copie dans
+      # `site/tuiles/` ; l'artefact Pages n'est alors jamais préparé. Chemins de
+      # travail fixes : tippecanoe recopie sa ligne de commande dans l'archive.
+      - name: Générer l'archive de tuiles
+        run: |
+          set -euo pipefail
+          t=$(date +%s)
+          rc=0
+          python3 scripts/tuiles.py generer base.sqlite --travail tuiles-travail             --archive site/tuiles/etablissements.pmtiles --resume tuiles.md || rc=$?
+          echo "| Générer l'archive de tuiles (code $rc) | $(( $(date +%s) - t )) s |" >> "$GITHUB_STEP_SUMMARY"
+          exit $rc
+
       - name: Préparer l'artefact Pages
         uses: actions/upload-pages-artifact@v3
         with:
@@ -314,6 +384,9 @@ jobs:
               echo "- Pages écrites : $(find site -name '*.html' | wc -l)"
               echo "- Poids total du site : $(du -sb site | cut -f1) octets"
               echo "- Page la plus lourde : $(find site -name '*.html' -printf '%s %P\n' | sort -n | tail -1 | awk '{print $2 " (" $1 " octets)"}')"
+            fi
+            if [ -f tuiles.md ]; then
+              cat tuiles.md
             fi
             if [ -f rendu.txt ]; then
               echo

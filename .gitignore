@@ -27,3 +27,10 @@ __pycache__/
 # Graphe de connaissance graphify (outil de dev, hors pipeline) —
 # régénérable par /graphify, jamais versionné (D8).
 /graphify-out/
+
+# GeoJSON et archives de tuiles (OOM-110, OOM-111) — produits par
+# scripts/tuiles.py hors de site/, jamais versionnés (D8).
+*.geojson
+*.pmtiles
+/tuiles-travail/
+/tippecanoe-src/

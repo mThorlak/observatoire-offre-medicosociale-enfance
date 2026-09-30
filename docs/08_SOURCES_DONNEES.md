@@ -720,3 +720,71 @@ Les deux scripts de téléchargement prennent `--mensuel AAAAMM` : ils sélectio
 ## Publication du site
 
 `.github/workflows/pages.yml` ne publie plus que des mensuels. L'entrée `millesime` (`AAAAMM`) de `workflow_dispatch` désigne le millésime ; vide, elle vaut le dernier mensuel publié, résolu depuis l'API des deux sources (qui doivent concorder, sinon échec) et affiché dans le résumé du run. Un `schedule` le **3 du mois à 06:00 UTC** publie le dernier mensuel : deux jours de marge sur la publication observée le 1er vers 02:15 UTC. Si le mensuel du mois écoulé manque encore, le run reconstruit le dernier publié et le signale par un avertissement. Reconstruire le même millésime donne un site identique, à l'horodatage « Généré le » près.
+
+---
+
+# 19. Archive de tuiles PMTiles des établissements (OOM-111)
+
+Mesuré le 30/09/2026 sur le mensuel figé `202608` (runs `pages.yml` 36763436810 et 36764004918, branche d'OOM-111).
+
+## Chaîne
+
+Dans le job `rendre` de `pages.yml`, après le rendu du site : `scripts/tuiles.py generer` appelle `export_geo.exporter` (contrat C) vers `tuiles-travail/etablissements.geojson`, **hors de `site/`**, lance tippecanoe vers `tuiles-travail/etablissements.pmtiles`, contrôle l'archive, puis seulement la copie dans `site/tuiles/etablissements.pmtiles`. Ni le GeoJSON ni l'archive ne sont versionnés (D8, `.gitignore`).
+
+## Paramètres versionnés
+
+Tous dans `scripts/tuiles.py` :
+
+- tippecanoe **2.79.0**, commit `68ab8dcc229f95b8b25877697d5e8d66783af503` (dépôt `felt/tippecanoe`) : le workflow récupère ce commit précis, vérifie son identité, compile la seule cible `tippecanoe`, puis vérifie la version affichée. Le binaire est mis en cache sous une clé qui porte le commit ;
+- couche `etablissements`, zooms 0 à 14 ;
+- `--drop-densest-as-needed` : aux petits zooms, une tuile trop lourde perd ses points les plus denses ; au zoom 14, tous les points sont présents. Des points n'ont pas d'autre simplification ;
+- propriétés conservées : celles du contrat C, ni plus ni moins (`finess`, `nom`, `categorie`, `dep`, `lien`, `score_ban`, `etat`) ;
+- `TIPPECANOE_MAX_THREADS=4` : l'archive ne dépend pas du nombre de cœurs du runner. Pas de lecture parallèle (`-P`).
+
+tippecanoe recopie sa ligne de commande dans les métadonnées de l'archive : les chemins de travail sont donc fixes dans le workflow.
+
+## Contrôles bloquants (D6)
+
+Avant toute copie dans `site/tuiles/`, en Python stdlib (en-tête PMTiles v3 et métadonnées) : taille ≤ 100 000 000 octets (sous le plafond de 100 Mio d'un fichier Pages), signature et version, sections contenues dans le fichier et données de tuiles finissant exactement à la fin du fichier (archive tronquée), tuiles MVT, couche `etablissements` portant toutes les propriétés du contrat C, et nombre de points de la couche (`tilestats`) égal aux localisés d'`export_geo`. Un échec sort en 1 et l'artefact Pages n'est jamais préparé. Couvert par `tests/test_tuiles.py` (faux tippecanoe).
+
+## Mesures
+
+| Mesure | Valeur |
+|---|---:|
+| Établissements (`total`) | 174 621 |
+| Localisés = points de l'archive | 97 347 (55,7 %) |
+| `sans_coordonnees` | 53 959 |
+| `coordonnees_invalides` | 23 315 |
+| GeoJSON (non publié) | 26 465 665 o |
+| Archive | 17 153 554 o (17,2 Mo), 40 019 tuiles |
+| Empreinte SHA-256, deux runs complets | `d74d11e6779348a7ef60c49d4eafd02611660f0e3430cf6124be54cffe30d29b` (identique) |
+| Temps ajouté à `rendre`, tippecanoe compilé | ≈ 51 s (compilation 38 s, génération 10 s) |
+| Temps ajouté à `rendre`, tippecanoe en cache | ≈ 15 s |
+
+Le premier run a compilé tippecanoe, le second l'a restauré du cache : même empreinte. Le cache d'une branche n'étant pas visible depuis `main`, le premier run de `main` compile.
+
+## Coordonnées permutées : 23 315 établissements exclus
+
+L'échantillon versionné ne comptait qu'un cas de Lambert 93 dans `coordonnee_*` (010002285). Sur l'extrait complet, les **23 315** `coordonnees_invalides` (13,4 % des établissements) sont tous le même phénomène : les deux blocs de coordonnées sont **permutés** ligne à ligne. `coordonnee_*` porte la projection et `direction_*` les degrés WGS84, soit l'inverse des 97 347 lignes localisées (tableau « Piège de nommage » de `CLAUDE.md`) :
+
+| `coordonnee_*` | `direction_*` | Établissements |
+|---|---|---:|
+| degrés WGS84 | projection (hors degrés) | 97 347 |
+| projection (hors degrés) | degrés WGS84 | 23 315 |
+| absentes | absentes | 53 959 |
+
+Parmi les 23 315 : 22 934 en métropole avec des valeurs plausibles de Lambert 93 (X de 100 000 à 1 300 000 m, Y de 6 000 000 à 7 200 000 m), 381 outre-mer (974 : 214, 972 : 60, 971 : 58, 973 : 30, 976 : 14, 977 : 2, 978 : 2, 975 : 1) avec des valeurs de projection locale (UTM probable). Exemple : 010001733, `coordonnee_*` = (872835.21, 6569568.1), `direction_*` = (5.241822, 46.203876).
+
+Conformément au contrat C, ces lignes sont exclues et comptées, jamais « réparées » depuis les `direction_*`. Les récupérer (lire les degrés là où ils sont, ligne par ligne) est une décision de modèle, à prendre hors d'OOM-111.
+
+## Contrôle en ligne (après déploiement depuis `main`)
+
+À faire par l'orchestrateur après fusion et publication (réserve 2 de la section 16) :
+
+```
+curl -s -D - -o /dev/null -r 0-99 -H 'Accept-Encoding: identity' \
+  https://mthorlak.github.io/observatoire-offre-medicosociale-enfance/tuiles/etablissements.pmtiles
+curl -s -r 0-6 -H 'Accept-Encoding: identity' <même URL>   # → PMTiles
+```
+
+Attendu : `206 Partial Content`, `Content-Range: bytes 0-99/17153554` (taille du millésime publié), pas de `Content-Encoding`, 7 premiers octets `PMTiles`. Relever le `Content-Type` servi.
