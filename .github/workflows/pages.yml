@@ -68,9 +68,31 @@ name: Publication GitHub Pages
 permissions:
   contents: read
 
-# Un déploiement à la fois ; on n'annule pas un déploiement en cours.
+# Concurrence à deux étages (OOM-119).
+#
+# GitHub ne garde qu'UN run en attente par groupe de concurrence : un nouveau
+# run en attente annule, avant son démarrage, celui qui attendait déjà. Avec
+# un groupe unique `pages` pour tout le dépôt, un run de test lancé sur une
+# branche pouvait donc évincer une publication de `main` en attente, et
+# inversement (run 36624443021, annulé sans avoir démarré le 29/09/2026) —
+# une publication perdue sans que rien ne l'ait refusée (D6).
+#
+# 1. Le run entier — donc `charger` et `rendre` — est regroupé par référence
+#    (`pages-refs/heads/<branche>`) : les runs d'une branche ne se sérialisent
+#    qu'entre eux et ne touchent plus la file de `main`. Groupe au niveau du
+#    run plutôt que par job : deux runs d'une même référence ne s'entrelacent
+#    pas (le `rendre` de l'un n'attend jamais derrière le `charger` de
+#    l'autre, où il pourrait être évincé). Le `schedule` tourne sur la branche
+#    par défaut, donc dans le groupe de `main`.
+# 2. `deployer` prend en plus le groupe global `pages` (niveau job) : un seul
+#    déploiement à la fois pour tout le dépôt, quelle que soit la référence.
+#
+# `cancel-in-progress: false` aux deux étages : un run ou un déploiement
+# démarré n'est jamais annulé en cours. Seul un run en attente peut encore
+# être remplacé par un run plus récent de la MÊME référence, qui publie alors
+# le même millésime ou un plus récent.
 concurrency:
-  group: pages
+  group: pages-${{ github.ref }}
   cancel-in-progress: false
 
 env:
@@ -314,6 +336,11 @@ jobs:
     if: github.ref == 'refs/heads/main' && vars.PAGES_ACTIVE == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    # Groupe global, commun à toutes les références : un seul déploiement à
+    # la fois, jamais annulé en cours (voir le bloc `concurrency` du run).
+    concurrency:
+      group: pages
+      cancel-in-progress: false
     permissions:
       pages: write
       id-token: write
